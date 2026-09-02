@@ -197,7 +197,7 @@ if (BUILD === '9199') {
     ['MediaScene', 'no own definition is set by dashcomm/OfflineMarketplace.xur, the one scene using it; Image is unexercised'],
   ] as const) {
     const x = xml.classes.find((c) => c.name === name)!;
-    add(name, x.base, x.props.map((p) => ({ ...p, owner: name, origin: 'xuitool-xml' })), `NOT registered by dash.xex 9199 (the class name is not in its image); definitions from XuiTool (XUIHelper 9199 XML): ${note}`);
+    add(name, x.base, x.props.map((p, i) => ({ ...p, id: i, owner: name, origin: 'xuitool-xml' })), `NOT registered by dash.xex 9199 (the class name is not in its image); definitions from XuiTool (XUIHelper 9199 XML): ${note}`);
   }
 }
 

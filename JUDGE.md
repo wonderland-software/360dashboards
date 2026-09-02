@@ -89,3 +89,25 @@ each is closed with what changed.
   Observation for the input phase: driving frames on the M3a page restarts
   btn_1line_icon's Focus range early, so something in the focus layer
   re-triggers setState mid-range.
+
+## NXE 9199 pipeline and registry — Judge AB-9199
+
+- **2026-09-02, round 1 @ b8c2c38: PASS** (data and registry; docs
+  FAIL-with-fixes). Verified from the bytes: 29/29 resources exact, all
+  4,344 pack entries hash-match, the duplicated slots TOC entry is
+  byte-identical, a partial dump fails the count step, devkit signs the
+  same image (29 resources byte-identical), eleven class tables re-derived
+  from the disassembly with an independent reader match the registry
+  name-for-name, mechanical bl-target binding verified on the PressKey and
+  Script* tables, XuiVideo's two properties hand-decoded from the scene,
+  6770 registry change provenance-only, DvdAction.xur hand-decoded to its
+  last byte, six count headers re-counted, 3,658 string tables to EOF with
+  five keyed entries resolved by hand. Findings, all closed in the next
+  commit: the keyed-entry statistic was a subset (13,714 total, 137 in 64
+  tables unverified); the devkit sentence omitted the positive half; the
+  pack-rename list was wrong (dashuisk exists in both); the canvas list was
+  incomplete; audio asserted only duration > 0 (now source and output PCM
+  lengths must agree within 5 ms); the 44.1 kHz note was a 6770 fact (16 of
+  17 NXE sources are 44.1); the XuiElement tail wording overstated; two
+  compile-time classes carried null ids. Observation for NXE timelines: 520
+  of 570 Ease keyframes use negative ease values.

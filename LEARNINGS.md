@@ -68,7 +68,10 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
 - **Audio:** 16 `.xma` (XMA1, RIFF-wrapped) decode directly with ffmpeg;
   PCM durations of the Ogg Opus outputs match the sources to 0.0 ms and
   channel counts are preserved. One file, `shrdres/btn_InactiveFocus.xma`,
-  is 44.1 kHz and comes out at 48 kHz because Opus has no 44.1 k mode; the
+  is 44.1 kHz and comes out at 48 kHz because Opus has no 44.1 k mode (in
+  NXE 9199 it is 16 of 17 sources; only `dashcomm/tab_Switch.xma` is 48 kHz,
+  so nearly the whole NXE set is resampled; `convert-audio` asserts source
+  and output durations agree within 5 ms and channels match); the
   manifest records the source XMA's size/sha256 for audio entries, not the
   transcoded file's (there is no byte-identical target to hash).
 - **The devkit twin (6719) is an independent witness.** Decrypted with the
@@ -249,17 +252,24 @@ XUR_PASS 311/311, `xur2xui --diff` is XUIDIFF_PASS 308 identical, and every
   6 with the count header), 296 png, 28 jpg, 3,658 `.xus`, 17 xma, 7 scb,
   20 `.uxfx` (compiled shader effects: reflection, texturemask, ripple,
   blur, colour ops), 5 `.xml` (homepage channel/config), `neon/modules.ox`.
-  Pack names changed (dashuisk, homepage, controlp, slots, firstrun, gamer,
-  signin, thermal, parental, noobe replace blademp, botd, gamesbla,
-  mediabla, live, oobe, videocha, dashskn1/2). The devkit 9199 `shrdres.xzp`
-  is NOT byte-identical to retail (120,922 vs 193,336 bytes), unlike Blades.
+  Nine packs are new (controlp, firstrun, gamer, homepage, noobe, parental,
+  signin, slots, thermal) and nine Blades packs are gone (blademp, botd,
+  dashskn1, dashskn2, gamesbla, live, mediabla, oobe, videocha); dashuisk
+  exists in both. The devkit 9199 signs the SAME image: its resource table
+  and all 29 resources are byte-identical to retail (a second witness for
+  4,262 of the 4,344 pack entries), but its loose `shrdres.xzp` is a
+  different file (120,922 vs 193,336 bytes, sharing only 5 of retail's 82
+  paths), so those 77 entries have no second witness.
 - **A TOC can list the same path twice.** `slots` names `TraySlotScene.xur`
   twice with identical bytes, so 4,344 entries become 4,343 files.
   `unpack-xuiz` now reports duplicates (a differing duplicate fails), and
   `fixtures/expected-<build>.json` pins both `entries` and `packEntries`.
 - **XUS is unchanged:** kinds 1=3,388 keyed, 2=258 positional, 0=12 named;
-  13,577 keyed entries in 3,324 tables all resolve to a string property of
-  the sibling scene with the 9199 registry.
+  all 3,658 parse to EOF. Of 13,714 keyed entries, the 13,577 in the 3,324
+  tables that have a sibling scene all resolve to a string property with
+  the 9199 registry; 64 tables (137 entries, e.g.
+  `firstrun/<locale>/OfflinePrimetimeSlotScene.xus`) have no sibling scene
+  and are unverified.
 - **9199 builds its property tables in `.data`, not on the stack, and
   stores the index AFTER the name** (Id's index lands 12 bytes past its
   name at 0x921871a8; XuiFigure's Stroke type 0x34 bytes past). The
@@ -313,8 +323,9 @@ XUR_PASS 311/311, `xur2xui --diff` is XUIDIFF_PASS 308 identical, and every
   TextureSurfaceElement from our side (controlp/PanelScene sets it).
 - **What the NXE scenes use that Blades never did** (class census): no
   scene sets `Font` (26 did in 6770), so every text takes the skin default;
-  canvases are 1120x770 (202), 420x320 (30), 1280x720 (29), 880x480 (9),
-  512x512, 1024x720; Anchor carries bits 6-7 (0xc0-0xcf, 325 uses);
+  canvases are 1120x770 (202), 420x320 (30), 1280x720 (29), 720x480 (12),
+  640x480 (11), 880x480 (9), and singletons 512x512, 1024x720, 1024x768,
+  460x495, 420x450, 280x450, 270x360, 320x320, 405x88, 162x25, 64x64; Anchor carries bits 6-7 (0xc0-0xcf, 325 uses);
   BlendMode 4/5 stay rare (13); image paths add `controlpack://`;
   LegacyControl in 172 scenes, XuiHtmlElement 25, AuraControl 13,
   XuiGamerCard 9, ScriptScene 8, XuiTextureSurface 7, XuiAvatar 5,

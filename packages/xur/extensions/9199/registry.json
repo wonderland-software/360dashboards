@@ -3976,7 +3976,7 @@
    "base": "XuiElement",
    "props": [
     {
-     "id": null,
+     "id": 0,
      "name": "File",
      "type": "string",
      "flags": [],
@@ -3985,7 +3985,7 @@
      "origin": "xuitool-xml"
     },
     {
-     "id": null,
+     "id": 1,
      "name": "SizeMode",
      "type": "unsigned",
      "flags": [],
@@ -3994,7 +3994,7 @@
      "origin": "xuitool-xml"
     },
     {
-     "id": null,
+     "id": 2,
      "name": "Pause",
      "type": "bool",
      "flags": [],
@@ -4003,7 +4003,7 @@
      "origin": "xuitool-xml"
     },
     {
-     "id": null,
+     "id": 3,
      "name": "Loop",
      "type": "bool",
      "flags": [],
@@ -4012,7 +4012,7 @@
      "origin": "xuitool-xml"
     },
     {
-     "id": null,
+     "id": 4,
      "name": "Volume",
      "type": "float",
      "flags": [],
@@ -4028,7 +4028,7 @@
    "base": "ScriptScene",
    "props": [
     {
-     "id": null,
+     "id": 0,
      "name": "Image",
      "type": "string",
      "flags": [],

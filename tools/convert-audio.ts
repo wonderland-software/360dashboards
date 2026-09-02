@@ -61,6 +61,13 @@ interface Probe {
   channels: number;
 }
 
+/** Decoded length in ms from the PCM sample count at 48 kHz (null on failure). */
+function decodedMs(file: string, channels: number): number | null {
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 's16le', '-ac', String(channels), '-ar', '48000', '-'], { maxBuffer: 64 * 1024 * 1024 });
+  if (r.status !== 0 || !r.stdout) return null;
+  return Math.round((r.stdout.length / (2 * channels * 48000)) * 1000);
+}
+
 function probe(file: string): Probe | string {
   const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=channels,duration:format=duration', '-of', 'json', file], { encoding: 'utf8' });
   if (r.status !== 0) return (r.stderr || 'ffprobe failed').trim();
@@ -124,6 +131,18 @@ for (const src of inputs) {
   }
   if (p.channels < 1) {
     failures.push(`${rel}: ${p.channels} channels`);
+    continue;
+  }
+  // The transcode must keep every sample: compare against the source's own
+  // decoded duration and channel count (Judge AB-9199: a truncating ffmpeg
+  // would otherwise still pass). 5 ms covers Opus's 20 ms framing rounding
+  // on both ends after ffprobe's own rounding; the measured maximum is 0.02.
+  // ffprobe reports no stream duration for XMA, so both sides are decoded
+  // to PCM at one rate and the sample counts compared.
+  const srcMs = decodedMs(src, p.channels);
+  const outMs = decodedMs(dst, p.channels);
+  if (srcMs === null || outMs === null || Math.abs(srcMs - outMs) > 5) {
+    failures.push(`${rel}: source decodes to ${srcMs} ms, output to ${outMs} ms`);
     continue;
   }
   rows.push({ out: relative(outDir, dst), durationMs: p.durationMs, channels: p.channels });
