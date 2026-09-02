@@ -125,6 +125,29 @@
    "source": "dash.xex 6770 .text @0x92140318"
   },
   {
+   "name": "XuiHVBlurEffect",
+   "base": "XuiEffect",
+   "props": [
+    {
+     "id": 0,
+     "name": "Brightness",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHVBlurEffect"
+    },
+    {
+     "id": 1,
+     "name": "BlurAmount",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHVBlurEffect"
+    }
+   ],
+   "source": "dash.xex 6770 .text @0x921405cc"
+  },
+  {
    "name": "XuiHBlurEffect",
    "base": "XuiEffect",
    "props": [
@@ -145,7 +168,7 @@
      "owner": "XuiHBlurEffect"
     }
    ],
-   "source": "dash.xex 6770 .text @0x921405cc"
+   "source": "dash.xex 6770 .text @0x92140784"
   },
   {
    "name": "XuiVBlurEffect",
@@ -166,29 +189,6 @@
      "flags": [],
      "defaultValue": null,
      "owner": "XuiVBlurEffect"
-    }
-   ],
-   "source": "dash.xex 6770 .text @0x92140784"
-  },
-  {
-   "name": "XuiHVBlurEffect",
-   "base": "XuiEffect",
-   "props": [
-    {
-     "id": 0,
-     "name": "Brightness",
-     "type": "float",
-     "flags": [],
-     "defaultValue": null,
-     "owner": "XuiHVBlurEffect"
-    },
-    {
-     "id": 1,
-     "name": "BlurAmount",
-     "type": "float",
-     "flags": [],
-     "defaultValue": null,
-     "owner": "XuiHVBlurEffect"
     }
    ],
    "source": "dash.xex 6770 .text @0x921408d4"
@@ -1199,7 +1199,7 @@
    "source": "dash.xex 6770 .text @0x921473cc"
   },
   {
-   "name": "XuiTransition",
+   "name": "XuiEffect",
    "base": "XuiElement",
    "props": [
     {
@@ -1208,7 +1208,7 @@
      "type": "string",
      "flags": [],
      "defaultValue": null,
-     "owner": "XuiTransition"
+     "owner": "XuiEffect"
     }
    ],
    "source": "dash.xex 6770 .text @0x92147620"
@@ -1352,9 +1352,99 @@
      "flags": [],
      "defaultValue": null,
      "owner": "XuiElement"
+    },
+    {
+     "id": 17,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 18,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 19,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 20,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 21,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 22,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 23,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 24,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 25,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 26,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
     }
    ],
-   "source": "dash.xex 6770 .text @0x92149c94"
+   "source": "dash.xex 6770 .text @0x92149c94; definitions 17-26 from XuiTool (XUIHelper 9199 XML), required by the 4 mask bytes every scene writes"
   },
   {
    "name": "XuiControl",
@@ -1942,10 +2032,10 @@
    "source": "dash.xex 6770 registration @0x921497c4 (no property table found: zero own properties)"
   },
   {
-   "name": "XuiEffect",
+   "name": "XuiTransition",
    "base": "XuiElement",
    "props": [],
-   "source": "dash.xex 6770 registration @0x9214afd8 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x9214af38 (no property table found: zero own properties)"
   },
   {
    "name": "MediaSourceNoComputersMetapanelScene",
@@ -2306,12 +2396,6 @@
    "base": "XuiScene",
    "props": [],
    "source": "dash.xex 6770 registration @0x921c4a84 (no property table found: zero own properties)"
-  },
-  {
-   "name": "ConvectionUIFallback",
-   "base": "file://media:/XenonCLatin.xtt",
-   "props": [],
-   "source": "dash.xex 6770 registration @0x921ca9dc (no property table found: zero own properties)"
   },
   {
    "name": "MusicPlayPauseButton",
@@ -3220,24 +3304,6 @@
    "source": "dash.xex 6770 registration @0x92299454 (no property table found: zero own properties)"
   },
   {
-   "name": "BeginShowOSD",
-   "base": "BeginHideOSD",
-   "props": [],
-   "source": "dash.xex 6770 registration @0x9229e040 (no property table found: zero own properties)"
-  },
-  {
-   "name": "BeginHideOSD",
-   "base": "EndShowOSD",
-   "props": [],
-   "source": "dash.xex 6770 registration @0x9229e040 (no property table found: zero own properties)"
-  },
-  {
-   "name": "EndShowOSD",
-   "base": "EndHideOSD",
-   "props": [],
-   "source": "dash.xex 6770 registration @0x9229e040 (no property table found: zero own properties)"
-  },
-  {
    "name": "DvdInfoPane",
    "base": "XuiScene",
    "props": [],
@@ -3272,12 +3338,6 @@
    "base": "XuiScene",
    "props": [],
    "source": "dash.xex 6770 registration @0x922a2f88 (no property table found: zero own properties)"
-  },
-  {
-   "name": "ConvectionUI",
-   "base": "file://dvdmedia:/XenonJKLatin.xtt",
-   "props": [],
-   "source": "dash.xex 6770 registration @0x922a7038 (no property table found: zero own properties)"
   },
   {
    "name": "XuiFall07BOTDScene",
@@ -3345,9 +3405,27 @@
      "defaultValue": null,
      "owner": "XuiFall07BOTDScene",
      "inferred": true
+    },
+    {
+     "id": 7,
+     "name": "Unknown7",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFall07BOTDScene",
+     "inferred": true
+    },
+    {
+     "id": 8,
+     "name": "Unknown8",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFall07BOTDScene",
+     "inferred": true
     }
    ],
-   "source": "inferred from botd/defaultbanner_featured.xur: 4th packed byte with mask 0x40 selecting one string; properties 0-5 never set in the corpus so their names/types are unknown"
+   "source": "NOT registered by dash.xex. From botd/defaultbanner_featured.xur alone: the object writes 2 mask bytes (9-16 definitions) and sets only bit 6, whose value is a string index. Only definition 6 is evidenced; 0-5 and 7-8 are placeholders that exist so the mask-byte count matches, and their names and types are unknown."
   }
  ],
  "notes": {}

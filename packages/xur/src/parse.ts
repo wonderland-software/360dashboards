@@ -186,6 +186,13 @@ function readProperties(ctx: Ctx, className: string): XuProperty[] {
     trace?.(`  ${cls.name}: packed=${packed.toString(2).padStart(8, '0')}`);
     if (packed === 0) continue;
     const maskCount = packed & 0x7;
+    // XuiTool writes ceil(definitions / 8) mask bytes for the class as IT
+    // knew it, so the byte count is evidence of the compile-time
+    // definition length. A registry shorter than that means definitions
+    // are missing; longer means they are invented. Both are errors.
+    if (maskCount !== Math.ceil(cls.props.length / 8)) {
+      throw new Error(`${className}/${cls.name}: file has ${maskCount} mask bytes, registry declares ${cls.props.length} properties (${Math.ceil(cls.props.length / 8)} bytes)`);
+    }
     const masks: number[] = [];
     for (let i = 0; i < maskCount; i++) masks.push(r.u8());
     masks.reverse();
@@ -267,14 +274,24 @@ function readCompound(ctx: Ctx, def: XuPropertyDef): XuProperty[] {
   const at = r.pos;
   const declaredValues = r.i16();
   const cls = ctx.reg.compoundClassFor(def);
-  const depth = r.u8(); // hierarchical depth; informational
-  const maskCount = Math.max(Math.ceil(cls.props.length / 8), 1);
+  // The same packed byte as an object's property block: low 3 bits = mask
+  // byte count, upper 5 = properties selected - 1 (4,579/4,579 compounds in
+  // Blades 6770 agree). Read the count from the FILE so a registry whose
+  // definition count crosses an 8-boundary cannot silently misalign.
+  const packed = r.u8();
+  const maskCount = packed & 0x7;
+  if (maskCount !== Math.ceil(cls.props.length / 8)) {
+    throw new Error(`${def.name}: file has ${maskCount} mask bytes, registry declares ${cls.props.length} properties for ${cls.name}`);
+  }
   const masks: number[] = [];
   for (let i = 0; i < maskCount; i++) masks.push(r.u8());
   masks.reverse();
   const out: XuProperty[] = [];
   readMasked(ctx, cls, masks, out);
-  trace?.(`compound ${def.name} @${at}: declared=${declaredValues} depth=${depth} masks=[${masks.map((m) => m.toString(2).padStart(8, '0'))}] read=${out.map((p) => p.def.name + '=' + JSON.stringify(p.value)).join(' ')} bytes=${Array.from(ctx.r.bytes.subarray(at, at + 24)).map((b) => b.toString(16).padStart(2, '0')).join(' ')}`);
+  if (out.length !== (packed >> 3) + 1) {
+    throw new Error(`${def.name}: packed byte declares ${(packed >> 3) + 1} properties, masks selected ${out.length}`);
+  }
+  trace?.(`compound ${def.name} @${at}: declared=${declaredValues} packed=${packed} masks=[${masks.map((m) => m.toString(2).padStart(8, '0'))}] read=${out.map((p) => p.def.name + '=' + JSON.stringify(p.value)).join(' ')} bytes=${Array.from(ctx.r.bytes.subarray(at, at + 24)).map((b) => b.toString(16).padStart(2, '0')).join(' ')}`);
   // A nested compound (Gradient inside Fill) counts as ONE value here; only
   // indexed lists count per element. (XUIHelper gets the same result by
   // accident: its `is List<object>` test never matches a List<XUProperty>.)

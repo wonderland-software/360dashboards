@@ -23,7 +23,7 @@ function walk(dir: string, out: string[] = []): string[] {
 // are skipped rather than counted against our parser. Keep this list short
 // and every entry explained.
 const XUIHELPER_BROKEN: Record<string, string> = {
-  'memory/DeleteMusic.xui': 'the text "Don\u2019t" contains U+2019; XUIHelper keeps only the low byte (0x19), an invalid XML character, and its writer emits an empty <Text> element',
+  'memory/DeleteMusic.xui': 'the text "Don\u2019t" contains U+2019; XUIHelper keeps only the low byte (0x19), an invalid XML character, so its XmlWriter aborts and the file is truncated mid-write at "<Text>"',
 };
 
 const diffIx = args.indexOf('--diff');

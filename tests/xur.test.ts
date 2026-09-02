@@ -94,7 +94,8 @@ test('parses a synthetic XUR: masks, hierarchy, named frame, timeline', () => {
 test('a wrong registry is caught, not silently misread', () => {
   const bad = structuredClone(registry);
   bad.classes[2]!.props.pop(); // Leaf now declares 16 props; P16's bit is beyond it
-  assert.throws(() => parseXur(buildXur(), new XuRegistry(bad)), /declares only 16/);
+  // Either guard may fire first: the mask-byte count check or the bit-beyond-table check.
+  assert.throws(() => parseXur(buildXur(), new XuRegistry(bad)), /declares/);
 });
 
 const corpus = 'extracted/6770/xuiz';
@@ -105,7 +106,20 @@ test('Blades 6770 corpus: every scene parses and verifies', { skip: !existsSync(
   walk(corpus);
   assert.ok(files.length >= 263, `expected the full corpus, found ${files.length}`);
   for (const f of files) {
-    const doc = parseXur(new Uint8Array(readFileSync(f)), reg);
+    const bytes = new Uint8Array(readFileSync(f));
+    const doc = parseXur(bytes, reg);
     if (doc.counts) assert.deepEqual(diffCounts(doc.counts, computeCounts(doc.root, reg)), [], f);
+    // Independent STRN walk (no shared code with the parser): every string,
+    // including non-ASCII code units, must match what the parser produced.
+    // The XUIHelper diff cannot see high bytes, so this is the only check
+    // that a bullet stays a bullet.
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let p = 20 + ((dv.getUint32(8) & 1) ? 40 : 0);
+    const n = dv.getUint16(18);
+    let so = -1, sl = 0;
+    for (let i = 0; i < n; i++, p += 12) if (String.fromCharCode(bytes[p]!, bytes[p + 1]!, bytes[p + 2]!, bytes[p + 3]!) === 'STRN') { so = dv.getUint32(p + 4); sl = dv.getUint32(p + 8); }
+    const strings = [''];
+    for (let q = so; so >= 0 && q < so + sl;) { const len = dv.getUint16(q); q += 2; let t = ''; for (let k = 0; k < len; k++, q += 2) t += String.fromCharCode(dv.getUint16(q)); strings.push(t); }
+    assert.deepEqual(doc.strings, strings, `${f}: STRN mismatch`);
   }
 });

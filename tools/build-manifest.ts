@@ -15,9 +15,13 @@
 // Two shapes differ from the first sketch, because the corpus does not fit it:
 //   - `strings[pack][locale]` is a MAP of table name to path, not one path:
 //     shrdres/fr-fr alone holds LiveAddressStrings, LiveAll and LiveProfile.
-//   - the pack-root English tables live under the locale key "root". They are
-//     not a locale; they are the positional/named tables the title code reads
-//     by index, while a real locale directory holds keyed per-scene patches.
+//   - the pack-root English tables live under the locale key "root". Every
+//     locale directory holds the same three kinds as the root: keyed tables
+//     (per-scene patches applied to the sibling .xur by object/property) AND
+//     positional/named tables (full parallel translations the title code
+//     reads by index: 231 of the 252 positional tables and 11 of the 12 named
+//     ones sit in locale directories, each with the same entry count as its
+//     root twin). "Locale means keyed" is NOT the rule (Judge A, 2026-09-02).
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';

@@ -17,6 +17,7 @@
 // The XEX also carries FFFE07D1, an XDBF database rather than a UI pack, so
 // it is filtered out by magic instead of by name.
 import { spawnSync } from 'node:child_process';
+import expected from '../fixtures/expected-6770.json';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -129,6 +130,34 @@ if (missingRequired === 0) {
   // --- 7. manifest ----------------------------------------------------------
   if (failures.length === 0) {
     if (run('manifest', 'node', ['--import', 'tsx', 'tools/build-manifest.ts'])) step('manifest', `public/assets/${BUILD}/manifest.json`);
+  }
+
+  // --- 8. expected counts ----------------------------------------------------
+  // A partial dump must not pass: the inputs are pinned by hash, so these
+  // numbers are deterministic for this build.
+  if (failures.length === 0) {
+    const want = expected as Record<string, number>;
+    const manifest = JSON.parse(readFileSync(`public/assets/${BUILD}/manifest.json`, 'utf8')) as { packs: { entries: { kind: string }[] }[] };
+    const got: Record<string, number> = { packs: manifest.packs.length, entries: 0 };
+    for (const pk of manifest.packs) for (const e of pk.entries) { got.entries!++; got[e.kind] = (got[e.kind] ?? 0) + 1; }
+    got.audio = readdirSync(`public/assets/${BUILD}/audio`, { recursive: true }).filter((f) => String(f).endsWith('.ogg')).length;
+    const bad = Object.entries(want).filter(([k, v]) => got[k] !== v).map(([k, v]) => `${k}: want ${v}, got ${got[k] ?? 0}`);
+    if (bad.length) fail('counts', bad.join('; '));
+    else step('counts', Object.entries(want).map(([k, v]) => `${k}=${v}`).join(' '));
+  }
+
+  // --- 9. fonts ----------------------------------------------------------------
+  // The console's Convection face lives in .xtt containers that are not in
+  // the archive (see README for where they come from). When they are present
+  // under reference/fonts/xtt, decode them to TrueType for the runtime.
+  if (failures.length === 0) {
+    const xttDir = 'reference/fonts/xtt';
+    const fontsOut = `public/assets/${BUILD}/fonts`;
+    if (existsSync(xttDir) && readdirSync(xttDir).some((f) => f.endsWith('.xtt'))) {
+      if (!existsSync(`${fontsOut}/ConvectionUI.ttf`) || force) {
+        if (run('fonts', 'python3', ['tools/xtt2ttf.py', '--out', fontsOut, `${xttDir}/xenonclatin.xtt`, `${xttDir}/xenonjklatin.xtt`])) step('fonts', `${fontsOut}/ConvectionUI.ttf, ConvectionUI-JK.ttf`);
+      } else step('fonts', `${fontsOut} already decoded`);
+    } else step('fonts', `no ${xttDir}/*.xtt present; text will use the fallback family (recorded in PLACEHOLDERS.md)`);
   }
 }
 

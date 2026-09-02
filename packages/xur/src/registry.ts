@@ -23,17 +23,14 @@ export class XuRegistry {
     return c;
   }
 
-  /**
-   * Root class first (XuiElement, ..., the class itself). Transparent
-   * classes are left out: the XUR carries no packed byte for them.
-   */
+  /** Root class first (XuiElement, ..., the class itself). */
   hierarchy(name: string): XuClassDef[] {
     let h = this.hierarchyCache.get(name);
     if (h) return h;
     h = [];
     let cur: XuClassDef | undefined = this.get(name);
     while (cur) {
-      if (!cur.transparent) h.unshift(cur);
+      h.unshift(cur);
       cur = cur.base ? this.get(cur.base) : undefined;
     }
     this.hierarchyCache.set(name, h);
@@ -50,21 +47,4 @@ export class XuRegistry {
     }
   }
 
-  /**
-   * How many class-lookups deep a property definition sits from `className`:
-   * 1 for a direct property, 2 for one inside Fill/Stroke, 3 for one inside
-   * Fill.Gradient. Used by the count header.
-   */
-  depthOf(def: XuPropertyDef, className: string, depth = 1): number | null {
-    for (const cls of this.hierarchy(className)) {
-      for (const d of cls.props) {
-        if (d === def) return depth;
-        if (d.type === 'object') {
-          const found = this.depthOf(def, this.compoundClassFor(d).name, depth + 1);
-          if (found !== null) return found;
-        }
-      }
-    }
-    return null;
-  }
 }

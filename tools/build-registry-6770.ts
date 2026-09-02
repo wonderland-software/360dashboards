@@ -40,7 +40,9 @@ const EXPLICIT: Record<string, string> = {
   'Area,DefaultBanner': 'XuiBOTDOfflineContainer',
   'Active': 'MediaTwist',
   'LineHeight': 'XuiHtmlControl',
-  'Id': 'XuiTransition',
+  // fn 0x921475c8 builds this table and the XuiEffect registration calls it;
+  // XuiTransition's propdef pointer is an explicit NULL (Judge B, 2026-09-02).
+  'Id': 'XuiEffect',
   'Text': 'XuiHtmlElement',
   'DataAssociation': 'XuiHtmlPresenter',
   'GrayAmount': 'XuiGrayscaleEffect',
@@ -51,7 +53,9 @@ const EXPLICIT: Record<string, string> = {
 };
 const ORDERED: Record<string, string[]> = {
   'PressKey': ['XuiButton', 'XuiCheckbox', 'XuiRadioButton'],
-  'Brightness,BlurAmount': ['XuiHBlurEffect', 'XuiVBlurEffect', 'XuiHVBlurEffect'],
+  // Tables in code order @921405cc, @92140784, @921408d4 belong to HVBlur,
+  // HBlur, VBlur respectively (registration bl targets; Judge B).
+  'Brightness,BlurAmount': ['XuiHVBlurEffect', 'XuiHBlurEffect', 'XuiVBlurEffect'],
   'DataSet,DataAssociation,Embedded,Item': ['ScriptButton', 'ScriptImage'],
 };
 
@@ -110,10 +114,38 @@ for (const [name, b] of bound) {
   if (base === undefined) throw new Error(`no registration (base class) found for bound class ${name}`);
   add(name, base === '(null)' ? null : base, b.props, b.evidence);
 }
+// A registration is only real if its base chain reaches XuiElement. The
+// "two wide strings at +0/+4" heuristic also catches a font-path pair
+// (ConvectionUI / file://...xtt) and a named-frame command chain
+// (BeginShowOSD -> ... -> a name that is never registered).
+const regNames = new Set([...pd.registrations.map((r) => r.name), 'XuiElement']);
+const reachesRoot = (name: string, hops = 0): boolean => {
+  if (name === 'XuiElement') return true;
+  if (hops > 20 || !regNames.has(name)) return false;
+  const base = bases.get(name);
+  return base !== undefined && reachesRoot(base, hops + 1);
+};
 for (const r of pd.registrations) {
   if (seen.has(r.name)) continue;
   if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(r.name) || r.name === r.base) continue;
+  if (!reachesRoot(r.name)) { console.warn(`dropping non-class registration ${r.name} < ${r.base}`); continue; }
   add(r.name, r.base, [], `dash.xex 6770 registration @0x${r.fn} (no property table found: zero own properties)`);
+}
+
+// XuiTool knew MORE XuiElement definitions than the runtime registers: every
+// object in the corpus writes FOUR mask bytes for XuiElement (25-32
+// definitions) while dash.xex registers 17. XuiTool's own list is the one
+// XUIHelper transcribed for 9199 (GripTarget .. CenterPivot, positions
+// 17-26); none of those bits is ever set in Blades 6770, but the parser
+// checks the mask-byte count against the registry, so the list must be as
+// long as the files say.
+{
+  const el = classes.find((c) => c.name === 'XuiElement')!;
+  const xmlEl = xml.classes.find((c) => c.name === 'XuiElement')!;
+  const tail = xmlEl.props.slice(el.props.length);
+  if (el.props.length !== 17 || tail.length !== 10) throw new Error(`unexpected XuiElement shape: binary ${el.props.length}, xml tail ${tail.length}`);
+  el.props.push(...tail.map((p, i) => ({ ...p, id: el.props.length + i, owner: 'XuiElement', origin: 'xuitool-xml' })));
+  el.source += '; definitions 17-26 from XuiTool (XUIHelper 9199 XML), required by the 4 mask bytes every scene writes';
 }
 add('XuiElement', null, bound.get('XuiElement')?.props ?? [], 'dash.xex 6770');
 
@@ -121,9 +153,9 @@ add('XuiElement', null, bound.get('XuiElement')?.props ?? [], 'dash.xex 6770');
 // dash.xex (the banner-of-the-day packs come from a live service pipeline).
 // Its shape comes from the scene bytes, checked by the strict parse.
 add('XuiFall07BOTDScene', 'XuiScene', [
-  ...[0, 1, 2, 3, 4, 5].map((i) => ({ id: i, name: `Unknown${i}`, type: 'unsigned' as XuPropertyType, flags: [], defaultValue: null, owner: 'XuiFall07BOTDScene', inferred: true })),
+  ...[0, 1, 2, 3, 4, 5, 7, 8].map((i) => ({ id: i, name: `Unknown${i}`, type: 'unsigned' as XuPropertyType, flags: [], defaultValue: null, owner: 'XuiFall07BOTDScene', inferred: true })),
   { id: 6, name: 'Unknown6', type: 'string' as XuPropertyType, flags: [], defaultValue: null, owner: 'XuiFall07BOTDScene', inferred: true },
-], 'inferred from botd/defaultbanner_featured.xur: 4th packed byte with mask 0x40 selecting one string; properties 0-5 never set in the corpus so their names/types are unknown');
+].sort((a, b) => a.id - b.id), 'NOT registered by dash.xex. From botd/defaultbanner_featured.xur alone: the object writes 2 mask bytes (9-16 definitions) and sets only bit 6, whose value is a string index. Only definition 6 is evidenced; 0-5 and 7-8 are placeholders that exist so the mask-byte count matches, and their names and types are unknown.');
 
 const out: XuRegistryJson & { notes: Record<string, string> } = { version: 5, group: '6770', classes, notes: note };
 mkdirSync(`${R}/packages/xur/extensions/6770`, { recursive: true });

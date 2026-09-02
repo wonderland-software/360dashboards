@@ -3,10 +3,13 @@
 //
 //   node --import tsx tools/unpack-xuiz.ts <pack> [...more] --out <dir> [--probe]
 //
-// --probe: scan the raw bytes for every PNG / RIFF / XUIB / XUIS signature and
-// assert the set of computed entry starts for those kinds is exactly the set
-// of scanned offsets. This is the check that proves the offset base rule
-// (0x16 + dataOffset + entry.offset) rather than assuming it.
+// What proves the offset rule (0x16 + dataOffset + entry.offset) is
+// readXuiz's assert that the TOC ends exactly at the data start, plus
+// checkTiling: entries must cover the data region gap-free and overlap-free
+// to the last byte. --probe adds one more: every PNG / RIFF / XUIB / XUIS
+// signature found anywhere in the data region must sit at an entry start
+// (a stray signature would mean an entry boundary is wrong or a file hides
+// another). It fails on strays.
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, join, dirname } from 'node:path';
 import { readXuiz, entryBytes, entryPath, checkTiling } from '@xuiz/xuiz';
@@ -15,7 +18,12 @@ const args = process.argv.slice(2);
 const outIx = args.indexOf('--out');
 const outDir = outIx >= 0 ? args[outIx + 1]! : null;
 const probe = args.includes('--probe');
-const files = args.filter((a, i) => !a.startsWith('--') && i !== outIx + 1);
+// Positionals are packs; the one value that follows --out is not.
+const files = args.filter((a, i) => !a.startsWith('--') && !(outIx >= 0 && i === outIx + 1));
+if (files.length === 0) {
+  console.error('usage: unpack-xuiz.ts <pack> [...more] [--out <dir>] [--probe]');
+  process.exit(2);
+}
 
 const SIGS: Record<string, number[]> = {
   png: [0x89, 0x50, 0x4e, 0x47],
@@ -72,7 +80,11 @@ for (const file of files) {
         failed++;
         console.log(`   ${k}: ${missing.length} entries whose start has no signature`);
       }
-      if (stray.length) console.log(`   ${k}: ${stray.length} signature hits not at an entry start (nested data?) e.g. 0x${stray[0]!.toString(16)}`);
+      if (stray.length) {
+        verdict = 'PROBE_FAIL';
+        failed++;
+        console.log(`   ${k}: ${stray.length} signature hits not at an entry start, e.g. 0x${stray[0]!.toString(16)}`);
+      }
     }
   }
   console.log(`${verdict} ${basename(file)} v${pack.header.version} entries=${pack.entries.length} ${summary}`);

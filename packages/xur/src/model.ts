@@ -16,6 +16,13 @@ export interface XuPropertyDef {
   owner: string;
   /** True when the definition rests on scene evidence rather than the binary. */
   inferred?: boolean;
+  /**
+   * Where the definition came from when NOT the runtime's registration code:
+   * 'xuitool-xml' = XuiTool's compile-time class definition (XUIHelper's
+   * 9199 XML), needed because the scenes' mask-byte counts prove XuiTool
+   * knew more properties than the runtime registers.
+   */
+  origin?: string;
 }
 
 export interface XuClassDef {
@@ -24,12 +31,6 @@ export interface XuClassDef {
   /** In declaration order: position i is mask bit (i % 8) of mask byte (i / 8). */
   props: XuPropertyDef[];
   source: string;
-  /**
-   * A class whose objects carry NO packed byte of their own in the XUR
-   * property block (seen on XuiBOTDOfflineScene in Blades 6770): it behaves
-   * as a renamed alias of its base for parsing purposes.
-   */
-  transparent?: boolean;
 }
 
 export interface XuRegistryJson {

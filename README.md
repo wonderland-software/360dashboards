@@ -22,12 +22,19 @@ npm run smoke       # headless-Chrome suites against the dev server
 
 1. `vendor/archive/` — a sparse clone of
    https://github.com/thedev0ps/Xbox-360-Dashboard-Archive containing
-   `Blades/Retail/6770/`. `tools/fetch-archive.ts` does this.
-2. `vendor/idaxex/xex1tool/build/xex1tool` — emoose's XEX tool, built with
+   `Blades/Retail/6770/`: `node --import tsx tools/fetch-archive.ts`.
+2. `vendor/idaxex/xex1tool/build/xex1tool` — emoose's XEX tool:
    `tools/build-xex1tool.sh` (needs `brew install cmake ninja`).
+3. Optional, for the genuine typeface: the console's `xenonclatin.xtt` and
+   `xenonjklatin.xtt` (ripped from a system update; one public source is
+   the Kaceydotme/Convection-Font-for-Xbox-360 release) placed in
+   `reference/fonts/xtt/`. `tools/xtt2ttf.py` decodes them; without them
+   text falls back and PLACEHOLDERS.md says so.
 
 Everything derived from them lives under `extracted/` and `public/assets/`,
-both gitignored. A contributor reproduces the whole dump with one command.
+both gitignored. `npm run extract` reproduces the whole dump and asserts
+the expected counts (`fixtures/expected-6770.json`), so a partial dump
+cannot pass.
 
 ## Stack (verified 2026-09-02, don't re-litigate)
 
@@ -75,11 +82,17 @@ declaration order, so parsing needs the exact per-build list. Rather than
 trust a later build's XML, `tools/xui-propdefs.ts` reads the XUI class
 registration code out of the decrypted `dash.xex` (each property record is
 built in code: index, name pointer, XUI_PROP_TYPE) and
-`tools/build-registry-6770.ts` turns that into `registry.json`. Every
-property name, order and type for build 6770 is therefore taken from the
-binary that shipped, and the strict corpus sweep confirms it: all 263
-scenes parse to the last byte of their data section with every declared
-count matching.
+`tools/build-registry-6770.ts` turns that into `registry.json`. For the 50
+classes that own properties, name, order and type come from the binary
+that shipped. One exception is recorded in the registry itself: the scene
+files write four mask bytes for XuiElement (so XuiTool knew 25-32
+definitions) while the runtime registers 17; definitions 17-26 are taken
+from XuiTool's own list (XUIHelper's 9199 XML) and tagged `origin:
+xuitool-xml`, and one banner class registered outside dash.xex is marked
+`inferred`. The parser checks every class's mask-byte count against the
+registry, so a registry that is too short or too long fails the sweep. All
+263 scenes parse to the last byte of their data section with every
+declared count matching.
 
 ## Verification
 
