@@ -1,13 +1,12 @@
 // XUIZ pack reader: a hand-built v1 pack proves the header and TOC arithmetic,
-// then the 6770 corpus proves it against the real thing when it is extracted.
+// then each extracted build's packs (6770, 9199) prove it against the real thing.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { readXuiz, readXuizHeader, entryBytes, entryPath, checkTiling, XUIZ_HEADER_SIZE } from '@xuiz/xuiz';
 import { parseXus } from '@xuiz/xus';
-
-const RESOURCES = 'extracted/6770/resources';
+import { corpusBuilds, expectedCounts } from './builds';
 
 function be32(v: number): number[] {
   return [(v >>> 24) & 0xff, (v >>> 16) & 0xff, (v >>> 8) & 0xff, v & 0xff];
@@ -94,9 +93,11 @@ test('xuiz: a gap in the data region is reported by checkTiling', () => {
 
 // --- corpus -----------------------------------------------------------------
 
+for (const BUILD of corpusBuilds()) {
+const RESOURCES = `extracted/${BUILD}/resources`;
 const haveResources = existsSync(RESOURCES);
 
-test('xuiz corpus: every extracted resource pack reads and tiles', { skip: haveResources ? false : `${RESOURCES} not extracted` }, () => {
+test(`xuiz corpus ${BUILD}: every extracted resource pack reads and tiles`, { skip: haveResources ? false : `${RESOURCES} not extracted` }, () => {
   const files = readdirSync(RESOURCES)
     .map((f) => join(RESOURCES, f))
     .filter((f) => statSync(f).isFile());
@@ -119,11 +120,12 @@ test('xuiz corpus: every extracted resource pack reads and tiles', { skip: haveR
     packs++;
     entries += p.entries.length;
   }
-  assert.equal(packs, 28, `expected 28 XUIZ packs, read ${packs}`);
-  console.log(`   xuiz corpus: ${packs} packs, ${entries} entries (${notXuiz} non-XUIZ resource skipped)`);
+  // The XEX holds all packs but shrdres.xzp, which sits loose beside it.
+  assert.equal(packs, expectedCounts(BUILD)['packs']! - 1, `expected ${expectedCounts(BUILD)['packs']! - 1} XUIZ packs in the XEX, read ${packs}`);
+  console.log(`   xuiz corpus ${BUILD}: ${packs} packs, ${entries} entries (${notXuiz} non-XUIZ resource skipped)`);
 });
 
-test('xuiz corpus: .xus entries read straight out of a pack', { skip: haveResources ? false : `${RESOURCES} not extracted` }, () => {
+test(`xuiz corpus ${BUILD}: .xus entries read straight out of a pack`, { skip: haveResources ? false : `${RESOURCES} not extracted` }, () => {
   // The unpacker writes files to disk; the browser runtime will not. Parsing
   // in place is the path that has to work, so exercise it here.
   let tables = 0;
@@ -139,5 +141,6 @@ test('xuiz corpus: .xus entries read straight out of a pack', { skip: haveResour
     }
   }
   assert.ok(tables > 3000, `expected the full string corpus, parsed ${tables}`);
-  console.log(`   xuiz corpus: ${tables} .xus tables parsed in place`);
+  console.log(`   xuiz corpus ${BUILD}: ${tables} .xus tables parsed in place`);
 });
+}

@@ -1,12 +1,12 @@
 // XUS parser: synthetic bytes first (so the test fails for a real reason when
-// extracted/ is absent), then the whole 6770 corpus when it is present.
+// extracted/ is absent), then the whole corpus of every extracted build
+// (6770, 9199) when it is present; DASH_BUILD=9199 restricts to one.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseXus, xusToMap, xusToken, parseXusKey, buildXusKey, XusKind } from '@xuiz/xus';
-
-const CORPUS = 'extracted/6770/xuiz';
+import { corpusBuilds } from './builds';
 
 // --- synthetic builders -----------------------------------------------------
 
@@ -111,9 +111,11 @@ function walkXus(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+for (const BUILD of corpusBuilds()) {
+const CORPUS = `extracted/${BUILD}/xuiz`;
 const haveCorpus = existsSync(CORPUS);
 
-test('xus corpus: every table parses to exactly EOF', { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
+test(`xus corpus ${BUILD}: every table parses to exactly EOF`, { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
   const files = walkXus(CORPUS);
   assert.ok(files.length > 3000, `expected the full string corpus, found ${files.length}`);
   const kinds = new Map<number, number>();
@@ -128,7 +130,7 @@ test('xus corpus: every table parses to exactly EOF', { skip: haveCorpus ? false
   console.log(`   xus corpus: ${files.length} tables, kinds ${[...kinds].map(([k, n]) => `${k}=${n}`).join(' ')}`);
 });
 
-test('xus corpus: only locale tables are KEYED', { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
+test(`xus corpus ${BUILD}: only locale tables are KEYED`, { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
   // A pack-root table is English and is read by position or by IDS_ name.
   // A KEYED table patches a sibling .xur property by property, so it only
   // makes sense inside a locale directory.
@@ -145,7 +147,7 @@ test('xus corpus: only locale tables are KEYED', { skip: haveCorpus ? false : `$
   assert.deepEqual(rootKeyed, []);
 });
 
-test('xus corpus: locales of one table agree on keys except for untranslated entries', { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
+test(`xus corpus ${BUILD}: locales of one table agree on keys except for untranslated entries`, { skip: haveCorpus ? false : `${CORPUS} not extracted` }, () => {
   // The naive rule - every locale of a table carries the same key set - is
   // FALSE on 6770, and the reason matters: a locale omits an entry whose
   // translation is the English literal already sitting in the .xur, so the
@@ -189,17 +191,17 @@ test('xus corpus: locales of one table agree on keys except for untranslated ent
       if (min !== union.size) spread.push(`${pack}/${f} ${min}..${union.size}`);
     }
   }
-  console.log(`   xus corpus: ${identical}/${tables} scene tables identical across all locales; ${spread.length} differ, e.g. ${spread.slice(0, 3).join(', ')}; ${empty} empty everywhere`);
+  console.log(`   xus corpus ${BUILD}: ${identical}/${tables} scene tables identical across all locales; ${spread.length} differ, e.g. ${spread.slice(0, 3).join(', ')}; ${empty} empty everywhere`);
 });
 
-test('xus corpus: every KEYED key resolves to a property in the sibling .xur', { skip: haveCorpus ? false : `${CORPUS} not extracted` }, async () => {
+test(`xus corpus ${BUILD}: every KEYED key resolves to a property in the sibling .xur`, { skip: haveCorpus ? false : `${CORPUS} not extracted` }, async () => {
   // This is the check that proves the key decoding. classIndex indexes the
   // object's class hierarchy, propIndex the property inside that class, and
   // objectId is a 1-based POSTORDER walk of the scene tree - children before
   // their parent, XuiCanvas last. If any of those three were wrong the hit
   // rate would collapse, not degrade.
   const { XuRegistry, parseXur } = await import('@xur/index');
-  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')));
+  const reg = new XuRegistry(JSON.parse(readFileSync(`packages/xur/extensions/${BUILD}/registry.json`, 'utf8')));
   let checked = 0;
   let scenes = 0;
   let unparsed = 0;
@@ -245,5 +247,7 @@ test('xus corpus: every KEYED key resolves to a property in the sibling .xur', {
     }
   }
   assert.ok(checked > 10_000, `only ${checked} keyed entries cross-checked`);
-  console.log(`   xus corpus: ${checked} keyed entries in ${scenes} tables all resolve (${unparsed} .xur skipped, unparseable)`);
+  assert.equal(unparsed, 0, `${unparsed} scenes could not be parsed with the ${BUILD} registry`);
+  console.log(`   xus corpus ${BUILD}: ${checked} keyed entries in ${scenes} tables all resolve (${unparsed} .xur skipped, unparseable)`);
 });
+}

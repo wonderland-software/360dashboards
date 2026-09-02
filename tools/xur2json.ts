@@ -2,7 +2,10 @@
 //
 //   node --import tsx tools/xur2json.ts <file.xur> [--strict]      # JSON to stdout
 //   node --import tsx tools/xur2json.ts --corpus <dir> [--strict]  # sweep every .xur under dir
-//   --registry 6770|v5   which class registry to parse with (default 6770)
+//   --registry 6770|9199|v5   which class registry to parse with (default 6770,
+//                             or DASH_BUILD); 6770 and 9199 are generated from
+//                             their own executables (tools/build-registry.ts),
+//                             v5 is XUIHelper's hand-written 9199 XML.
 //
 // --strict fails a file whose recomputed count header differs from the one
 // stored in it. In corpus mode failures are grouped by message so a registry
@@ -15,9 +18,7 @@ const args = process.argv.slice(2);
 const strict = args.includes('--strict');
 const corpusIx = args.indexOf('--corpus');
 const regIx = args.indexOf('--registry');
-// 6770 = generated from the Blades executable (tools/build-registry-6770.ts);
-// v5 = XUIHelper's 9199 XML, kept for the NXE build.
-const regName = regIx >= 0 ? args[regIx + 1]! : '6770';
+const regName = regIx >= 0 ? args[regIx + 1]! : process.env['DASH_BUILD'] || '6770';
 const reg = new XuRegistry(JSON.parse(readFileSync(`packages/xur/extensions/${regName}/registry.json`, 'utf8')));
 
 // Files without a count header (most Blades scenes; the flag is only set on

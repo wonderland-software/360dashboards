@@ -235,3 +235,90 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
 
 - **Judges are not the implementer.** Every phase ends with an independent
   review against the original bytes and reference footage (see JUDGE.md).
+
+## NXE 9199
+
+Second build through the same pipeline (2026-09-02): `npm run extract --
+--build 9199` prints EXTRACT_PASS, `xur2json --strict --registry 9199` is
+XUR_PASS 311/311, `xur2xui --diff` is XUIDIFF_PASS 308 identical, and every
+6770 output is unchanged (EXTRACT_PASS with the same counts, XUR_PASS
+263/263, XUIDIFF_PASS, 58/58 tests).
+
+- **Same containers, more of them.** 29 resources again (28 `XUIZ` v1 + the
+  `FFFE07D1` XDBF), 4,344 TOC entries in 29 packs: 311 `.xur` (all XUR v5,
+  6 with the count header), 296 png, 28 jpg, 3,658 `.xus`, 17 xma, 7 scb,
+  20 `.uxfx` (compiled shader effects: reflection, texturemask, ripple,
+  blur, colour ops), 5 `.xml` (homepage channel/config), `neon/modules.ox`.
+  Pack names changed (dashuisk, homepage, controlp, slots, firstrun, gamer,
+  signin, thermal, parental, noobe replace blademp, botd, gamesbla,
+  mediabla, live, oobe, videocha, dashskn1/2). The devkit 9199 `shrdres.xzp`
+  is NOT byte-identical to retail (120,922 vs 193,336 bytes), unlike Blades.
+- **A TOC can list the same path twice.** `slots` names `TraySlotScene.xur`
+  twice with identical bytes, so 4,344 entries become 4,343 files.
+  `unpack-xuiz` now reports duplicates (a differing duplicate fails), and
+  `fixtures/expected-<build>.json` pins both `entries` and `packEntries`.
+- **XUS is unchanged:** kinds 1=3,388 keyed, 2=258 positional, 0=12 named;
+  13,577 keyed entries in 3,324 tables all resolve to a string property of
+  the sibling scene with the 9199 registry.
+- **9199 builds its property tables in `.data`, not on the stack, and
+  stores the index AFTER the name** (Id's index lands 12 bytes past its
+  name at 0x921871a8; XuiFigure's Stroke type 0x34 bytes past). The
+  simulator now keys a store by its absolute address whenever the base
+  register holds a known address (no aliasing, whole-function window) and
+  falls back to the tight stack-slot windows otherwise; the 6770 tables
+  came out identical. **`addi r1,r1,N; b _restgprlr` is a function end**:
+  without that boundary the XuiElement and XuiControl builders read as one
+  function and XuiControl's registration would claim both tables.
+- **Binding is mechanical now.** A registration `bl`s the function that
+  builds its table and stores r3 at +0x18; `xui-propdefs` records the call
+  targets and `build-registry.ts` binds by call graph. On 6770 that
+  reproduces Judge B's hand-checked map exactly (kept as an assertion);
+  the only 6770 registry change is 35 zero-property classes' `source`
+  addresses moving to their function's own start.
+- **9199 binary vs XUIHelper's 9199 XML (binary wins):** XuiShader's first
+  property is `Id`, not `ShaderId`; XuiList = Wrap, WrapBump; XuiComboBox
+  MaxVisibleVertItems is unsigned; XuiTextureSurface = ShowSurface only
+  (XML: Offscreen, DepthStencil, PreRender, Buffered); AuraControl adds
+  BannerImage; XuiHtmlControl = LineHeight, TeletypeCount; ScriptScene =
+  Script, Visible; DashScene = PanelSettings/PanelStrings/PanelScenePaths
+  again; XuiEdit.TextLimit and XuiHtmlPresenter.DataAssociation are
+  unsigned; LoadType (XuiImage, XuiImagePresenter), TextScale (XuiText,
+  XuiTextPresenter), RecurseTransitions (XuiScene) and XuiLabel.MaxFlowLines
+  are NOT registered by this binary either. New in 9199's binary and absent
+  from the XML: Xui3DScene, Xui3DElement, Xui3DCamera, Xui3DMesh, Xui3DBone
+  (unused by the scenes). XuiMessageBoxButton, XuiGridPanel, the HUD/Guide
+  classes and LiveData/MediaData are not in dash.xex at all.
+- **6770 vs 9199 binaries:** XuiButton grew 1 -> 7 (press/focus anim
+  hooks), XuiListItem 5 -> 9 (smooth scroll), XuiImage +
+  TextureSurfaceElement, XuiHtmlElement + TeletypeCount, XuiList +
+  WrapBump; XuiComboBox, XuiPerspectiveScene, XuiShader, XuiVariable,
+  XuiTextureSurface, XuiAvatar, AuraControl and the Xui3D* classes are new;
+  the whole XuiEffect family (Id, blur/grayscale/recolor/brightpass/texture
+  effects) is gone, replaced by `.uxfx` shaders through XuiShader. XuiElement
+  and XuiControl are identical, and XuiElement's XuiTool tail (17-26) is
+  still never set by any of the 311 scenes.
+- **Two classes are registered outside dash.xex 9199:** `XuiVideo`
+  (homepage/VideoScene: one mask byte, bits 1 and 3 = SizeMode 16, Loop
+  true, matching XuiTool's order and types) and `MediaScene`
+  (dashcomm/OfflineMarketplace, sets nothing of its own). Neither name is a
+  string in the image; the registry carries XuiTool's definitions tagged
+  `origin: xuitool-xml` with that evidence in `source`.
+- **XUIHelper on 9199:** 310/311 convert; `consoles/dashSysLiveVision`
+  is refused because LiveVisionControl is not in its XML. Two outputs are
+  truncated by the low-byte bug (U+2014 in OfflineMarketplace, U+2013 in
+  WhatsNewFacebookTwitterScene), and 9199's DeleteMusic is fine, so the
+  defect list is per build. Its `9199.xhe` lists `<IgnoreProperties>`
+  (XuiElement 17-26, XuiImage TextureSurfaceElement/LoadType, TextScale):
+  its reader consumes them and its writer drops them, so the diff strips
+  TextureSurfaceElement from our side (controlp/PanelScene sets it).
+- **What the NXE scenes use that Blades never did** (class census): no
+  scene sets `Font` (26 did in 6770), so every text takes the skin default;
+  canvases are 1120x770 (202), 420x320 (30), 1280x720 (29), 880x480 (9),
+  512x512, 1024x720; Anchor carries bits 6-7 (0xc0-0xcf, 325 uses);
+  BlendMode 4/5 stay rare (13); image paths add `controlpack://`;
+  LegacyControl in 172 scenes, XuiHtmlElement 25, AuraControl 13,
+  XuiGamerCard 9, ScriptScene 8, XuiTextureSurface 7, XuiAvatar 5,
+  XuiPerspectiveScene 3 (AuraScene, DashBkgnd, DashWaiting), XuiShader 2
+  (AuraScene, PanelScene: reflection.uxfx with EffectParams animated),
+  XuiVariable, XuiVideo, MediaScene, XuiTabScene one each; 3D rotation
+  with an X/Y component on 19 elements; 15,856 keyframes with 570 Ease.

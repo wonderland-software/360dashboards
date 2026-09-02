@@ -1,5 +1,5 @@
 {
-  "note": "sha256 of the Microsoft-owned inputs. vendor/ is gitignored, so these hashes are the only thing in the repo that pins which bytes the extractor ran against. npm run extract refuses to touch a file whose hash does not match.",
+  "note": "sha256 of the Microsoft-owned inputs. vendor/ is gitignored, so these hashes are the only thing in the repo that pins which bytes the extractor ran against. npm run extract refuses to touch a file whose hash does not match. A `required` file is required only for the build whose archive directory it sits in; every present file is checked.",
   "files": {
     "vendor/archive/Blades/Retail/6770/dash.xex": {
       "sha256": "63939cdd152141a3020336505deaad2d8d5715f0ab2f3ab1762eed780e45969f",
@@ -28,6 +28,36 @@
     "vendor/archive/Blades/Devkit/6719 (7776.0 XDK)/xshell.xex": {
       "sha256": "e9574873b67647cbd32b21b77df787fb342b1b215f35ee310d53ab556b602c60",
       "bytes": 1548288,
+      "role": "reference",
+      "what": "Devkit shell executable. Not extracted."
+    },
+    "vendor/archive/NXE/Retail/9199/dash.xex": {
+      "sha256": "7dd4dd087e1ff8874951446f5870445dcaaac383ddd49818f9ac84fcc2a61c48",
+      "bytes": 4845568,
+      "role": "required",
+      "what": "NXE retail build 9199 dashboard executable; holds 28 XUIZ resource packs (dashuisk, homepage, controlp, slots, ...) and the FFFE07D1 XDBF database."
+    },
+    "vendor/archive/NXE/Retail/9199/shrdres.xzp": {
+      "sha256": "fcfc8fc1f977481851a8de966d0d1dc0edee3c37710ae5d15d7a68ac910a7270",
+      "bytes": 193336,
+      "role": "required",
+      "what": "Loose shared-resource XUIZ pack next to the 9199 dash.xex (82 entries: icons, sounds, Live strings)."
+    },
+    "vendor/archive/NXE/Devkit/9199 (11626.0 XDK)/dash.xex": {
+      "sha256": "ebc3fcad9331ce53c2992645484ee9f283cd0fbcc6f4439c76ad2c7e4216c34d",
+      "bytes": 4845568,
+      "role": "reference",
+      "what": "Devkit twin of 9199, same size as retail. Not extracted; kept to diff a format question against a second signing."
+    },
+    "vendor/archive/NXE/Devkit/9199 (11626.0 XDK)/shrdres.xzp": {
+      "sha256": "aafac0e200d580866779fbf635278d322d4436156350247a9ddc0162a86c62c2",
+      "bytes": 120922,
+      "role": "reference",
+      "what": "Devkit 9199 shared pack. NOT byte-identical to the retail one (120,922 vs 193,336 bytes), unlike the Blades pair; not extracted."
+    },
+    "vendor/archive/NXE/Devkit/9199 (11626.0 XDK)/xshell.xex": {
+      "sha256": "fa1ea3dbcbe2c9e40f78c8b0fd721601bd150733ad90cf551e99c86caa170ce9",
+      "bytes": 1744896,
       "role": "reference",
       "what": "Devkit shell executable. Not extracted."
     }

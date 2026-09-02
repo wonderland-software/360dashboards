@@ -15,8 +15,16 @@
 // that reference them.
 import { readFileSync } from 'node:fs';
 
-export interface PropDefTable { fn: string; at: string; baseReg: number; props: { i: number; name: string; type: string; off: number | null }[] }
-export interface Registration { fn: string; name: string; base: string; table: number | null; count: number | null }
+export interface PropDefTable { fn: string; fnEnd: string; at: string; baseReg: number; static: boolean; props: { i: number; name: string; type: string; off: number | null }[] }
+/**
+ * `calls` are the `bl` targets that follow the name store inside the same
+ * function: a registration obtains its property table by CALLING the
+ * function that builds it (XuiText @0x92185580 in 9199 calls 0x921815f0 and
+ * stores r3 at +0x18), so a table whose function contains one of these
+ * targets belongs to this class. That binds shared-shape tables by code,
+ * not by guessing (Judge B's rule for XuiEffect, now mechanical).
+ */
+export interface Registration { fn: string; name: string; base: string; table: number | null; count: number | null; calls: string[] }
 export interface PropDefs { types: string[]; tables: PropDefTable[]; rejected: { fn: string; at: string; props: string[] }[]; registrations: Registration[] }
 
 export function extractPropDefs(buf: Buffer): PropDefs {
@@ -48,20 +56,32 @@ function wide(va: number): string | null {
 }
 
 type Val = { kind: 'imm'; v: number } | { kind: 'addr'; v: number } | { kind: 'str'; v: string; va: number };
-interface Store { at: number; base: number; off: number; val: Val }
+/** `abs` is the store's absolute address when the base register holds a
+ *  known address (9199 builds its tables in .data through r31 = &table;
+ *  6770 builds them on the stack through r1, where only `off` is known). */
+interface Store { at: number; base: number; off: number; val: Val; abs: number | null }
 
 // One pass over .text; register file reset at every blr.
 const stores: Store[] = [];
 let regs = new Map<number, Val>();
 const hi = new Map<number, number>();
 let fnStart = text.va;
-const functions: { start: number; stores: Store[] }[] = [];
+interface Fn { start: number; end: number; stores: Store[]; calls: { at: number; target: number }[] }
+const functions: Fn[] = [];
 let cur: Store[] = [];
+let calls: { at: number; target: number }[] = [];
+let prevIns = 0;
+const endFunction = (va: number) => {
+  functions.push({ start: fnStart, end: va + 4, stores: cur, calls });
+  cur = []; calls = []; fnStart = va + 4; regs = new Map(); hi.clear();
+};
 for (let o = text.raw; o + 4 <= text.raw + text.size; o += 4) {
   const va = text.va + (o - text.raw);
   const ins = buf.readUInt32BE(o);
   const op = ins >>> 26, rD = (ins >>> 21) & 31, rA = (ins >>> 16) & 31, imm = ins & 0xffff;
   const s = imm >= 0x8000 ? imm - 0x10000 : imm;
+  const wasEpilogue = (prevIns >>> 26) === 14 && ((prevIns >>> 21) & 31) === 1 && ((prevIns >>> 16) & 31) === 1 && (prevIns & 0xffff) < 0x8000;
+  prevIns = ins;
   if (op === 15 && rA === 0) { hi.set(rD, imm << 16); regs.delete(rD); }
   else if (op === 14 && rA === 0) { regs.set(rD, { kind: 'imm', v: s }); }
   else if (op === 14 || op === 24) {
@@ -78,23 +98,35 @@ for (let o = text.raw; o + 4 <= text.raw + text.size; o += 4) {
     else regs.delete(rA);
   } else if (op === 36) { // stw rS, d(rA)
     const v = regs.get(rD);
-    if (v) { const st = { at: va, base: rA, off: s, val: v }; stores.push(st); cur.push(st); }
+    const b = regs.get(rA);
+    if (v) { const st: Store = { at: va, base: rA, off: s, val: v, abs: b?.kind === 'addr' ? (b.v + s) >>> 0 : null }; stores.push(st); cur.push(st); }
   } else if (op === 19 && ((ins >>> 1) & 0x3ff) === 16) { // blr
-    functions.push({ start: fnStart, stores: cur });
-    cur = []; fnStart = va + 4; regs = new Map(); hi.clear();
+    endFunction(va);
   } else if (op === 18 && (ins & 1)) { // bl: r3..r12 clobbered
+    calls.push({ at: va, target: (va + (((ins & 0x03fffffc) << 6) >> 6)) >>> 0 });
     for (let r = 3; r <= 12; r++) { regs.delete(r); hi.delete(r); }
+  } else if (op === 18 && wasEpilogue) {
+    // `addi r1, r1, N; b _restgprlr` is how this compiler ends most
+    // functions: a tail branch to the shared register-restore stub, not a
+    // blr. Without this boundary the 9199 registration functions run
+    // together and a bl target cannot be attributed to one registration.
+    endFunction(va);
   } else if (op === 32 || op === 40 || op === 34) { regs.delete(rD); hi.delete(rD); } // loads
 }
+endFunction(text.va + text.size - 4);
 
 // Property records: a name store at off N, its type store at N+4 within a
-// few instructions on either side (the compiler hoists the type immediate), and its index store at N-0xC shortly before. Tight
-// code-distance windows matter: several classes' tables are built back to
-// back on one stack frame, so a loose window pairs a name with a neighbour's
+// few instructions on either side (the compiler hoists the type immediate),
+// and its index store at N-0xC within 0x100 bytes on EITHER side: 6770's
+// compiler stores the index before the name, 9199's stores it after (Id's
+// index lands 12 bytes past its name at 0x921871a8), and the nearest store
+// to that slot is taken. Tight code-distance windows matter: several
+// classes' tables are built back to back on one stack frame (6770) or in
+// one .data block (9199), so a loose window pairs a name with a neighbour's
 // type. Records are then ordered by code position and split into runs
 // wherever the index restarts, one run per class.
 interface Prop { index: number; name: string; type: number; nameVa: number; dataOffset: number | null; at: number }
-interface Run { fn: string; at: string; baseReg: number; props: Prop[] }
+interface Run { fn: string; fnEnd: string; at: string; baseReg: number; static: boolean; props: Prop[] }
 const runs: Run[] = [];
 const TYPE = ['empty', 'bool', 'integer', 'unsigned', 'float', 'string', 'color', 'vector', 'quaternion', 'object', 'custom'];
 for (const f of functions) {
@@ -104,20 +136,34 @@ for (const f of functions) {
     const props: Prop[] = [];
     for (const st of sts) {
       if (st.val.kind !== 'str') continue;
-      const type = sts.find((x) => x.off === st.off + 4 && x.val.kind === 'imm' && x.val.v >= 1 && x.val.v <= 10 && Math.abs(x.at - st.at) <= 0x24);
-      const index = sts.find((x) => x.off === st.off - 0xc && x.val.kind === 'imm' && x.at < st.at && x.at >= st.at - 0x100);
-      const dataOff = sts.find((x) => x.off === st.off - 0x8 && x.val.kind === 'imm' && x.at < st.at && x.at >= st.at - 0x100);
+      // A slot is a record field. When the table's address is known the slot
+      // is an absolute address and cannot alias another table's, so any
+      // store to it in the function counts and the nearest wins (9199's
+      // XuiFigure stores Stroke's type 0x34 bytes after its name). On a
+      // stack frame the slot is only an offset that the next class's table
+      // reuses, so the tight code-distance windows stay.
+      const slot = (delta: number, window: number, before: boolean) =>
+        sts
+          .filter((x) => x.val.kind === 'imm' && (st.abs !== null ? x.abs === st.abs + delta : x.abs === null && x.off === st.off + delta && (before ? x.at < st.at && x.at >= st.at - window : Math.abs(x.at - st.at) <= window)))
+          .sort((x, y) => Math.abs(x.at - st.at) - Math.abs(y.at - st.at))[0];
+      const type = slot(4, 0x24, false);
+      const index = slot(-0xc, 0x100, false);
+      const dataOff = slot(-0x8, 0x100, true);
       if (!type || !index) continue;
-      props.push({ index: (index.val as { v: number }).v, name: st.val.v, type: (type.val as { v: number }).v, nameVa: st.val.va, dataOffset: dataOff ? (dataOff.val as { v: number }).v : null, at: st.at });
+      const t = (type.val as { v: number }).v;
+      if (t < 1 || t > 10) continue;
+      props.push({ index: (index.val as { v: number }).v, name: st.val.v, type: t, nameVa: st.val.va, dataOffset: dataOff ? (dataOff.val as { v: number }).v : null, at: st.at });
     }
     if (props.length === 0) continue;
     props.sort((a, b) => a.at - b.at);
+    const isStatic = sts.some((x) => x.abs !== null);
+    const push = (ps: Prop[]) => runs.push({ fn: f.start.toString(16), fnEnd: f.end.toString(16), at: ps[0]!.at.toString(16), baseReg: base, static: isStatic, props: ps });
     let cur: Prop[] = [];
     for (const p of props) {
-      if (cur.length && p.index <= cur[cur.length - 1]!.index) { runs.push({ fn: f.start.toString(16), at: cur[0]!.at.toString(16), baseReg: base, props: cur }); cur = []; }
+      if (cur.length && p.index <= cur[cur.length - 1]!.index) { push(cur); cur = []; }
       cur.push(p);
     }
-    if (cur.length) runs.push({ fn: f.start.toString(16), at: cur[0]!.at.toString(16), baseReg: base, props: cur });
+    if (cur.length) push(cur);
   }
 }
 // A run must be a clean 0..n-1 sequence to be a property table.
@@ -127,8 +173,7 @@ const rejected = runs.filter((r) => !r.props.every((p, i) => p.index === i));
 // Class registration structs: a wide-string name store and, at +4 of the same
 // base, another wide string (the base class), plus an 'addr' store into .data
 // (the property table) and an imm (count) nearby.
-interface Reg { fn: string; name: string; base: string; table: number | null; count: number | null }
-const regsOut: Reg[] = [];
+const regsOut: Registration[] = [];
 for (const f of functions) {
   const byBase = new Map<number, Store[]>();
   for (const st of f.stores) byBase.set(st.base, [...(byBase.get(st.base) ?? []), st]);
@@ -139,14 +184,15 @@ for (const f of functions) {
       if (!nxt || nxt.val.kind !== 'str') continue;
       const tbl = sts.find((x) => x.off === st.off + 8 && x.val.kind === 'addr' && Math.abs(x.at - st.at) < 0x100);
       const cnt = sts.find((x) => x.off === st.off + 12 && x.val.kind === 'imm' && Math.abs(x.at - st.at) < 0x100);
-      regsOut.push({ fn: f.start.toString(16), name: st.val.v, base: nxt.val.v, table: tbl ? (tbl.val as { v: number }).v : null, count: cnt ? (cnt.val as { v: number }).v : null });
+      const callsAfter = f.calls.filter((c) => c.at > st.at && c.at < st.at + 0x200).map((c) => c.target.toString(16));
+      regsOut.push({ fn: f.start.toString(16), name: st.val.v, base: nxt.val.v, table: tbl ? (tbl.val as { v: number }).v : null, count: cnt ? (cnt.val as { v: number }).v : null, calls: callsAfter });
     }
   }
 }
 
 return {
   types: TYPE,
-  tables: tables.map((t) => ({ fn: t.fn, at: t.at, baseReg: t.baseReg, props: t.props.map((p) => ({ i: p.index, name: p.name, type: TYPE[p.type] ?? String(p.type), off: p.dataOffset })) })),
+  tables: tables.map((t) => ({ fn: t.fn, fnEnd: t.fnEnd, at: t.at, baseReg: t.baseReg, static: t.static, props: t.props.map((p) => ({ i: p.index, name: p.name, type: TYPE[p.type] ?? String(p.type), off: p.dataOffset })) })),
   rejected: rejected.map((t) => ({ fn: t.fn, at: t.at, props: t.props.map((p) => `${p.index}:${p.name}`) })),
   registrations: regsOut,
 };

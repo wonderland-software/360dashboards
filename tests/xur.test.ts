@@ -1,11 +1,12 @@
 // Parser unit tests on hand-built bytes (no Microsoft data in git), plus a
-// corpus sweep that runs only when extracted/6770 exists locally.
+// corpus sweep per extracted build (6770, 9199), each with its own registry.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { BinaryReader, XuRegistry, parseXur, computeCounts, diffCounts, toXui } from '@xur/index';
 import type { XuRegistryJson } from '@xur/model';
+import { corpusBuilds, expectedCounts } from './builds';
 
 const be32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
 const be16 = (n: number) => [(n >>> 8) & 255, n & 255];
@@ -98,13 +99,14 @@ test('a wrong registry is caught, not silently misread', () => {
   assert.throws(() => parseXur(buildXur(), new XuRegistry(bad)), /declares/);
 });
 
-const corpus = 'extracted/6770/xuiz';
-test('Blades 6770 corpus: every scene parses and verifies', { skip: !existsSync(corpus) }, () => {
-  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')));
+for (const BUILD of corpusBuilds()) {
+const corpus = `extracted/${BUILD}/xuiz`;
+test(`${BUILD} corpus: every scene parses and verifies with its own registry`, { skip: !existsSync(corpus) }, () => {
+  const reg = new XuRegistry(JSON.parse(readFileSync(`packages/xur/extensions/${BUILD}/registry.json`, 'utf8')));
   const files: string[] = [];
   const walk = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walk(p); else if (/\.xur$/i.test(e)) files.push(p); } };
   walk(corpus);
-  assert.ok(files.length >= 263, `expected the full corpus, found ${files.length}`);
+  assert.equal(files.length, expectedCounts(BUILD)['xur'], `expected the full ${BUILD} corpus`);
   for (const f of files) {
     const bytes = new Uint8Array(readFileSync(f));
     const doc = parseXur(bytes, reg);
@@ -123,3 +125,4 @@ test('Blades 6770 corpus: every scene parses and verifies', { skip: !existsSync(
     assert.deepEqual(doc.strings, strings, `${f}: STRN mismatch`);
   }
 });
+}

@@ -2,8 +2,11 @@ import type { XuClassDef, XuPropertyDef, XuRegistryJson } from './model';
 
 /**
  * The XUI class registry: which properties each class declares, in mask-bit
- * order, and how classes inherit. Built from XUIHelper's V5 extension XML
- * (see tools/build-registry.ts) and loaded from registry.json.
+ * order, and how classes inherit. Per build, generated from the dashboard
+ * executable's own class registrations (tools/xui-propdefs.ts +
+ * tools/build-registry.ts, e.g. extensions/6770 and extensions/9199), with
+ * XUIHelper's XML (extensions/v5) kept only for name matching and for the
+ * compile-time definitions XuiTool knew but the runtime never registered.
  */
 export class XuRegistry {
   private readonly byName = new Map<string, XuClassDef>();

@@ -1,31 +1,35 @@
 // One command that turns the two archive files into everything the browser
 // runtime needs. Wired to `npm run extract`.
 //
-//   npm run extract              # skip any step whose output already exists
-//   npm run extract -- --force   # redo every step
+//   npm run extract                  # Blades 6770; skip any step whose output already exists
+//   npm run extract -- --force       # redo every step
+//   npm run extract -- --build 9199  # NXE 9199 (or DASH_BUILD=9199)
 //
 // Order matters: each step reads what the one before it wrote.
 //   1. verify   vendor/archive files exist and match fixtures/hashes.json
-//   2. listing  xex1tool -l          -> extracted/6770/xex-headers.txt
-//   3. basefile xex1tool -b          -> extracted/6770/basefile.exe
-//   4. resources xex1tool -d         -> extracted/6770/resources/<29 files>
-//   5. unpack   unpack-xuiz --probe  -> extracted/6770/xuiz/<pack>/...
-//   6. audio    convert-audio        -> public/assets/6770/audio/...
-//   7. manifest build-manifest       -> public/assets/6770/manifest.json
+//   2. listing  xex1tool -l          -> extracted/<build>/xex-headers.txt
+//   3. basefile xex1tool -b          -> extracted/<build>/basefile.exe
+//   4. resources xex1tool -d         -> extracted/<build>/resources/<29 files>
+//   5. unpack   unpack-xuiz --probe  -> extracted/<build>/xuiz/<pack>/...
+//   6. audio    convert-audio        -> public/assets/<build>/audio/...
+//   7. manifest build-manifest       -> public/assets/<build>/manifest.json
+//   8. counts   fixtures/expected-<build>.json must match exactly
 //
 // Step 5 feeds it the 28 XUIZ packs from the XEX plus the loose shrdres.xzp.
 // The XEX also carries FFFE07D1, an XDBF database rather than a UI pack, so
 // it is filtered out by magic instead of by name.
 import { spawnSync } from 'node:child_process';
-import expected from '../fixtures/expected-6770.json';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { BUILDS, buildArg } from './builds';
+import { readXuiz } from '@xuiz/xuiz';
 
 const force = process.argv.includes('--force');
 
-const BUILD = '6770';
-const ARCHIVE = `vendor/archive/Blades/Retail/${BUILD}`;
+const BUILD = buildArg();
+const ARCHIVE = BUILDS[BUILD]!.archive;
+const expected = JSON.parse(readFileSync(`fixtures/expected-${BUILD}.json`, 'utf8')) as Record<string, number>;
 const XEX = join(ARCHIVE, 'dash.xex');
 const XZP = join(ARCHIVE, 'shrdres.xzp');
 const XEX1TOOL = 'vendor/idaxex/xex1tool/build/xex1tool';
@@ -63,8 +67,12 @@ const hashes = JSON.parse(readFileSync('fixtures/hashes.json', 'utf8')) as HashF
 let verified = 0;
 let missingRequired = 0;
 for (const [file, meta] of Object.entries(hashes.files)) {
+  // Every pinned file that is present is checked; only THIS build's inputs
+  // are required to be present (the archive is sparse, other builds may not
+  // be checked out).
+  const requiredHere = meta.role === 'required' && file.startsWith(`${ARCHIVE}/`);
   if (!existsSync(file)) {
-    if (meta.role === 'required') {
+    if (requiredHere) {
       fail('verify', `${file} is missing`);
       missingRequired++;
     }
@@ -73,7 +81,7 @@ for (const [file, meta] of Object.entries(hashes.files)) {
   const got = createHash('sha256').update(readFileSync(file)).digest('hex');
   if (got !== meta.sha256) {
     fail('verify', `${file} is sha256 ${got.slice(0, 16)}..., expected ${meta.sha256.slice(0, 16)}...`);
-    if (meta.role === 'required') missingRequired++;
+    if (requiredHere) missingRequired++;
     continue;
   }
   verified++;
@@ -124,23 +132,27 @@ if (missingRequired === 0) {
 
   // --- 6. audio -------------------------------------------------------------
   if (failures.length === 0) {
-    if (run('audio', 'node', ['--import', 'tsx', 'tools/convert-audio.ts', ...(force ? ['--force'] : [])])) step('audio', 'converted to Ogg Opus');
+    if (run('audio', 'node', ['--import', 'tsx', 'tools/convert-audio.ts', '--build', BUILD, ...(force ? ['--force'] : [])])) step('audio', 'converted to Ogg Opus');
   }
 
   // --- 7. manifest ----------------------------------------------------------
   if (failures.length === 0) {
-    if (run('manifest', 'node', ['--import', 'tsx', 'tools/build-manifest.ts'])) step('manifest', `public/assets/${BUILD}/manifest.json`);
+    if (run('manifest', 'node', ['--import', 'tsx', 'tools/build-manifest.ts', '--build', BUILD])) step('manifest', `public/assets/${BUILD}/manifest.json`);
   }
 
   // --- 8. expected counts ----------------------------------------------------
   // A partial dump must not pass: the inputs are pinned by hash, so these
   // numbers are deterministic for this build.
   if (failures.length === 0) {
-    const want = expected as Record<string, number>;
+    const want = expected;
     const manifest = JSON.parse(readFileSync(`public/assets/${BUILD}/manifest.json`, 'utf8')) as { packs: { entries: { kind: string }[] }[] };
     const got: Record<string, number> = { packs: manifest.packs.length, entries: 0 };
     for (const pk of manifest.packs) for (const e of pk.entries) { got.entries!++; got[e.kind] = (got[e.kind] ?? 0) + 1; }
     got.audio = readdirSync(`public/assets/${BUILD}/audio`, { recursive: true }).filter((f) => String(f).endsWith('.ogg')).length;
+    // TOC entries across every pack, counted from the packs themselves. It
+    // differs from `entries` (files on disk) only when a TOC names a path
+    // twice: 9199's slots pack does, with identical bytes (unpack-xuiz says so).
+    got.packEntries = [...packs, XZP].reduce((n, f) => n + readXuiz(new Uint8Array(readFileSync(f))).entries.length, 0);
     const bad = Object.entries(want).filter(([k, v]) => got[k] !== v).map(([k, v]) => `${k}: want ${v}, got ${got[k] ?? 0}`);
     if (bad.length) fail('counts', bad.join('; '));
     else step('counts', Object.entries(want).map(([k, v]) => `${k}=${v}`).join(' '));

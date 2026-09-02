@@ -1909,7 +1909,7 @@
    "name": "DVDTrayScene",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92111f84 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92112068 (no property table found: zero own properties)"
   },
   {
    "name": "TraySceneButton",
@@ -1933,7 +1933,7 @@
    "name": "CXuiEditAutoScroll",
    "base": "XuiEdit",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921122c4 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92112338 (no property table found: zero own properties)"
   },
   {
    "name": "MediaPackage",
@@ -2059,13 +2059,13 @@
    "name": "DashData",
    "base": "ScriptData",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921b642c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921b64b8 (no property table found: zero own properties)"
   },
   {
    "name": "CBladeMOTD",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921ba18c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921ba278 (no property table found: zero own properties)"
   },
   {
    "name": "DashBladeTab",
@@ -2089,13 +2089,13 @@
    "name": "dashCDate",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c1ee4 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c1fd8 (no property table found: zero own properties)"
   },
   {
    "name": "dashCTimezone",
    "base": "XuiList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c206c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c20e0 (no property table found: zero own properties)"
   },
   {
    "name": "dashCLanguage",
@@ -2125,19 +2125,19 @@
    "name": "dashCHints",
    "base": "XuiList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c23d4 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c25c0 (no property table found: zero own properties)"
   },
   {
    "name": "dashRemoteCList",
    "base": "XuiList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c2654 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c2a18 (no property table found: zero own properties)"
   },
   {
    "name": "DashSettingsList",
    "base": "XuiCommonList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c2aac (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c2e50 (no property table found: zero own properties)"
   },
   {
    "name": "dashPControlSelect",
@@ -2149,7 +2149,7 @@
    "name": "dashPControlSettings_Video",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c2f7c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c3060 (no property table found: zero own properties)"
   },
   {
    "name": "dashPControlSettings_VideoMovie",
@@ -2167,7 +2167,7 @@
    "name": "dashPControlSettings_VideoUnrated",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c3224 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c3298 (no property table found: zero own properties)"
   },
   {
    "name": "dashPControlSettings_LiveA",
@@ -2269,7 +2269,7 @@
    "name": "dashAudioSettings_D",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c3cac (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c3d20 (no property table found: zero own properties)"
   },
   {
    "name": "dashAudioSettings_FX",
@@ -2281,7 +2281,7 @@
    "name": "dashClockSettings_Menu",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c3e4c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c3ec0 (no property table found: zero own properties)"
   },
   {
    "name": "dashClockSettings",
@@ -2299,7 +2299,7 @@
    "name": "dashClockSettings_1224",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921c4084 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921c4104 (no property table found: zero own properties)"
   },
   {
    "name": "dashCountrySettings",
@@ -2431,13 +2431,13 @@
    "name": "VideoContentList",
    "base": "DashDataList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921ed624 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921ed790 (no property table found: zero own properties)"
   },
   {
    "name": "VideoContentScene",
    "base": "ScriptScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921edc2c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921edca0 (no property table found: zero own properties)"
   },
   {
    "name": "VideoData",
@@ -2461,7 +2461,7 @@
    "name": "VideosTwistFilter",
    "base": "MediaTwist",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921edf44 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921edfc8 (no property table found: zero own properties)"
   },
   {
    "name": "CPostalDataList",
@@ -2545,7 +2545,7 @@
    "name": "CPassportSignInButton",
    "base": "XuiButton",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921fc4dc (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921fc560 (no property table found: zero own properties)"
   },
   {
    "name": "CPassportSignInScene",
@@ -2659,7 +2659,7 @@
    "name": "CPostalDataListScene",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x921fd0a4 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x921fd128 (no property table found: zero own properties)"
   },
   {
    "name": "CStateListScene",
@@ -2671,7 +2671,7 @@
    "name": "CMessengerWelcomeScene",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x9220e344 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x9220e508 (no property table found: zero own properties)"
   },
   {
    "name": "CMessengerSelectWLIDScene",
@@ -2905,7 +2905,7 @@
    "name": "DeviceSelectorList",
    "base": "XuiList",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92259b94 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92259d54 (no property table found: zero own properties)"
   },
   {
    "name": "DeviceSelectorScene",
@@ -3019,7 +3019,7 @@
    "name": "DashIPTVSettingsScene",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x9226feb4 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92270070 (no property table found: zero own properties)"
   },
   {
    "name": "DvrStorageScene",
@@ -3157,7 +3157,7 @@
    "name": "IptvConnectingScene",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92287f4c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92287fc8 (no property table found: zero own properties)"
   },
   {
    "name": "DashLiveScene",
@@ -3169,7 +3169,7 @@
    "name": "DashLiveSignedIn",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x9228eee8 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x9228efc8 (no property table found: zero own properties)"
   },
   {
    "name": "DashLiveSignedOut",
@@ -3181,7 +3181,7 @@
    "name": "DashMPScene",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x9228f5cc (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x9228f644 (no property table found: zero own properties)"
   },
   {
    "name": "CGamesBladeScene",
@@ -3205,7 +3205,7 @@
    "name": "CGamesBladeNavButton",
    "base": "XuiNavButton",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92293d94 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92293e14 (no property table found: zero own properties)"
   },
   {
    "name": "DashMediaScene",
@@ -3229,19 +3229,19 @@
    "name": "MediaBladeMetaIptv",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92294a04 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92294a7c (no property table found: zero own properties)"
   },
   {
    "name": "OOBEScene",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92295b48 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92295bb8 (no property table found: zero own properties)"
   },
   {
    "name": "oobeCountry",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92297dc8 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92297ea8 (no property table found: zero own properties)"
   },
   {
    "name": "oobeLanguage",
@@ -3253,13 +3253,13 @@
    "name": "CGamerTile",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92298794 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x922988f0 (no property table found: zero own properties)"
   },
   {
    "name": "CResolutionChoice",
    "base": "DashScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x92298f3c (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x92298fb0 (no property table found: zero own properties)"
   },
   {
    "name": "CPalChoice",
@@ -3307,19 +3307,19 @@
    "name": "DvdInfoPane",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x922a0024 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x922a03e8 (no property table found: zero own properties)"
   },
   {
    "name": "XmfPrebufferingScene",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x922a04b8 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x922a0670 (no property table found: zero own properties)"
   },
   {
    "name": "DvdPadDisplay",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x922a0db8 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x922a1458 (no property table found: zero own properties)"
   },
   {
    "name": "DvdPadPlayback",
@@ -3337,7 +3337,7 @@
    "name": "DvdHelpPane",
    "base": "XuiScene",
    "props": [],
-   "source": "dash.xex 6770 registration @0x922a2f88 (no property table found: zero own properties)"
+   "source": "dash.xex 6770 registration @0x922a324c (no property table found: zero own properties)"
   },
   {
    "name": "XuiFall07BOTDScene",

@@ -67,8 +67,24 @@ for (const file of files) {
     const k = kindOf(entryBytes(bytes, e));
     kinds.set(k, (kinds.get(k) ?? 0) + 1);
   }
+  // A TOC may name the same path twice (9199's slots pack lists
+  // TraySlotScene.xur twice, byte-identical), and on a case-insensitive
+  // file system two names differing only in case are one file. Writing the
+  // second silently replaces the first, so say so: identical bytes are a
+  // note (the dump still holds every byte), different bytes are a failure.
+  const dups: string[] = [];
+  const byPath = new Map<string, (typeof pack.entries)[number]>();
+  for (const e of pack.entries) {
+    const key = entryPath(e).toLowerCase();
+    const first = byPath.get(key);
+    if (!first) { byPath.set(key, e); continue; }
+    const same = Buffer.compare(Buffer.from(entryBytes(bytes, first)), Buffer.from(entryBytes(bytes, e))) === 0;
+    dups.push(`${entryPath(first)} listed again as ${entryPath(e)} (${same ? 'identical bytes' : 'DIFFERENT bytes'})`);
+    if (!same) failed++;
+  }
   const summary = [...kinds.entries()].map(([k, n]) => `${k}=${n}`).join(' ');
-  let verdict = 'OK';
+  let verdict = dups.some((d) => d.includes('DIFFERENT')) ? 'DUP_FAIL' : 'OK';
+  for (const d of dups) console.log(`   duplicate entry: ${d}`);
   if (tiling.length) {
     verdict = 'TILING_FAIL';
     failed++;

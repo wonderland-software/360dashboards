@@ -1,0 +1,4044 @@
+{
+ "version": 5,
+ "group": "9199",
+ "classes": [
+  {
+   "name": "DashScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "PanelSettings",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    },
+    {
+     "id": 1,
+     "name": "PanelStrings",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    },
+    {
+     "id": 2,
+     "name": "PanelScenePaths",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9213db94"
+  },
+  {
+   "name": "XuiCheckbox",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiCheckbox"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217908c"
+  },
+  {
+   "name": "XuiRadioButton",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiRadioButton"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92179124"
+  },
+  {
+   "name": "XuiComboBox",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "ComboBoxStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiComboBox"
+    },
+    {
+     "id": 1,
+     "name": "MaxVisibleVertItems",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiComboBox"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217b664"
+  },
+  {
+   "name": "XuiImagePresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImagePresenter"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImagePresenter"
+    },
+    {
+     "id": 2,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImagePresenter"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217bf24"
+  },
+  {
+   "name": "XuiFigureStroke",
+   "base": null,
+   "props": [
+    {
+     "id": 0,
+     "name": "StrokeWidth",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureStroke"
+    },
+    {
+     "id": 1,
+     "name": "StrokeColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureStroke"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217e47c"
+  },
+  {
+   "name": "XuiFigureFillGradient",
+   "base": null,
+   "props": [
+    {
+     "id": 0,
+     "name": "Radial",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 1,
+     "name": "NumStops",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 2,
+     "name": "StopColor",
+     "type": "color",
+     "flags": [
+      "indexed"
+     ],
+     "defaultValue": null,
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 3,
+     "name": "StopPos",
+     "type": "float",
+     "flags": [
+      "indexed"
+     ],
+     "defaultValue": null,
+     "owner": "XuiFigureFillGradient"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217e694"
+  },
+  {
+   "name": "XuiFigureFill",
+   "base": null,
+   "props": [
+    {
+     "id": 0,
+     "name": "FillType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "FillColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 2,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 3,
+     "name": "Gradient",
+     "type": "object",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 4,
+     "name": "Translation",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 5,
+     "name": "Scale",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 6,
+     "name": "Rotation",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 7,
+     "name": "WrapX",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 8,
+     "name": "WrapY",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 9,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 10,
+     "name": "TransformVersion",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigureFill"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217ebdc"
+  },
+  {
+   "name": "XuiFigure",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Stroke",
+     "type": "object",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 1,
+     "name": "Fill",
+     "type": "object",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 2,
+     "name": "Closed",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 3,
+     "name": "Points",
+     "type": "custom",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217f044"
+  },
+  {
+   "name": "XuiScrollEnd",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Direction",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScrollEnd"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217f63c"
+  },
+  {
+   "name": "XuiScrollBar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Direction",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScrollBar"
+    },
+    {
+     "id": 1,
+     "name": "MinThumbSize",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScrollBar"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217f7ac"
+  },
+  {
+   "name": "XuiPerspectiveScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "ProjectionScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiPerspectiveScene"
+    },
+    {
+     "id": 1,
+     "name": "ProjectionCenterU",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiPerspectiveScene"
+    },
+    {
+     "id": 2,
+     "name": "ProjectionCenterV",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiPerspectiveScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9217fd44"
+  },
+  {
+   "name": "XuiText",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Text",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 1,
+     "name": "TextColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 2,
+     "name": "DropShadowColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 3,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 4,
+     "name": "Font",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 5,
+     "name": "TextStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    },
+    {
+     "id": 6,
+     "name": "LineSpacingAdjust",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiText"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9218162c"
+  },
+  {
+   "name": "XuiScene",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "DefaultFocus",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 1,
+     "name": "TransFrom",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 2,
+     "name": "TransTo",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 3,
+     "name": "TransBackFrom",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 4,
+     "name": "TransBackTo",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 5,
+     "name": "InterruptTransitions",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 6,
+     "name": "IgnorePresses",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92181a2c"
+  },
+  {
+   "name": "XuiButton",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 1,
+     "name": "PressAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 2,
+     "name": "PressAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 3,
+     "name": "PressAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 4,
+     "name": "FocusAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 5,
+     "name": "FocusAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    },
+    {
+     "id": 6,
+     "name": "FocusAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiButton"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92181cb4"
+  },
+  {
+   "name": "XuiNavButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 0,
+     "name": "PressPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 1,
+     "name": "StayVisible",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 2,
+     "name": "SrcTransIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 3,
+     "name": "DestTransIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNavButton"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92181f24"
+  },
+  {
+   "name": "XuiTextPresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "TextColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 1,
+     "name": "DropShadowColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 2,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 3,
+     "name": "Font",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 4,
+     "name": "TextStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 5,
+     "name": "LineSpacingAdjust",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 6,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextPresenter"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921820a4"
+  },
+  {
+   "name": "XuiSound",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "State",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSound"
+    },
+    {
+     "id": 1,
+     "name": "Loop",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSound"
+    },
+    {
+     "id": 2,
+     "name": "Finish",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSound"
+    },
+    {
+     "id": 3,
+     "name": "Volume",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSound"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921823bc"
+  },
+  {
+   "name": "XuiListItem",
+   "base": "XuiCheckbox",
+   "props": [
+    {
+     "id": 0,
+     "name": "Layout",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 1,
+     "name": "Checkable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 2,
+     "name": "SelectedSize",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 3,
+     "name": "KeepSizeUnfocused",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 4,
+     "name": "InterItemSpacing",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 5,
+     "name": "SmoothScroll",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 6,
+     "name": "SmoothScrollBaseSpeed",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 7,
+     "name": "SmoothScrollMaxSpeed",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 8,
+     "name": "SmoothScrollAcceleration",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921825dc"
+  },
+  {
+   "name": "XuiList",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Wrap",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiList"
+    },
+    {
+     "id": 1,
+     "name": "WrapBump",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiList"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92182914"
+  },
+  {
+   "name": "XuiCommonList",
+   "base": "XuiList",
+   "props": [
+    {
+     "id": 0,
+     "name": "ItemsText",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiCommonList"
+    },
+    {
+     "id": 1,
+     "name": "ItemsImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiCommonList"
+    },
+    {
+     "id": 2,
+     "name": "ItemsNavPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiCommonList"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921829fc"
+  },
+  {
+   "name": "XuiProgressBar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "RangeMin",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiProgressBar"
+    },
+    {
+     "id": 1,
+     "name": "RangeMax",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiProgressBar"
+    },
+    {
+     "id": 2,
+     "name": "Value",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiProgressBar"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92182b54"
+  },
+  {
+   "name": "XuiSlider",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "RangeMin",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 1,
+     "name": "RangeMax",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 2,
+     "name": "Value",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 3,
+     "name": "Step",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 4,
+     "name": "Vertical",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 5,
+     "name": "AccelInc",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 6,
+     "name": "AccelTime",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSlider"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92182cac"
+  },
+  {
+   "name": "XuiEdit",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "TextLimit",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 1,
+     "name": "AllowedChars",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 2,
+     "name": "PasswordChar",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 3,
+     "name": "ReadOnly",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 4,
+     "name": "Multiline",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 5,
+     "name": "SmoothScroll",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92182f6c"
+  },
+  {
+   "name": "XuiImage",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImage"
+    },
+    {
+     "id": 1,
+     "name": "ImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImage"
+    },
+    {
+     "id": 2,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImage"
+    },
+    {
+     "id": 3,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiImage"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921831e4"
+  },
+  {
+   "name": "XuiTabScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "TabCount",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 1,
+     "name": "Wrap",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 2,
+     "name": "UserInterrupt",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 3,
+     "name": "VerticalTabs",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 4,
+     "name": "NoAutoHide",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 5,
+     "name": "DefaultTab",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92183394"
+  },
+  {
+   "name": "Xui3DScene",
+   "base": "XuiGroup",
+   "props": [
+    {
+     "id": 0,
+     "name": "CameraElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DScene"
+    },
+    {
+     "id": 1,
+     "name": "AmbientLight",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DScene"
+    },
+    {
+     "id": 2,
+     "name": "SunLightDirection",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DScene"
+    },
+    {
+     "id": 3,
+     "name": "SunLightColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92183674"
+  },
+  {
+   "name": "Xui3DElement",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DElement"
+    },
+    {
+     "id": 1,
+     "name": "Translation",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DElement"
+    },
+    {
+     "id": 2,
+     "name": "Rotation",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DElement"
+    },
+    {
+     "id": 3,
+     "name": "Scale",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DElement"
+    },
+    {
+     "id": 4,
+     "name": "Pivot",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DElement"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9218387c"
+  },
+  {
+   "name": "Xui3DCamera",
+   "base": "Xui3DElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "HorizontalFOV",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DCamera"
+    },
+    {
+     "id": 1,
+     "name": "OrthogonalFOV",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DCamera"
+    },
+    {
+     "id": 2,
+     "name": "MinZ",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DCamera"
+    },
+    {
+     "id": 3,
+     "name": "MaxZ",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DCamera"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92183adc"
+  },
+  {
+   "name": "Xui3DMesh",
+   "base": "Xui3DElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "MeshFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 1,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 2,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 3,
+     "name": "SkeletonSourceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 4,
+     "name": "TwoSided",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 5,
+     "name": "Wireframe",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 6,
+     "name": "ZWrite",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 7,
+     "name": "Fullbrite",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    },
+    {
+     "id": 8,
+     "name": "BaseColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DMesh"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92183d04"
+  },
+  {
+   "name": "Xui3DBone",
+   "base": "Xui3DElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Length",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DBone"
+    },
+    {
+     "id": 1,
+     "name": "ParentBone",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DBone"
+    },
+    {
+     "id": 2,
+     "name": "ParentRelativeTransform",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "Xui3DBone"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92184054"
+  },
+  {
+   "name": "XuiNineGrid",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 1,
+     "name": "LeftOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 2,
+     "name": "TopOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 3,
+     "name": "RightOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 4,
+     "name": "BottomOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 5,
+     "name": "NoCenter",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92184194"
+  },
+  {
+   "name": "XuiTextureSurface",
+   "base": "XuiGroup",
+   "props": [
+    {
+     "id": 0,
+     "name": "ShowSurface",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextureSurface"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9218441c"
+  },
+  {
+   "name": "XuiShader",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 1,
+     "name": "ShaderFile",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 2,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 3,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 4,
+     "name": "WrapX",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 5,
+     "name": "WrapY",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 6,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 7,
+     "name": "CompositeEdge",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 8,
+     "name": "ForceComposite",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 9,
+     "name": "EffectParams1",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 10,
+     "name": "EffectParams2",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 11,
+     "name": "EffectParams3",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 12,
+     "name": "EffectParams4",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 13,
+     "name": "EffectParams5",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921844cc"
+  },
+  {
+   "name": "XuiVariable",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 1,
+     "name": "VectorVariable",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 2,
+     "name": "FloatVariable",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 3,
+     "name": "IntegerVariable",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVariable"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921849a4"
+  },
+  {
+   "name": "XuiElement",
+   "base": null,
+   "props": [
+    {
+     "id": 0,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 1,
+     "name": "Width",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 2,
+     "name": "Height",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 3,
+     "name": "Position",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 4,
+     "name": "Scale",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 5,
+     "name": "Rotation",
+     "type": "quaternion",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 6,
+     "name": "Opacity",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 7,
+     "name": "Anchor",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 8,
+     "name": "Pivot",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 9,
+     "name": "Show",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 10,
+     "name": "BlendMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 11,
+     "name": "DisableTimelineRecursion",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 12,
+     "name": "DesignTime",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 13,
+     "name": "ColorWriteFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 14,
+     "name": "ClipChildren",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 15,
+     "name": "EnableEffects",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 16,
+     "name": "DisableFocusRecursion",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 17,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 18,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 19,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 20,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 21,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 22,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 23,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 24,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 25,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": 26,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement",
+     "origin": "xuitool-xml"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9218719c; definitions 17-26 from XuiTool (XUIHelper 9199 XML), required by the 4 mask bytes every scene writes"
+  },
+  {
+   "name": "XuiControl",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "ClassOverride",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 1,
+     "name": "Visual",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 2,
+     "name": "Enabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 3,
+     "name": "UnfocusedInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 4,
+     "name": "NavLeft",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 5,
+     "name": "NavRight",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 6,
+     "name": "NavUp",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 7,
+     "name": "NavDown",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 8,
+     "name": "NavTabForward",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 9,
+     "name": "NavTabBackward",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 10,
+     "name": "Text",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 11,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 12,
+     "name": "ImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921877f4"
+  },
+  {
+   "name": "XuiSoundXAudio",
+   "base": "XuiSound",
+   "props": [
+    {
+     "id": 0,
+     "name": "File",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSoundXAudio"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921914cc"
+  },
+  {
+   "name": "XuiHtmlPresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHtmlPresenter"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921da634"
+  },
+  {
+   "name": "XuiHtmlElement",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Text",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHtmlElement"
+    },
+    {
+     "id": 1,
+     "name": "TeletypeCount",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHtmlElement"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921e04cc"
+  },
+  {
+   "name": "XuiHtmlControl",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "LineHeight",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHtmlControl"
+    },
+    {
+     "id": 1,
+     "name": "TeletypeCount",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiHtmlControl"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921e0764"
+  },
+  {
+   "name": "DashVideo",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "File",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashVideo"
+    },
+    {
+     "id": 1,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashVideo"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x921fe3d4"
+  },
+  {
+   "name": "MediaTwist",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Active",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "MediaTwist"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x922f1974"
+  },
+  {
+   "name": "XuiGamerCard",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Format",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiGamerCard"
+    },
+    {
+     "id": 1,
+     "name": "ShowExtendedPanel",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiGamerCard"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x922fedc4"
+  },
+  {
+   "name": "XuiAvatar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "UseActiveUserAvatar",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 1,
+     "name": "EnableUserControl",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 2,
+     "name": "QueueAnimation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 3,
+     "name": "PlayAnimation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 4,
+     "name": "UseCustomView",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 5,
+     "name": "RenderView",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 6,
+     "name": "CustomViewEyePosition",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 7,
+     "name": "CustomViewFocusPosition",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 8,
+     "name": "CustomViewUpDirection",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 9,
+     "name": "ShowSelfShadow",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 10,
+     "name": "ShowShadow",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 11,
+     "name": "ShowCarryable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 12,
+     "name": "ShowHat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92485c54"
+  },
+  {
+   "name": "AuraControl",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "ThemeImageIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "AuraControl"
+    },
+    {
+     "id": 1,
+     "name": "BackgroundImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "AuraControl"
+    },
+    {
+     "id": 2,
+     "name": "SurfaceSphere",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "AuraControl"
+    },
+    {
+     "id": 3,
+     "name": "BannerImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "AuraControl"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x924892a4"
+  },
+  {
+   "name": "ScriptScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "Script",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptScene"
+    },
+    {
+     "id": 1,
+     "name": "Visible",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptScene"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x9249399c"
+  },
+  {
+   "name": "ScriptData",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Query",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 1,
+     "name": "State",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 2,
+     "name": "ItemCount",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 3,
+     "name": "Selected",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92496ecc"
+  },
+  {
+   "name": "ScriptButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataSet",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptButton"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptButton"
+    },
+    {
+     "id": 2,
+     "name": "Embedded",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptButton"
+    },
+    {
+     "id": 3,
+     "name": "Item",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptButton"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92497644"
+  },
+  {
+   "name": "ScriptList",
+   "base": "XuiList",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataSet",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    },
+    {
+     "id": 2,
+     "name": "Embedded",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x924977ec"
+  },
+  {
+   "name": "ScriptImage",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataSet",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 2,
+     "name": "Embedded",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 3,
+     "name": "Item",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    }
+   ],
+   "source": "dash.xex 9199 .text @0x92497ab4"
+  },
+  {
+   "name": "LiveVisionControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213eec4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashLoading",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213effc (no property table found: zero own properties)"
+  },
+  {
+   "name": "LiveVisionDashEffect",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f094 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CDashListChooser",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f12c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CXuiEditAutoScroll",
+   "base": "XuiEdit",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f1c4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CXuiEditRThumbScroll",
+   "base": "XuiEdit",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f25c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CReflectionSceneHost",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f2f4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAchievementsGridList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f38c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAchievementsGridScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f424 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MetaPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f554 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CWaitForLogonScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9213f688 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiLabel",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921855bc (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiVisual",
+   "base": "XuiElement",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9218567c (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiBackButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921858dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiRadioGroup",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92185b10 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiGroup",
+   "base": "XuiElement",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92185c7c (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiComboBoxList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9218611c (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiCaret",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92186410 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiMessageBox",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921864c0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "Xui3DSkeleton",
+   "base": "Xui3DElement",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92186880 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiCanvas",
+   "base": "XuiElement",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92188408 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiTransition",
+   "base": "XuiElement",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92188558 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MediaSourceNoComputersMetapanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921f3350 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MediaSourceList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921f3b48 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashDataList",
+   "base": "ScriptList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921f4928 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashData",
+   "base": "ScriptData",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x921f4db8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCValueSpin",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220e18c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_Passcode",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220f4c8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashSettingsRoot",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220f8b8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCTextSpin",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220f9ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCDate",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fab8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCTimezone",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fbc0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCLanguage",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fc54 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCCountry",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fcec (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCRatingView",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fd84 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCScreenSize",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9220fe1c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashRemoteCList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210520 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashSettingsList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210b18 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSelect",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210bac (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_Video",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210d28 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_VideoMovie",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210dbc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_VideoTV",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210e54 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_VideoUnrated",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210f60 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_LiveA",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92210ff4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_Content",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221108c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_LiveC",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211124 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_PasscodeHint",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922111bc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPasscodeEdit",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211254 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPasscodeNEdit",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922112ec (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashSystemScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211384 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CFamilyTimerDurationList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221141c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CFamilyTimerSettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922114b4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCHints",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221154c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCTime",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922115e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCCInputScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221167c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashVideoSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211714 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashVideoSettings_HD",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922117ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashVideoSettings_Format",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211844 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashVideoSettings_60",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922118dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashAudioSettings_D",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922119e8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashAudioSettings_FX",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211a7c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashLangLocaleSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211b14 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashLanguageSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211bac (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashClockSettings_Menu",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211c44 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashClockSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211cdc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashClockSettings_TZone",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211d74 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashClockSettings_1224",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211e8c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashCountrySettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211f24 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashAutoOff",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92211fbc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashRemoteC",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92212054 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashScreensaver",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922120ec (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashOutputLevels",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92212184 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashColorSpaceSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221221c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashDisplayDiscoverySettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922122b4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashSystemReset",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221234c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashStartupShutdownSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922123e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashStartUp",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221247c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashLiveVisionSettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92212514 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashBackgroundDownloads",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922125ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashMediaAutoLaunch",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92212644 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashWelcomeChannelSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922126dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettingsMenu",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92212774 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_Game",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221280c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashPControlSettings_VideoExplicit",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922128a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashAudioSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9221293c (no property table found: zero own properties)"
+  },
+  {
+   "name": "dashClockSettings_DSaving",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922129d4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MusicPlayPauseButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9222cf54 (no property table found: zero own properties)"
+  },
+  {
+   "name": "GotoMusicPlayerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9222d06c (no property table found: zero own properties)"
+  },
+  {
+   "name": "GotoMusicPlayerDashScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9222d104 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MusicPlaybackModeButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9222e218 (no property table found: zero own properties)"
+  },
+  {
+   "name": "NowPlayingRipOrEditButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9222e5a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "FiltersCollectionsScene",
+   "base": "ScriptScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92242c54 (no property table found: zero own properties)"
+  },
+  {
+   "name": "VideoContentScene",
+   "base": "ScriptScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92242cec (no property table found: zero own properties)"
+  },
+  {
+   "name": "VideoData",
+   "base": "DashData",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92242d84 (no property table found: zero own properties)"
+  },
+  {
+   "name": "VideoContentList",
+   "base": "DashDataList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92242e1c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPostalDataList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922517e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAddressButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225187c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CStateList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92251b14 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CContactAddressScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92251cdc (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDCurrentSignIn",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252074 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDNewSignIn",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225210c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDParentSignIn",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922521a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPrivTwoOptionsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225244c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPrivThreeOptionsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922524e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAMHomeScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252b3c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAMMyMembershipsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252bd4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMyMembershipsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252c6c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMyMembershipsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252d04 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPassportSignInButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252e20 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPassportSignInScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252eb4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPassportPasswordButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252f4c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPassportPasswordScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92252fe4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CWLIDMenuScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225307c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDMenuScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253114 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDFinishScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922531ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "CChangeLiveIDCongratsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253244 (no property table found: zero own properties)"
+  },
+  {
+   "name": "PrivacySettingsList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922532dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPrivacyMainScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253374 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMarketingTwoOptionsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225340c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPolicyMainScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922534a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPolicyDisplayScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225353c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPCMainScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922535d4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPCPrivFriendsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225366c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CGameplaySettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253704 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPCContentSettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9225379c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMoreInfoScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253834 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAboutMSPointsListScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922538cc (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPostalDataListScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922539e8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CStateListScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92253a7c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMessengerWelcomeScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92265330 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMessengerSelectWLIDScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922653c4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CMessengerSignupCompleteScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9226545c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CFriendRequestRecipientsList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922654f4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CFriendRequestIntroScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9226558c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CFriendRequestMainScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92265624 (no property table found: zero own properties)"
+  },
+  {
+   "name": "EditButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92265754 (no property table found: zero own properties)"
+  },
+  {
+   "name": "PasswordEditButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922657ec (no property table found: zero own properties)"
+  },
+  {
+   "name": "CollectionFilterList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9226ac84 (no property table found: zero own properties)"
+  },
+  {
+   "name": "RecentGamesList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9226adb4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "InstallTitleScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9226b184 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2013_WindowsConnectNow",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92288eec (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2016_EditIPSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92288f84 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2018_IPSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228901c (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2033_DNSConfig",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922890b4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2034_DNSSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228914c (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2036_PPPoESettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922891e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2038_ConsoleInformation",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228927c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CNetworkListItem",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289314 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2020_AvailableWirelessNetworks",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922893ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2022_WirelessSecuritySettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289444 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2024_EnterSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922894dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2026_ChannelList",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289574 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2028_WirelessModes",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228960c (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2015_WirelessInformation",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922896a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CWirelessSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289a2c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CConnStatus",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289c8c (no property table found: zero own properties)"
+  },
+  {
+   "name": "C4LineBtn",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289d24 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2004_MasterTab",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289dbc (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2004_NetworkDetails",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289e54 (no property table found: zero own properties)"
+  },
+  {
+   "name": "C2005_AdditionalSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92289eec (no property table found: zero own properties)"
+  },
+  {
+   "name": "CNetworkMenu",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228a004 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CNetworkMain",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228a09c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CTestingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228a134 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CSuggestionScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228a1cc (no property table found: zero own properties)"
+  },
+  {
+   "name": "CConnectBar",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9228a2fc (no property table found: zero own properties)"
+  },
+  {
+   "name": "DeviceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a6e5c (no property table found: zero own properties)"
+  },
+  {
+   "name": "DeviceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a6ef4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DeviceDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a6f8c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CategoriesList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7024 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CategoriesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a70bc (no property table found: zero own properties)"
+  },
+  {
+   "name": "ItemsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7154 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ItemsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a71ec (no property table found: zero own properties)"
+  },
+  {
+   "name": "ItemDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7284 (no property table found: zero own properties)"
+  },
+  {
+   "name": "OperationProgressScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a731c (no property table found: zero own properties)"
+  },
+  {
+   "name": "FormatHDScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a73b4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DeleteMusicScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a744c (no property table found: zero own properties)"
+  },
+  {
+   "name": "HDDVDDeviceScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a74e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "HDDVDContentsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a757c (no property table found: zero own properties)"
+  },
+  {
+   "name": "HDDVDContentsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7614 (no property table found: zero own properties)"
+  },
+  {
+   "name": "HDDVDContentDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a76ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizDetailsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7744 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a77dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizDeviceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7874 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizCategoriesList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a790c (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizCategoriesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a79a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizSourceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7ab4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ConfigureAdvanced",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7b4c (no property table found: zero own properties)"
+  },
+  {
+   "name": "ConfigureScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a7be4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizDeviceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a8484 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WizSourceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922a851c (no property table found: zero own properties)"
+  },
+  {
+   "name": "DownloadLiveSignupScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922be8a0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DashIPTVSettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c0510 (no property table found: zero own properties)"
+  },
+  {
+   "name": "UninstallIPTVScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c05a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ConsoleSerialNumEdit",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c063c (no property table found: zero own properties)"
+  },
+  {
+   "name": "MiniGamerCardScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c53d4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixAdvertScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c546c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixHomePageScene",
+   "base": "MobyRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c557c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixPictureScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c5614 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixPictureDestScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c56f0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CUpsellRootScene",
+   "base": "RomeRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c5844 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixRomeChannelScene",
+   "base": "RomeRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c59d8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixVideoScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c5ba8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CEpixXZPSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922c5c9c (no property table found: zero own properties)"
+  },
+  {
+   "name": "GamerCardSlotContainerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df238 (no property table found: zero own properties)"
+  },
+  {
+   "name": "GamerCardSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df2cc (no property table found: zero own properties)"
+  },
+  {
+   "name": "GamesSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df364 (no property table found: zero own properties)"
+  },
+  {
+   "name": "HdDvdTraySlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df3fc (no property table found: zero own properties)"
+  },
+  {
+   "name": "SettingsSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df494 (no property table found: zero own properties)"
+  },
+  {
+   "name": "TraySlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df52c (no property table found: zero own properties)"
+  },
+  {
+   "name": "VideoSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df5c4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MediaCenterSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df65c (no property table found: zero own properties)"
+  },
+  {
+   "name": "MediaroomSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df7e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MusicSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df8b0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "PhotosSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922df944 (no property table found: zero own properties)"
+  },
+  {
+   "name": "SolutionsSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922dfa58 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CProfilePanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e356c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CCreateProfilePanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e3604 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CRecoverProfilePanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e369c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CSigninScene",
+   "base": "MobyRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e3734 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CGamerActionPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e55dc (no property table found: zero own properties)"
+  },
+  {
+   "name": "COptionList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e5ab4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CGamerRootScene",
+   "base": "RomeRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e5b4c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CGamerCardPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e5be4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CAllGamesPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e5c7c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CPlayedGamePanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e5d5c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CCompleteGamesList",
+   "base": "XuiList",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e610c (no property table found: zero own properties)"
+  },
+  {
+   "name": "CInteractPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922e61a4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeComplete",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ebea0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeProfileInfo",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ebf34 (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeJoinLiveExisting",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ebfcc (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeJoinLiveNew",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ec064 (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeInsertDisc",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ec0fc (no property table found: zero own properties)"
+  },
+  {
+   "name": "noobeParentalCheck",
+   "base": "DashScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ec3a8 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CXboxBasicsRootScene",
+   "base": "RomeRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ed1e0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "CWhatsNewRootScene",
+   "base": "RomeRootScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ed274 (no property table found: zero own properties)"
+  },
+  {
+   "name": "BaseScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ff1e4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ExtendedScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ff27c (no property table found: zero own properties)"
+  },
+  {
+   "name": "ReputationScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ff614 (no property table found: zero own properties)"
+  },
+  {
+   "name": "GamerCardScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ffab0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MeGamercardWorker",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ffb44 (no property table found: zero own properties)"
+  },
+  {
+   "name": "YouGamercardWorker",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x922ffbdc (no property table found: zero own properties)"
+  },
+  {
+   "name": "MCXFullscreenVideo",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923077b0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ErrorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923079ec (no property table found: zero own properties)"
+  },
+  {
+   "name": "PcSoftwareScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307b10 (no property table found: zero own properties)"
+  },
+  {
+   "name": "WelcomeScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307c6c (no property table found: zero own properties)"
+  },
+  {
+   "name": "NoNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307dcc (no property table found: zero own properties)"
+  },
+  {
+   "name": "SlowNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307e64 (no property table found: zero own properties)"
+  },
+  {
+   "name": "ReconfigureWirelessScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307efc (no property table found: zero own properties)"
+  },
+  {
+   "name": "Wireless80211bScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92307f94 (no property table found: zero own properties)"
+  },
+  {
+   "name": "LimitedNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9230802c (no property table found: zero own properties)"
+  },
+  {
+   "name": "NetworkSettingsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923080c4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MediaCenterScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9230815c (no property table found: zero own properties)"
+  },
+  {
+   "name": "ContactErrorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9230828c (no property table found: zero own properties)"
+  },
+  {
+   "name": "OldVersionScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9230833c (no property table found: zero own properties)"
+  },
+  {
+   "name": "WaitingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923083d4 (no property table found: zero own properties)"
+  },
+  {
+   "name": "IptvConnectingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9230a838 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DvdInfoPane",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923185e0 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XmfPrebufferingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92318868 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DvdPadDisplay",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92319680 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DvdPadPlayback",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92319714 (no property table found: zero own properties)"
+  },
+  {
+   "name": "DvdRcDisplay",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x923197ac (no property table found: zero own properties)"
+  },
+  {
+   "name": "DvdHelpPane",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x9231b434 (no property table found: zero own properties)"
+  },
+  {
+   "name": "VariablesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489a6c (no property table found: zero own properties)"
+  },
+  {
+   "name": "AuraScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489b04 (no property table found: zero own properties)"
+  },
+  {
+   "name": "LegendScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489c38 (no property table found: zero own properties)"
+  },
+  {
+   "name": "MobyRootScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489ccc (no property table found: zero own properties)"
+  },
+  {
+   "name": "MobyChannelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489d64 (no property table found: zero own properties)"
+  },
+  {
+   "name": "RomeRootScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489dfc (no property table found: zero own properties)"
+  },
+  {
+   "name": "LegacyControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "dash.xex 9199 registration @0x92489e94 (no property table found: zero own properties)"
+  },
+  {
+   "name": "XuiVideo",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "File",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiVideo",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": null,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiVideo",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": null,
+     "name": "Pause",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVideo",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": null,
+     "name": "Loop",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVideo",
+     "origin": "xuitool-xml"
+    },
+    {
+     "id": null,
+     "name": "Volume",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "-12.000000",
+     "owner": "XuiVideo",
+     "origin": "xuitool-xml"
+    }
+   ],
+   "source": "NOT registered by dash.xex 9199 (the class name is not in its image); definitions from XuiTool (XUIHelper 9199 XML): definitions 1 (SizeMode, unsigned) and 3 (Loop, bool) evidenced by homepage/VideoScene.xur; 0, 2, 4 unexercised"
+  },
+  {
+   "name": "MediaScene",
+   "base": "ScriptScene",
+   "props": [
+    {
+     "id": null,
+     "name": "Image",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "MediaScene",
+     "origin": "xuitool-xml"
+    }
+   ],
+   "source": "NOT registered by dash.xex 9199 (the class name is not in its image); definitions from XuiTool (XUIHelper 9199 XML): no own definition is set by dashcomm/OfflineMarketplace.xur, the one scene using it; Image is unexercised"
+  }
+ ],
+ "notes": {}
+}

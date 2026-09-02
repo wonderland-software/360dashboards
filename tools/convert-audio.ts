@@ -1,6 +1,6 @@
-// Convert every sound under extracted/6770/xuiz to Ogg Opus for the browser.
+// Convert every sound under extracted/<build>/xuiz to Ogg Opus for the browser.
 //
-//   node --import tsx tools/convert-audio.ts [--in <dir>] [--out <dir>] [--force]
+//   node --import tsx tools/convert-audio.ts [--build 6770] [--in <dir>] [--out <dir>] [--force]
 //
 // The .xma files in Blades already carry a RIFF/WAVE header with an xma1 fmt
 // tag (0x0165), so ffmpeg demuxes them with no help from us; the only reason
@@ -15,14 +15,16 @@
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
+import { buildArg } from './builds';
 
 const args = process.argv.slice(2);
 function flag(name: string, fallback: string): string {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1]! : fallback;
 }
-const inDir = flag('--in', 'extracted/6770/xuiz');
-const outDir = flag('--out', 'public/assets/6770/audio');
+const BUILD = buildArg(args);
+const inDir = flag('--in', `extracted/${BUILD}/xuiz`);
+const outDir = flag('--out', `public/assets/${BUILD}/audio`);
 const force = args.includes('--force');
 
 const AUDIO = /\.(xma|wav)$/i;

@@ -1,14 +1,18 @@
-// What the Blades 6770 scenes actually use: classes, properties, fonts,
-// styles, image path forms, visual names, figure shapes, animation reach.
-// Sizes the renderer honestly and feeds Judge C's coverage check.
+// What a build's scenes actually use: classes, properties, fonts, styles,
+// image path forms, visual names, figure shapes, animation reach. Sizes the
+// renderer honestly and feeds the judges' coverage checks.
 //
-//   node --import tsx tools/class-census.ts [extracted/6770/xuiz]
+//   node --import tsx tools/class-census.ts [extracted/6770/xuiz] [--registry 6770|9199]
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { XuRegistry, parseXur, idOf, type XuObject, type XuProperty, type XuFigure } from '@xur/index';
+import { positionals } from './builds';
 
-const dir = process.argv[2] ?? 'extracted/6770/xuiz';
-const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')));
+const args = process.argv.slice(2);
+const regIx = args.indexOf('--registry');
+const regName = regIx >= 0 ? args[regIx + 1]! : process.env['DASH_BUILD'] || '6770';
+const dir = positionals(args)[0] ?? `extracted/${regName}/xuiz`;
+const reg = new XuRegistry(JSON.parse(readFileSync(`packages/xur/extensions/${regName}/registry.json`, 'utf8')));
 const files: string[] = [];
 const walk = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walk(p); else if (/\.xur$/i.test(e)) files.push(p); } };
 walk(dir);
@@ -37,11 +41,23 @@ const scaled = { count: 0 };
 const opacityBelow1 = { count: 0 };
 let objects = 0, timelines = 0, keyframes = 0, maxFrame = 0;
 const skinIds = new Set<string>();
+const canvasSizes = new Map<string, number>();
+// Classes and properties that a later dashboard may use and an earlier one
+// never did; listed per scene so the next runtime phase can be scoped.
+const FEATURES = ['XuiAvatar', 'XuiPerspectiveScene', 'XuiShader', 'XuiTextureSurface', 'XuiVideo', 'XuiVariable', 'XuiHtmlElement', 'XuiHtmlPresenter', 'XuiHtmlControl', 'XuiGamerCard', 'AuraControl', 'LegacyControl', 'Xui3DScene', 'Xui3DMesh', 'Xui3DCamera', 'MediaScene', 'ScriptScene', 'XuiComboBox', 'XuiTabScene'];
+const featureScenes = new Map<string, Set<string>>();
+const elementTail = new Map<string, number>(); // XuiElement definitions 17+ (XuiTool's tail) actually set
 
 function visit(o: XuObject, file: string, inSkin: boolean) {
   objects++;
   count(classes, o.className);
   if (inSkin) skinIds.add(idOf(o));
+  if (FEATURES.includes(o.className)) { if (!featureScenes.has(o.className)) featureScenes.set(o.className, new Set()); featureScenes.get(o.className)!.add(file); }
+  if (o.className === 'XuiCanvas') {
+    const w = o.properties.find((p) => p.def.name === 'Width')?.value, h = o.properties.find((p) => p.def.name === 'Height')?.value;
+    count(canvasSizes, `${w ?? '?'}x${h ?? '?'}`);
+  }
+  for (const p of o.properties) if (p.def.owner === 'XuiElement' && p.def.id >= 17) count(elementTail, p.def.name);
   const flat = (ps: XuProperty[], prefix: string) => {
     for (const p of ps) {
       const key = `${o.className}.${prefix}${p.def.name}`;
@@ -81,7 +97,9 @@ const unresolvedVisuals = [...visuals.keys()].filter((v) => !skinIds.has(v));
 
 console.log(`scenes=${files.length} objects=${objects} timelines=${timelines} keyframes=${keyframes} maxFrame=${maxFrame}`);
 console.log('\nCLASSES', top(classes, 60));
-console.log('\nFONTS', top(fonts));
+console.log('\nCANVAS SIZES', top(canvasSizes));
+console.log('\nFONTS', fonts.size ? top(fonts) : '(no scene sets Font: the skin defaults apply)');
+console.log('\nXUIELEMENT TAIL (definitions 17+ from XuiTool\'s list) SET', elementTail.size ? top(elementTail) : 'never');
 console.log('\nTEXTSTYLE', top(textStyles));
 console.log('\nBLENDMODE', top(blendModes));
 console.log('\nANCHOR', top(anchors));
@@ -98,3 +116,5 @@ console.log('\nNAMED FRAME COMMANDS', top(commands));
 console.log(`\nVISUALS referenced=${visuals.size}, defined as Ids in skin files=${skinIds.size}, unresolved=${unresolvedVisuals.length}: ${unresolvedVisuals.slice(0, 30).join(' ')}`);
 console.log('\nTOP VISUALS', top(visuals, 30));
 console.log('\nTOP PROPERTIES', top(props, 80));
+console.log('\nFEATURE CLASSES (scenes using them)');
+for (const [c, fs] of [...featureScenes.entries()].sort((a, b) => b[1].size - a[1].size)) console.log(`  ${c.padEnd(20)} ${String(fs.size).padStart(3)} scenes  e.g. ${[...fs].slice(0, 4).join(', ')}`);

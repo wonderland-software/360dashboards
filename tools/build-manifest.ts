@@ -1,8 +1,8 @@
-// Emit public/assets/6770/manifest.json - the one file the browser runtime
+// Emit public/assets/<build>/manifest.json - the one file the browser runtime
 // reads to find every scene, image, sound and string table - and stage the
 // served bytes under public/assets so Vite serves them.
 //
-//   node --import tsx tools/build-manifest.ts [--in <dir>] [--public <dir>] [--copy]
+//   node --import tsx tools/build-manifest.ts [--build 6770] [--in <dir>] [--public <dir>] [--copy]
 //
 // Files are hard-linked into public/assets by default (same bytes, no second
 // copy on disk, and a re-extract that rewrites a file breaks the link rather
@@ -25,16 +25,17 @@
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
+import { BUILDS, buildArg } from './builds';
 
 const args = process.argv.slice(2);
 function flag(name: string, fallback: string): string {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1]! : fallback;
 }
-const BUILD = '6770';
+const BUILD = buildArg(args);
 const inDir = flag('--in', `extracted/${BUILD}/xuiz`);
 const publicDir = flag('--public', 'public/assets');
-const archiveDir = flag('--archive', `vendor/archive/Blades/Retail/${BUILD}`);
+const archiveDir = flag('--archive', BUILDS[BUILD]!.archive);
 const useCopy = args.includes('--copy');
 
 export type EntryKind = 'xur' | 'png' | 'jpg' | 'wav' | 'xma' | 'xus' | 'scb' | 'other';
@@ -108,8 +109,8 @@ for (const pack of readdirSync(inDir).sort()) {
 
     let out: string;
     if (kind === 'xma' || kind === 'wav') {
-      // convert-audio.ts flattens to <pack>/<stem>.ogg; the source name may
-      // sit in a subdirectory but no sound in 6770 does.
+      // convert-audio.ts keeps the pack-relative path and swaps the
+      // extension; the verify pass below fails if the .ogg is not there.
       out = `${BUILD}/audio/${pack}/${rel.replace(/\.(xma|wav)$/i, '')}.ogg`;
     } else {
       out = `${BUILD}/xuiz/${pack}/${rel}`;
