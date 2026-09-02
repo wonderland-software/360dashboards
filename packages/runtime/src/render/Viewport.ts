@@ -68,9 +68,11 @@ export class Viewport {
   layout(): void {
     const fb = this.framebuffer;
     const fit = Math.min(this.host.clientWidth / fb.width, this.host.clientHeight / fb.height) || 1;
-    // Never blow the console's output up past 1:1 in a browser window; a
-    // screenshot harness sizes the window to the framebuffer instead.
-    const k = Math.min(fit, 1);
+    // The console's 16:9 output fills the window uniformly (up or down);
+    // only a differently shaped window letterboxes. The screenshot harness
+    // passes an explicit zoom and sizes the window itself, so it keeps the
+    // stage at 1:1 and lets zoom do the scaling.
+    const k = this.opts.zoom && this.opts.zoom !== 1 ? Math.min(fit, 1) : fit;
     this.stage.style.width = `${fb.width}px`;
     this.stage.style.height = `${fb.height}px`;
     this.stage.style.overflow = 'hidden';

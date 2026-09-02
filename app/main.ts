@@ -14,13 +14,14 @@
 //   &locale=de-de           patch the scene's strings from its .xus table
 //   &mute                   build no AudioContext; cues are logged, not heard
 //   &focus=N                focus list row N instead of the scene's default
+//   &gradxf=k=v,...         override GRADIENT_TRANSFORM fields for the sweep
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
   NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, walk, refreshVisibility,
   InputRouter, Button, AudioBank, Strings, ListView, authoredItems,
   DEFAULT_LOCALE, isNativeLocale,
-  BLEND_OVERRIDES, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
+  BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
 } from '@runtime/index';
 import { CODE_TABLE_LISTS } from '@dash/blades/consoleSettings';
 import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
@@ -73,6 +74,13 @@ async function main(): Promise<void> {
     const [n, css] = spec.split(':');
     if (n && css) BLEND_OVERRIDES.set(Number(n), css);
   }
+  // ?gradxf=direction=texture,rotation=-1,... - sweep the fill-transform model
+  // (tests/smoke/sweep-gradient.mjs). Every key is a field of GRADIENT_TRANSFORM.
+  for (const kv of (params.get('gradxf') ?? '').split(',').filter(Boolean)) {
+    const [k, v] = kv.split('=');
+    if (!k || v === undefined || !(k in GRADIENT_TRANSFORM)) continue;
+    (GRADIENT_TRANSFORM as unknown as Record<string, unknown>)[k] = k === 'rotation' ? Number(v) : v;
+  }
   const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
   const assets = await AssetIndex.load(base);
   const telemetry = createTelemetry(assets.build);
@@ -113,7 +121,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   viewportHost.className = 'xui-viewport';
   host.appendChild(viewportHost);
   const zoom = Number(params.get('zoom') ?? '1') || 1;
-  const viewport = new Viewport(viewportHost, { consoleView: params.has('console'), zoom });
+  const viewport = new Viewport(viewportHost, { consoleView: !params.has('design'), zoom });
 
   const report = emptyReport('dashmain/dashmain.xur');
   const nodes = new NodeIndex();
@@ -188,7 +196,7 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   viewportHost.className = 'xui-viewport';
   host.appendChild(viewportHost);
   const zoom = Number(params.get('zoom') ?? '1') || 1;
-  const viewport = new Viewport(viewportHost, { consoleView: params.has('console'), zoom });
+  const viewport = new Viewport(viewportHost, { consoleView: !params.has('design'), zoom });
 
   const scene = await loadScene(assets, id);
   const report = emptyReport(id);

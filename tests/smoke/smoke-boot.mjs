@@ -22,7 +22,7 @@ try {
   browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
 
   // 1. The design canvas, 1120x770, one screenshot pixel per design unit.
-  const design = await load(browser, `${BASE}/?scene=${SCENE}`, 1120, 770);
+  const design = await load(browser, `${BASE}/?scene=${SCENE}&design`, 1120, 770);
   check(design.pageErrors.length === 0, `page errors: ${design.pageErrors.join(' | ')}`);
   check(design.consoleErrors.length === 0, `console errors: ${design.consoleErrors.join(' | ')}`);
   const d = design.dash;

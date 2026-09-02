@@ -44,7 +44,10 @@ Q/E = LB/RB (blade switch), arrows or WASD = d-pad, Tab = Guide (a no-op,
 see PLACEHOLDERS.md). Routes: `/` is the dashboard, `/?scene=<pack>/<file>.xur`
 renders one scene, `/?gallery` renders every scene, `&debug` adds the
 inspector, `&locale=de-de` applies a localized string table, `&mute` silences
-cues, `&frame=N` freezes every timeline at frame N.
+cues, `&frame=N` freezes every timeline at frame N. The default view is the
+console's 1280x720 output (the measured anisotropic mapping of the 1120x770
+canvas, filling the window uniformly); `&design` shows the raw design canvas
+instead.
 
 ## Stack (verified 2026-09-02, don't re-litigate)
 
