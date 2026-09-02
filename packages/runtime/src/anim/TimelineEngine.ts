@@ -37,7 +37,7 @@ export class TimelineScope {
    *  Stop command; the End frame's own command normally does the stopping. */
   stopAt: number | null = null;
   range: [string, string] | null = null;
-  /** The XuiSoundXAudio cue the last dispatched frame would have fired. */
+  /** The last XuiSoundXAudio.File keyframe this scope fired (bind.ts sets it). */
   lastCue: string | null = null;
   /** The state name currently playing, for telemetry and for asserting that a
    *  range is not re-entered while nothing has changed. */
@@ -147,6 +147,25 @@ export class TimelineScope {
     this.stopAt = null;
   }
 
+  /**
+   * Play the whole timeline from frame 0 exactly once and hold on the last
+   * frame. This is how XuiScene.TransFrom/TransTo run: FadeIn/FadeOut in the
+   * skin are one-timeline visuals with no named frames at all, so neither the
+   * named-range path nor the ambient loop describes them.
+   */
+  playOnce(): void {
+    this.once = true;
+    this.tick = 0;
+    this.playing = true;
+    this.range = ['(once)', '(end)'];
+    this.state = null;
+    this.entries += 1;
+    this.stopAt = this.lastFrame;
+    this.invalidate();
+  }
+  private once = false;
+  get finished(): boolean { return !this.playing && this.tick >= this.lastFrame; }
+
   /** One 60 Hz step. */
   step(): void {
     if (!this.playing) return;
@@ -157,8 +176,9 @@ export class TimelineScope {
     // any kind is an explicit instruction and outranks the range's end.
     if (this.playing && !this.jumped && this.stopAt !== null && this.tick >= this.stopAt) this.playing = false;
     if (this.tick > this.lastFrame) {
-      // An ambient scope loops; a named range holds on its last frame.
-      if (this.isAmbient) { this.tick = 0; this.invalidate(); }
+      // An ambient scope loops; a named range, or a play-once, holds on its
+      // last frame.
+      if (this.isAmbient && !this.once) { this.tick = 0; this.invalidate(); }
       else { this.tick = this.lastFrame; this.playing = false; }
     }
   }
@@ -223,12 +243,28 @@ export class TimelineScope {
 
 export type ScopeApply = (scope: TimelineScope, delta: ScopeDelta) => void;
 
+/** A XuiSoundXAudio.File keyframe the playhead just landed on. */
+export interface TimelineCue { scopeId: string; elementId: string; file: string; tick: number }
+
 export class TimelineEngine {
   private readonly scopes = new Map<string, TimelineScope>();
   private readonly applies = new Map<string, ScopeApply>();
   private accumulator = 0;
   /** ?frame=N: every scope is pinned here and step() does nothing. */
   frozenAt: number | null = null;
+  /**
+   * Every sound in build 6770 is a keyframe: XuiSoundXAudio.File is an
+   * animated track (btn_1line_icon sets sharedres://btn_Focus.xma on its Focus
+   * frame and btn_Select.xma on Press; dashmain's four emitters carry the blade
+   * and level cues). bind.ts reports each File keyframe here and the app's
+   * AudioBank plays it. Nothing decides a cue by state name.
+   */
+  onCue: ((ev: TimelineCue) => void) | null = null;
+
+  remove(id: string): void {
+    this.scopes.delete(id);
+    this.applies.delete(id);
+  }
 
   add(scope: TimelineScope, apply: ScopeApply): TimelineScope {
     this.scopes.set(scope.id, scope);
@@ -258,7 +294,6 @@ export class TimelineEngine {
       const opened = s.stateFrame(state);
       if (!opened) continue;
       s.playRange(opened.name);
-      s.lastCue = `${controlId}:${opened.name}`;
       this.applyNow(s);
       any = true;
     }

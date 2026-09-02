@@ -111,7 +111,7 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     pat.setAttribute('x', '0'); pat.setAttribute('y', '0');
     pat.setAttribute('width', String(round(w)));
     pat.setAttribute('height', String(round(h)));
-    const t = unitTransformInUserSpace(fillTransform(fill), w, h);
+    const t = unitTransformInUserSpace(fillMatrix(fill, w, h), w, h);
     if (t) pat.setAttribute('patternTransform', t);
     const img = document.createElementNS(SVG, 'image');
     img.setAttribute('href', res.url);
@@ -139,11 +139,12 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     if (radial) {
       g.setAttribute('cx', '0.5'); g.setAttribute('cy', '0.5'); g.setAttribute('r', '0.5');
     } else {
-      // Rotation 0 runs left to right; 90 runs top to bottom (DOCUMENTED).
+      // Rotation 0 runs left to right (DOCUMENTED); the sign of a rotation is
+      // part of the measured model, see GRADIENT_TRANSFORM.
       g.setAttribute('x1', '0'); g.setAttribute('y1', '0.5');
       g.setAttribute('x2', '1'); g.setAttribute('y2', '0.5');
     }
-    g.setAttribute('gradientTransform', `scale(${round(w)} ${round(h)}) ${fillTransform(fill) ?? ''}`.trim());
+    g.setAttribute('gradientTransform', matrixCss(mul(scaleM(w, h), radial ? mul(fillMatrix(fill, w, h), radialBase(w, h)) : fillMatrix(fill, w, h))));
     for (let i = 0; i < n; i++) {
       const c = colours[i]; if (!c) continue;
       const s = document.createElementNS(SVG, 'stop');
@@ -162,19 +163,63 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
   path.setAttribute('fill', 'none');
 }
 
+/** A 2x3 affine matrix [a b c d e f] in SVG's column convention. */
+type M = [number, number, number, number, number, number];
+const I: M = [1, 0, 0, 1, 0, 0];
+const mul = (p: M, q: M): M => [
+  p[0] * q[0] + p[2] * q[1], p[1] * q[0] + p[3] * q[1],
+  p[0] * q[2] + p[2] * q[3], p[1] * q[2] + p[3] * q[3],
+  p[0] * q[4] + p[2] * q[5] + p[4], p[1] * q[4] + p[3] * q[5] + p[5],
+];
+const translateM = (x: number, y: number): M => [1, 0, 0, 1, x, y];
+const scaleM = (x: number, y: number): M => [x, 0, 0, y, 0, 0];
+function rotateM(deg: number): M {
+  const a = (deg * Math.PI) / 180;
+  return [Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), 0, 0];
+}
+function invert(m: M): M {
+  const det = m[0] * m[3] - m[1] * m[2];
+  if (!det) return I;
+  const a = m[3] / det, b = -m[1] / det, c = -m[2] / det, d = m[0] / det;
+  return [a, b, c, d, -(a * m[4] + c * m[5]), -(b * m[4] + d * m[5])];
+}
+const matrixCss = (m: M) => `matrix(${m.map(round6).join(' ')})`;
+
 /**
- * Fill.Translation / Fill.Scale / Fill.Rotation as one SVG transform in the
- * normalised (0..1) fill space. Rotation is in degrees about the centre of the
- * box (GRADIENT_ROTATION_ORIGIN); translation is a fraction of the box.
- * Scale defaults to 1,1 (DOCUMENTED) and may be negative, which mirrors.
+ * Fill.Translation / Fill.Scale / Fill.Rotation as one matrix in the
+ * normalised (0..1) fill space, mapping GRADIENT space onto the box (the sense
+ * SVG's gradientTransform wants). Every choice in here is a field of
+ * GRADIENT_TRANSFORM, measured by tests/smoke/sweep-gradient.mjs; Scale
+ * defaults to 1,1 (DOCUMENTED) and may be negative, which mirrors.
  */
-function fillTransform(fill: PropBag): string | null {
+export function fillMatrix(fill: PropBag, w: number, h: number): M {
+  const model = E.GRADIENT_TRANSFORM;
   const t = fill.vec('Translation', { x: 0, y: 0, z: 0 });
   const s = fill.vec('Scale', { x: 1, y: 1, z: 1 });
   const r = fill.num('Rotation', 0);
-  if (t.x === 0 && t.y === 0 && s.x === 1 && s.y === 1 && r === 0) return null;
-  const o = E.GRADIENT_ROTATION_ORIGIN;
-  return `translate(${round(t.x)} ${round(t.y)}) translate(${o.x} ${o.y}) rotate(${round(r)}) scale(${round(s.x)} ${round(s.y)}) translate(${-o.x} ${-o.y})`;
+  if (t.x === 0 && t.y === 0 && s.x === 1 && s.y === 1 && r === 0) return I;
+  const tx = model.translation === 'box' ? t.x : (w ? t.x / w : 0);
+  const ty = model.translation === 'box' ? t.y : (h ? t.y / h : 0);
+  const T = translateM(tx, ty);
+  const R = rotateM(model.rotation * r);
+  const S = scaleM(s.x || 1e-6, s.y || 1e-6);
+  // The composite applied to a point of the box, in the texture direction:
+  // 'SRT' scales first, then rotates, then translates.
+  const applied = model.order === 'SRT' ? mul(T, mul(R, S)) : mul(S, mul(R, T));
+  const about = model.origin === 'centre' ? translateM(0.5, 0.5) : I;
+  const m = mul(about, mul(applied, invert(about)));
+  // Texture direction maps box -> gradient; SVG wants gradient -> box.
+  return model.direction === 'texture' ? invert(m) : m;
+}
+
+/** The resting radial gradient's shape, as a matrix on the unit circle of
+ *  radius 0.5 about (0.5,0.5): an inscribed ellipse ('axis') is the identity
+ *  under the leading scale(w,h); a circle of R px needs the aspect undone. */
+function radialBase(w: number, h: number): M {
+  const kind = E.GRADIENT_TRANSFORM.radial;
+  if (kind === 'axis' || !w || !h) return I;
+  const R = kind === 'max' ? Math.max(w, h) : kind === 'min' ? Math.min(w, h) : kind === 'width' ? w : h;
+  return mul(translateM(0.5, 0.5), mul(scaleM(R / w, R / h), translateM(-0.5, -0.5)));
 }
 
 function applyStroke(path: SVGPathElement, p: PropBag, sx: number, sy: number): void {
@@ -190,11 +235,11 @@ function applyStroke(path: SVGPathElement, p: PropBag, sx: number, sy: number): 
 }
 
 /** A unit-space transform T, conjugated into user space: S T S-1 with S = scale(w,h). */
-function unitTransformInUserSpace(t: string | null, w: number, h: number): string | null {
-  if (!t) return null;
+function unitTransformInUserSpace(t: M, w: number, h: number): string | null {
+  if (t === I) return null;
   const iw = w ? 1 / w : 1;
   const ih = h ? 1 / h : 1;
-  return `scale(${round(w)} ${round(h)}) ${t} scale(${round6(iw)} ${round6(ih)})`;
+  return matrixCss(mul(scaleM(w, h), mul(t, scaleM(iw, ih))));
 }
 const round6 = (v: number) => Math.round(v * 1e6) / 1e6;
 

@@ -10,26 +10,25 @@
 // A cue is named by its file's basename, so "btn_Focus" is the cue and the
 // bank finds it in whichever pack holds it.
 import type { AssetIndex } from '../assets/AssetIndex';
+import type { TimelineEngine } from '../anim/TimelineEngine';
 
-export interface CueEvent { cue: string; scope: string | null; tick: number; t: number; played: boolean }
+export interface CueEvent { cue: string; scope: string | null; tick: number; t: number; played: boolean; missing?: boolean }
 
 /**
- * INFERRED. Which cue a control state fires. XuiSoundXAudio children exist in
- * the skin (every button visual has one) but their File property is EMPTY in
- * build 6770 - the console filled it from code - so this table is a reading of
- * the five shrdres cue names against the five states a button can be in, not
- * something the scenes state. It is the one place to correct.
+ * A cue is the basename of a XuiSoundXAudio.File value: "sharedres://btn_Focus.xma"
+ * and "dash_BladeSwitch_1.xma" both name the file the bank holds. The File
+ * tracks are NOT empty in build 6770 (an earlier note here said they were):
+ * btn_1line_icon sets btn_Focus.xma on its Focus frame and btn_Select.xma on
+ * Press, legend_B sets btn_Back.xma on frame 2 of its Press range, and the
+ * four emitters under RootScene carry every blade and level cue. So the
+ * engine's onCue reports each keyframe and this bank plays it; no table maps
+ * a state name to a sound.
  */
-export const STATE_CUES: Readonly<Record<string, string>> = {
-  Focus: 'btn_Focus',
-  InitFocus: 'btn_Focus',
-  Press: 'btn_Select',
-  Back: 'btn_Back',
-  FocusDisable: 'btn_InactiveFocus',
-  InitFocusDisable: 'btn_InactiveFocus',
-  PressDisable: 'btn_InactiveSelect',
-  NormalSelDisable: 'btn_InactiveSelect',
-};
+export function cueName(file: string): string {
+  const bare = file.replace(/\\/g, '/');
+  const base = bare.slice(bare.lastIndexOf('/') + 1);
+  return base.replace(/\.[^.]+$/, '');
+}
 
 export class AudioBank {
   private ctx: AudioContext | null = null;
@@ -104,9 +103,12 @@ export class AudioBank {
     return ev;
   }
 
-  /** The cue a control state fires, or null when that state is silent. */
-  cueForState(state: string): string | null {
-    const cue = STATE_CUES[state];
-    return cue && this.has(cue) ? cue : null;
+  /** Play whatever File keyframes the engine lands on. */
+  attach(engine: TimelineEngine): void {
+    engine.onCue = (ev) => {
+      const cue = cueName(ev.file);
+      if (this.has(cue)) this.play(cue, ev.scopeId, ev.tick);
+      else this.play(cue, ev.scopeId, ev.tick).missing = true;
+    };
   }
 }

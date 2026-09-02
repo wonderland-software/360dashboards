@@ -102,7 +102,7 @@ Fill (`FillType`, DOCUMENTED, default SOLID because 372 fills carry a
 `Fill.Translation / Scale / Rotation` become one SVG `gradientTransform` in
 normalised (0…1) fill space; `Rotation` is degrees, 90 = top-to-bottom
 (DOCUMENTED), and the **origin it rotates about is INFERRED** to be the box
-centre (`GRADIENT_ROTATION_ORIGIN`).
+centre (`GRADIENT_TRANSFORM`).
 
 Stroke: `StrokeWidth` defaults to **0**, so a `Stroke` block with only a
 colour draws nothing. MEASURED: the width appears explicitly as 1–5 (64

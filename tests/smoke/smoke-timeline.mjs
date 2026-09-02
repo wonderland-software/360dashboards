@@ -46,7 +46,9 @@ try {
   const focus = await scope(page.p, 'legend_A');
   // legend_A defines no Focus frame, so the documented chain lands on Normal.
   check(focus?.range?.startsWith('Normal'), `Focus should fall back to Normal, range is ${focus?.range}`);
-  check(focus?.lastCue === 'legend_a:Normal', `lastCue is ${focus?.lastCue}`);
+  // legend_A has no XuiSoundXAudio child, so nothing can fire: a cue is a File
+  // keyframe on a sound element, never a state name.
+  check(focus?.lastCue === null, `lastCue should be null for a silent visual, got ${focus?.lastCue}`);
 
   await page.p.evaluate(() => window.__dashApi.setState('legend_a', 'Press'));
   const pressAt0 = await scope(page.p, 'legend_A');

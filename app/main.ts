@@ -150,6 +150,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
 
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
+  audio.attach(engine);
   const input = installBladeInput(shell, t, audio);
   installApi(engine, t, input, audio, []);
   window.__dashApi!.shell = {
@@ -224,6 +225,7 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   const engine = bindTimelines(nodes);
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
+  audio.attach(engine);
   const lists = await populateLists(scene, ctx, nodes, engine, strings, t);
   // The visibility snapshot inside renderScene measured the scene BEFORE the
   // lists were filled, so an empty lstSettings read as invisible. Retake it.
@@ -343,37 +345,26 @@ function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetr
     onButton: (b) => {
       const list = lists[0];
       if (!list) return;
+      // Every cue below comes out of a visual's own File track: the row's
+      // Focus frame carries btn_Focus.xma, its Press frame btn_Select.xma and
+      // legend_B's Press frame btn_Back.xma. move() returns null when the
+      // clamp absorbed it: nothing happened, so nothing plays, no state
+      // re-entry and no cue. A held d-pad at the end of a list is silent on
+      // the console too.
       if (b === Button.Down || b === Button.Up) {
-        // move() returns null when the clamp absorbed it. Nothing happened, so
-        // nothing plays: no state re-entry and no cue. A held d-pad at the end
-        // of a list is silent on the console too.
         const moved = list.move(b === Button.Down ? 1 : -1);
-        if (moved !== null) {
-          t.focusId = moved;
-          fire(audio, engine, t, 'Focus');
-        }
+        if (moved !== null) t.focusId = moved;
       } else if (b === Button.A) {
         const row = list.focusIndex;
         if (row >= 0) engine.setState(`${list.id}_item${row}`, 'Press');
-        fire(audio, engine, t, 'Press');
       } else if (b === Button.B) {
-        fire(audio, engine, t, 'Back');
+        engine.setState('legend_b', 'Press');
       }
       syncInput(t, router, audio);
     },
   });
   router.attach();
   return router;
-}
-
-/** A state change fires the cue the state maps to, tagged with the timeline
- *  frame it happened on. */
-function fire(audio: AudioBank, engine: TimelineEngine, t: DashTelemetry, state: string): void {
-  const cue = audio.cueForState(state);
-  if (!cue) return;
-  const tick = engine.all().find((s) => s.playing)?.tick ?? 0;
-  const ev = audio.play(cue, null, tick);
-  t.lastCue = ev.cue;
 }
 
 function syncInput(t: DashTelemetry, input: InputRouter, audio: AudioBank): void {

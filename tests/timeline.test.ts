@@ -207,7 +207,40 @@ test('an engine steps every playing scope and reports only what moved', () => {
   assert.equal(seen.length, 3, 'a stopped scope produces no further deltas');
   const rep = engine.report().scopes[0]!;
   assert.equal(rep.range, 'Normal..EndNormal');
-  assert.equal(rep.lastCue, 'legend_a:Normal');
+  // No XuiSoundXAudio child, so no File keyframe ever fired: a cue is a
+  // keyframe on a sound element (bind.ts), never a state name.
+  assert.equal(rep.lastCue, null);
+});
+
+test('a sound element\'s File keyframes are cues, fired on the frame they sit on', () => {
+  const o = obj([nf('Focus', 0, 'Play'), nf('EndFocus', 4, 'Stop')],
+    [timeline('Xaudio_Sound01', [def('File')], [kf(0, ['']), kf(2, ['sharedres://btn_Focus.xma']), kf(3, [''])])]);
+  const scope = new TimelineScope('v', o, 'row');
+  scope.playRange('Focus', 'EndFocus');
+  const seen: string[] = [];
+  // sampleChanged reports the File track like any other; bind.ts routes a
+  // sound element's File to TimelineEngine.onCue instead of to a node.
+  for (let i = 0; i < 4; i++) {
+    const d = scope.sampleChanged();
+    const f = d.get('Xaudio_Sound01')?.get('File');
+    if (typeof f === 'string' && f) seen.push(`${scope.tick}:${f}`);
+    scope.step();
+  }
+  assert.deepEqual(seen, ['2:sharedres://btn_Focus.xma']);
+});
+
+test('playOnce runs a frame-less timeline through once and holds, where autoplay would loop', () => {
+  const o = obj([], [timeline('box', [def('Opacity')], [kf(0, [1]), kf(5, [0])])]);
+  const looping = new TimelineScope('loop', o);
+  looping.autoplay();
+  for (let i = 0; i < 7; i++) looping.step();
+  assert.equal(looping.tick, 1, 'an ambient scope wraps past its last keyframe');
+  const once = new TimelineScope('once', o);
+  once.playOnce();
+  for (let i = 0; i < 7; i++) once.step();
+  assert.equal(once.tick, 5);
+  assert.equal(once.playing, false);
+  assert.equal(once.finished, true);
 });
 
 test('freeze pins every scope and blocks the wall clock', () => {

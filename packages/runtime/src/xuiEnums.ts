@@ -136,12 +136,81 @@ export const DEFAULT_STROKE_COLOR = { a: 0xff, r: 0x0f, g: 0x0f, b: 0xeb } as co
 export const SCALE_STROKE_WITH_FIGURE = true;
 
 /**
- * INFERRED, single constant on purpose. Fill.Rotation is the gradient angle in
- * degrees (90 = top-to-bottom, DOCUMENTED); the ORIGIN it rotates about is not
- * documented. The natural reading, and what we use, is the centre of the
- * figure's box in normalised (0..1) fill space.
+ * The fill transform: how XuiFigureFill.Translation / Scale / Rotation place a
+ * gradient (or texture) inside the figure's box. MEASURED by
+ * tests/smoke/sweep-gradient.mjs against reference/frames/6717/f0051.png
+ * (System) and f0034.png (Marketplace): each candidate renders the blade
+ * through the console view at 1920x1080 and is scored on the tab stack next
+ * to the page (x 0..430 on System, 1515..1920 on Marketplace, y 140..880) -
+ * the stack is drawn by blade_grey_left / blade_grey_rt, whose edge lines are
+ * radial-gradient rings with Translation (0.40..0.42, 0) and Scale
+ * (0.15..0.18, 0.43..0.54), so nothing else on screen decides the answer.
+ *
+ * The model is six independent choices, each sweepable through ?gradxf=:
+ *   direction   'texture' - the transform maps the box's own (u,v) into the
+ *                           gradient's space, the way a texture matrix does,
+ *                           so Translation +0.5 moves the gradient LEFT/UP.
+ *               'shape'   - the transform moves the gradient shape itself, so
+ *                           Translation +0.5 moves it RIGHT/DOWN (the old rule).
+ *   origin      what Scale and Rotation act about: the box centre or its
+ *               top-left corner.
+ *   rotation    +1: the standard rotation matrix in y-down uv (Rotation 90
+ *               makes a linear gradient run bottom-to-top), -1: the mirror.
+ *   radial      the resting radial gradient: 'axis' an ellipse inscribed in the
+ *               box (rx = w/2, ry = h/2), or a circle of radius max/min/width/
+ *               height of the box over 2.
+ *   translation 'box' - fractions of the box; 'design' - design pixels.
+ *   order       the order the three are applied to a point in the box
+ *               (texture direction): 'SRT' scale, rotate, translate.
+ *
+ * Stage 1 (40 candidates, translation=box, order=SRT), luma MAD / NCC of the
+ * stack against the frame, summed over both blades (lower MAD is better):
+ *
+ *   MAD    NCC    direction origin  rot radial
+ *   40.95  1.766  texture   centre  +1  axis     <- this model
+ *   42.41  1.744  texture   centre  -1  axis
+ *   73.73  0.700  texture   topleft -1  axis
+ *   84.73  0.866  texture   centre  +1  max
+ *   94.12  0.433  shape     topleft +1  max/height
+ *   103.33 0.204  shape     centre  +1  axis     <- the old rule
+ *   108.93 0.260  shape     topleft -1  width/min (worst)
+ *
+ * Stage 2 around the winner: translation=design 81.93 / order=TRS 88.73 /
+ * both 83.01, against 40.95 for box + SRT.
+ *
+ * Per blade, the winner vs the old rule:
+ *   f0051 System      MAD 19.76 (was 51.99)  NCC 0.877 (was 0.225)
+ *   f0034 Marketplace MAD 21.19 (was 51.34)  NCC 0.889 (was -0.021)
+ * Mean body luma of the stack (x 40..420, y 300..800 on f0051): frame 149.6,
+ * old rule 203.4, this model 166.3; Marketplace (x 1530..1910): 176.5 / 232.8
+ * / 198.2. Tab-edge valleys in the row profile (x at 1080p, luma): the frame
+ * has them at 118, 188, 259, 329, 396 (luma 73..89, 19..21 deep); the old rule
+ * drew none deeper than 13; this model puts them at 116, 186, 257, 326, 393
+ * (luma 92..105, 18..23 deep) - within 3 px, about 15 luma lighter. The
+ * residual 15..20 luma of body lightness is shared by every candidate and is
+ * not a transform question (the multiply cover, BlendMode 3/4/5 and the
+ * theme-free palette are the open items there).
+ *
+ * The rotation sign is also fixed by data, not only by the sweep (which the
+ * stack barely exercises, +1 vs -1 differ by 1.5 MAD): botd/defaultbanner1's
+ * border glow is four 14 px strips, the bottom one Rotation 90 and the top one
+ * -90, both with the opaque stop at 1.0 on the INNER edge - so Rotation 90
+ * runs bottom-to-top, which is what the standard matrix gives in y-down uv.
+ * Its corner squares carry Translation (+-0.5, +-0.5) with the top-left one at
+ * (-0.5, -0.5): in the texture direction that puts the ring's centre on the
+ * square's inner corner, where a rounded corner's centre is.
  */
-export const GRADIENT_ROTATION_ORIGIN = { x: 0.5, y: 0.5 } as const;
+export interface GradientTransformModel {
+  direction: 'texture' | 'shape';
+  origin: 'centre' | 'topleft';
+  rotation: 1 | -1;
+  radial: 'axis' | 'max' | 'min' | 'width' | 'height';
+  translation: 'box' | 'design';
+  order: 'SRT' | 'TRS';
+}
+export const GRADIENT_TRANSFORM: GradientTransformModel = {
+  direction: 'texture', origin: 'centre', rotation: 1, radial: 'axis', translation: 'box', order: 'SRT',
+};
 
 /* -------------------------------------------------------------------- Anchor */
 
