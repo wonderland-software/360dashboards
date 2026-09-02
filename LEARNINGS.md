@@ -87,6 +87,22 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   database (XACH/XCXT/XITB/XMAT sections, localized "Interfaz Xbox 360"
   strings): the dashboard's own title record, not needed for rendering.
 
+## Screen mapping
+
+- **The 1120x770 canvas maps anisotropically onto 1280x720** (2026-09-02,
+  measured on 18 landmarks in two 1080p60 frames of build 6717, all within
+  0.48 px): `screen_x = x * 8/7`, `screen_y = y * 12/11 - 64` in 720p
+  terms. The canvas renders as 1280x840 placed 64 px above the frame top;
+  visible design rows are 58.67..718.67 (a deliberate, off-centre TV-safe
+  bleed). sx/sy = 22/21, so circles are 4.8% wider than tall on the console
+  and a uniform scale is tens of pixels wrong. Fit landed on exactly
+  1920/1120 with 0.12 px offset, ruling out a capture crop.
+- **List item pitch is 45 design px** (row k top = list y + 3 + 45k), not
+  the item visual's 47 nor the template's 74; dashmain's hand-placed nav
+  buttons sit at y = 153, 198, 243, ... 468.
+- **Label_Head at PointSize 22:** cap height 20.2 design units, baseline at
+  box y + 29.2, left bearing about 2.2 design px (for font checks).
+
 ## Registry
 
 - **The property tables are built in code, not stored as data.** No pointer

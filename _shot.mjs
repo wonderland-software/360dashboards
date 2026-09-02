@@ -1,0 +1,13 @@
+import puppeteer from 'puppeteer-core';
+const CH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const url=process.argv[2], out=process.argv[3];
+const b=await puppeteer.launch({executablePath:CH,headless:'new'});
+const p=await b.newPage();
+await p.setViewport({width:1120,height:770,deviceScaleFactor:1});
+const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e.message)); p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text())});
+await p.goto(url,{waitUntil:'networkidle0',timeout:60000});
+await p.waitForFunction(()=>document.body.dataset.ready==='true'||document.querySelector('.banner'),{timeout:60000}).catch(()=>{});
+const t=await p.evaluate(()=>window.__dash?JSON.parse(JSON.stringify(window.__dash)):null);
+const el=await p.$('.xui-canvas'); if(el) await el.screenshot({path:out});
+console.log(JSON.stringify({errs,t:t&&{...t,gallery:undefined}}));
+await b.close();
