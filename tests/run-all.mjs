@@ -13,6 +13,7 @@ const SUITES = [
   'tests/smoke/smoke-boot.mjs',
   'tests/smoke/smoke-gallery.mjs',
   'tests/smoke/smoke-timeline.mjs',
+  'tests/smoke/smoke-input.mjs',
 ];
 
 let server = null;

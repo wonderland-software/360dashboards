@@ -56,18 +56,64 @@ interface Opts {
   parentNode?: NodeRecord;
   /** M2: the control whose visual this subtree is, if any. */
   hostControlId?: string | null;
+  /** Id of the nearest ancestor with opacity < 1, if any. */
+  fadedAncestor?: string | null;
+}
+
+/**
+ * The scene's canvas is its own XuiCanvas Width/Height, NOT a constant. 184 of
+ * the 245 canvases in build 6770 are 1120x770, and 61 are not: 640x480,
+ * 720x480, 345x240 (dashcomm/TitleMetadata.xur, used as a scene texture by 11
+ * scenes), 345x300, 700x445, 420x450, 1024x768, 1123x772, 723x73, 100x770,
+ * 162x25, 64x64 and 405x{88,125,179,260}. 1120x770 is only the DASHBOARD ROOT's
+ * size, and only that one goes through the console's view transform.
+ */
+export function canvasSizeOf(root: XuObject): { w: number; h: number } {
+  const p = PropBag.of(root, NO_OVERRIDES);
+  return { w: p.num('Width', E.DASHBOARD_CANVAS.width), h: p.num('Height', E.DASHBOARD_CANVAS.height) };
 }
 
 export function renderScene(root: XuObject, ctx: RenderCtx): HTMLElement {
+  const size = canvasSizeOf(root);
+  ctx.report.canvas = size;
   const host = document.createElement('div');
   host.className = 'xui-root';
-  host.style.cssText = `position:relative;width:${E.CANVAS_WIDTH}px;height:${E.CANVAS_HEIGHT}px;overflow:hidden`;
+  host.style.cssText = `position:relative;width:${size.w}px;height:${size.h}px;overflow:hidden`;
   const el = renderElement(root, ctx, {
     overrides: NO_OVERRIDES, delta: NO_DELTA, owner: null,
-    parent: { x: 0, y: 0, w: E.CANVAS_WIDTH, h: E.CANVAS_HEIGHT },
+    parent: { x: 0, y: 0, w: size.w, h: size.h },
   });
   if (el) host.appendChild(el);
+  ctx.report.invisibleAtRest = el ? isInvisible(el) : true;
+  // Which named parts of the scene draw nothing at rest. The scene root's own
+  // child (the DashScene / XuiTabScene) is transparent for this purpose, so
+  // look one level further in: that is where Tab1..Tab6 live.
+  const top = el?.firstElementChild instanceof HTMLElement ? el.firstElementChild : el;
+  for (const c of Array.from(top?.children ?? [])) {
+    if (!(c instanceof HTMLElement) || c.tagName !== 'DIV') continue;
+    const cid = c.dataset['xuiId'];
+    if (cid && isInvisible(c)) note(ctx.report.invisibleGroups, cid);
+  }
   return host;
+}
+
+/** Everything a scene draws can be hidden at rest: dashmain's Tab1..Tab6 all
+ *  carry Opacity 0 until console code opens a blade, so the default route shows
+ *  only the blade-skin background. Reported rather than papered over. */
+function isInvisible(el: HTMLElement): boolean {
+  const visible = (n: HTMLElement, opacity: number): boolean => {
+    if (n.style.display === 'none') return false;
+    const o = n.style.opacity === '' ? 1 : Number(n.style.opacity);
+    const acc = opacity * (Number.isFinite(o) ? o : 1);
+    if (acc <= 0.001) return false;
+    if (n.firstElementChild && n.firstElementChild.tagName !== 'DIV') return true; // svg / img / text
+    for (const c of Array.from(n.children)) {
+      if (c instanceof HTMLElement && c.tagName === 'DIV') { if (visible(c, acc)) return true; }
+      else return true;
+    }
+    return false;
+  };
+  return !visible(el, 1);
 }
 
 export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElement | null {
@@ -100,6 +146,9 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   if (E.UNVERIFIED_BLEND_MODES.includes(blend)) {
     el.dataset['xuiBlendmode'] = String(blend);
     if (!ctx.report.unverifiedBlendModes.includes(blend)) ctx.report.unverifiedBlendModes.push(blend);
+    // CSS isolates a blend inside the nearest stacking context, and an
+    // ancestor opacity < 1 makes one; the console has no such rule.
+    if (opts.fadedAncestor) note(ctx.report.blendIsolated, `${id || o.className} under ${opts.fadedAncestor}`);
   }
 
   el.style.cssText = containerCss(p, rect, blend);
@@ -133,7 +182,8 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   }
 
   // Authored children draw on top of the visual.
-  appendChildren(el, o, ctx, rect, authored, childOwner, opts.frame ?? 0, record, opts.hostControlId ?? null);
+  const faded = p.num('Opacity', E.DEFAULT_OPACITY) < 1 ? (id || o.className) : (opts.fadedAncestor ?? null);
+  appendChildren(el, o, ctx, rect, authored, childOwner, opts.frame ?? 0, record, opts.hostControlId ?? null, faded);
   if (record && (o.timelines.length || o.namedFrames.length)) ctx.nodes?.scope(o, record);
   return el;
 }
@@ -144,11 +194,17 @@ function instantiateVisual(
   hostNode: NodeRecord | undefined, hostControlId: string,
 ): HTMLElement {
   const wanted = disabled ? 'NormalDisable' : 'Normal';
-  const frame = stateFrame(v, wanted) ?? 0;
+  // Record the RESOLVED state, not the requested one: metaScene_1line has no
+  // Normal and resolves down the fallback chain to Default, and a data
+  // attribute that said "Normal" there would be a lie to anyone reading the DOM.
+  const resolved = resolveState(v, wanted);
+  const frame = resolved?.frame ?? 0;
   const wrap = document.createElement('div');
   wrap.dataset['xuiVisual'] = idOf(v);
-  wrap.dataset['xuiState'] = wanted;
+  wrap.dataset['xuiState'] = resolved?.name ?? '(none)';
+  wrap.dataset['xuiStateRequested'] = wanted;
   wrap.dataset['xuiFrame'] = String(frame);
+  noteCodeDriven(v, ctx, resolved?.name ?? wanted, frame);
   wrap.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%';
   const el = renderElement(v, ctx, {
     overrides: NO_OVERRIDES, delta: NO_DELTA, owner,
@@ -161,7 +217,7 @@ function instantiateVisual(
 
 function appendChildren(
   el: HTMLElement, o: XuObject, ctx: RenderCtx, rect: Rect, authored: Rect, owner: Owner | null, frame: number,
-  parentNode?: NodeRecord, hostControlId?: string | null,
+  parentNode?: NodeRecord, hostControlId?: string | null, fadedAncestor?: string | null,
 ): void {
   if (o.children.length === 0) return;
   const sampled: Sampled = o.timelines.length ? sampleTimelines(o, frame) : new Map();
@@ -169,7 +225,7 @@ function appendChildren(
   for (const c of o.children) {
     const child = renderElement(c, ctx, {
       overrides: sampled.get(idOf(c)) ?? NO_OVERRIDES,
-      delta, parent: rect, owner, parentNode, hostControlId,
+      delta, parent: rect, owner, parentNode, hostControlId, fadedAncestor,
     });
     if (child) el.appendChild(child);
   }
@@ -249,6 +305,45 @@ function fallbackBox(o: XuObject, opts: Opts): HTMLElement {
 }
 
 export type Kind = 'figure' | 'image' | 'imagePresenter' | 'text' | 'textPresenter' | 'sound' | 'control' | 'element';
+
+/** The state a visual actually lands on, down the documented fallback chain. */
+function resolveState(v: XuObject, wanted: string): { name: string; frame: number } | null {
+  const seen = new Set<string>();
+  let s: string | undefined = wanted;
+  while (s && !seen.has(s)) {
+    seen.add(s);
+    const f = v.namedFrames.find((n) => n.name === s);
+    if (f) return { name: s, frame: f.keyframe };
+    s = E.VISUAL_STATE_FALLBACK[s];
+  }
+  return null;
+}
+
+/**
+ * A visual whose resting state hides most of its own children is not finished
+ * being drawn: console code plays a transition into the state you actually see.
+ * metaScene_1line is the clear case - its resting frame is Default, where all
+ * ten of its figures are Show=false, so the meta panel has no chrome until the
+ * dashboard slides it in. Reported, never faked.
+ */
+function noteCodeDriven(v: XuObject, ctx: RenderCtx, state: string, frame: number): void {
+  const total = v.children.length;
+  if (total === 0) return;
+  const sampled = frame === 0 && v.timelines.length === 0 ? new Map() : sampleTimelines(v, frame);
+  let hidden = 0;
+  for (const c of v.children) {
+    const over = sampled.get(idOf(c));
+    const show = over?.get('Show');
+    const shown = typeof show === 'boolean' ? show : PropBag.of(c, NO_OVERRIDES).bool('Show', true);
+    if (!shown) hidden++;
+  }
+  if (hidden * 2 > total) {
+    const id = idOf(v);
+    if (!ctx.report.codeDrivenStates.some((e) => e.visual === id && e.state === state)) {
+      ctx.report.codeDrivenStates.push({ visual: id, state, frame, hidden, total });
+    }
+  }
+}
 
 export function classify(className: string): Kind {
   if (isA(className, 'XuiFigure')) return 'figure';

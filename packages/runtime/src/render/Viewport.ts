@@ -19,6 +19,11 @@ export interface ViewportOptions {
    *         is one design unit. This is what the boot smoke captures.
    */
   consoleView: boolean;
+  /** The scene's own canvas size. Only the dashboard root is 1120x770; 61 of
+   *  the 245 canvases in the build are something else, and the console's view
+   *  transform was measured against the root's size, so applying it to a
+   *  345x240 scene texture would be meaningless. */
+  canvas?: { w: number; h: number };
   /** Extra uniform zoom on the framebuffer, e.g. 1.5 for a 1920x1080 grab
    *  that overlays a reference frame directly. */
   zoom?: number;
@@ -33,8 +38,9 @@ export class Viewport {
     this.stage.className = 'xui-stage';
     this.canvas = document.createElement('div');
     this.canvas.className = 'xui-canvas';
-    this.canvas.style.width = `${E.CANVAS_WIDTH}px`;
-    this.canvas.style.height = `${E.CANVAS_HEIGHT}px`;
+    const c = opts.canvas ?? { w: E.DASHBOARD_CANVAS.width, h: E.DASHBOARD_CANVAS.height };
+    this.canvas.style.width = `${c.w}px`;
+    this.canvas.style.height = `${c.h}px`;
     this.canvas.style.transformOrigin = '0 0';
     this.stage.appendChild(this.canvas);
     this.host.appendChild(this.stage);
@@ -45,9 +51,18 @@ export class Viewport {
   /** The console's output size in framebuffer pixels. */
   get framebuffer(): { width: number; height: number } {
     const z = this.opts.zoom ?? 1;
+    const c = this.opts.canvas ?? { w: E.DASHBOARD_CANVAS.width, h: E.DASHBOARD_CANVAS.height };
     return this.opts.consoleView
       ? { width: E.FRAMEBUFFER.width * z, height: E.FRAMEBUFFER.height * z }
-      : { width: E.CANVAS_WIDTH, height: E.CANVAS_HEIGHT };
+      : { width: c.w, height: c.h };
+  }
+
+  /** Resize the stage once the scene's own canvas size is known. */
+  setCanvas(c: { w: number; h: number }): void {
+    (this.opts as { canvas?: { w: number; h: number } }).canvas = c;
+    this.canvas.style.width = `${c.w}px`;
+    this.canvas.style.height = `${c.h}px`;
+    this.layout();
   }
 
   layout(): void {

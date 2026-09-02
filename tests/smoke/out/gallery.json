@@ -11,6 +11,40 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnPolicyInformation",
+   "btnAboutMSPoints",
+   "btnDownloadHistory",
+   "btnLivePasscode",
+   "btnWindowsLiveID",
+   "btnContactInformation",
+   "btnMyMemberships",
+   "cntLoadingAnimation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -34,6 +68,41 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnPolicyInformation",
+   "btnAboutMSPoints",
+   "btnDownloadHistory",
+   "btnLivePasscode",
+   "btnWindowsLiveID",
+   "btnContactInformation",
+   "btnMyMemberships",
+   "cntLoadingAnimation",
+   "txt_Header",
+   "btnGraduateAccount"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -59,6 +128,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "legend_B",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -77,6 +165,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -99,6 +207,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -121,6 +249,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labWhatIS",
+   "btnTopic4",
+   "btnTopic3",
+   "btnTopic2",
+   "btnTopic1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -143,6 +286,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labMetaPanel",
+   "GamerCard",
+   "labInformation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -163,6 +319,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "GamerCard",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -187,6 +364,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labMetaPanel",
+   "GamerCard",
+   "btnYes",
+   "cntLoadingAnimation",
+   "labChangeIDQuestion",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -207,6 +407,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "GamerCard",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -229,6 +450,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -251,6 +492,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labPanelText",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -275,6 +536,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "lstPostalCodeData",
+   "labSceneTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -295,6 +576,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "lstStates",
+   "labSceneTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -313,6 +614,36 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnChangeLiveID",
+   "btnRemovePassword",
+   "btnChangePassword",
+   "cntLoadingAnimation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -338,6 +669,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labLiveIDInfoPanel",
+   "GamerCard",
+   "btnYesChangeID",
+   "cntLoadingAnimation",
+   "labChangeIDQuestion",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -356,6 +710,36 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnContent",
+   "btnPrivacyAndFriends",
+   "btnGameplay",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -379,6 +763,30 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labMetaHead",
+   "labNewOnlineFriends",
+   "labNewOnlineFriendsTag",
+   "labCommunications",
+   "labCommunicationsTag",
+   "labCommunicationsVideo",
+   "labCommunicationsVideoTag",
+   "labProfileSharing",
+   "labProfileSharingTag",
+   "labProfileViewing",
+   "labProfileViewingTag",
+   "labOnlinePresence",
+   "labOnlinePresenceTag",
+   "labFriends",
+   "labFriendsTag"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -397,6 +805,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnLiveOnXbox1",
+   "btnLiveMultiplayerGames",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -420,6 +849,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labCurrentSettingText",
+   "labCurrentSetting",
+   "imgGameRatingIcon",
+   "labCurrentSettingTag"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -440,6 +882,32 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnFriends",
+   "btnOnlinePresence",
+   "btnProfileViewing",
+   "btnProfileSharing",
+   "btnCommunicationsVideo",
+   "btnCommunications",
+   "btnNewFriendsRequests",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -463,6 +931,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnPurchaseContent",
+   "btnViewUserContent",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -488,6 +977,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "listItems",
+   "metaPanelScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -513,6 +1022,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -531,6 +1079,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labPurchasedContent",
+   "labPurchasedContentTag",
+   "labCustomContent",
+   "labCustomContentTag",
+   "labMetaHead"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -549,6 +1111,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labLiveXbox1",
+   "labLiveXbox1Tag",
+   "labLMPGames",
+   "labLMPGamesTag",
+   "labMetaHead"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -569,6 +1145,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "labHeader",
+   "cntLoadingAnimation",
+   "lstSettings",
+   "labMetaHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -592,6 +1197,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labCurrentSettingText",
+   "labCurrentSetting",
+   "labContent"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -610,6 +1227,36 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnDisabled",
+   "btnFriends",
+   "btnEnabled",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -633,6 +1280,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDisabled",
+   "btnEnabled",
+   "metaPanelScene",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -656,6 +1332,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDisabled",
+   "btnEnabled",
+   "metaPanelScene",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -679,6 +1384,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "btnCodeOfConduct",
+   "btnPrivacyStatement",
+   "btnTermsOfUse",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -704,6 +1431,54 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "scnButtonGrp",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -726,6 +1501,20 @@
   "unverifiedBlendModes": [
    2
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "botdArcadeAd",
+   "txt_Header",
+   "metaPanelScene",
+   "scnFeaturedGamesContainer",
+   "labFeaturedGames"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -749,6 +1538,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -767,6 +1567,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -785,6 +1596,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -803,6 +1625,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -821,6 +1654,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -839,6 +1683,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "lblText",
+   "ctrlLoading",
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 300
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -860,6 +1724,47 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "lblTotals"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0
@@ -887,6 +1792,50 @@
   "unverifiedBlendModes": [
    2
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "labError",
+   "labEmpty",
+   "ctlWait",
+   "Tab2"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0,
@@ -920,6 +1869,41 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "btnAction4",
+   "btnAction3",
+   "btnAction2",
+   "btnAction1",
+   "btnAction0",
+   "lblRatingText",
+   "imgGameRating",
+   "btnAction5",
+   "ctlWait"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0,
    8
@@ -944,6 +1928,54 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "youTileImage",
+   "meTileImage",
+   "youGamertagText",
+   "youCredText",
+   "meCredText",
+   "totalPointsText",
+   "labMustPlayGame",
+   "waitCursorControl"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4,
    0,
@@ -970,6 +2002,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "lblInfo",
+   "grpRadio"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -991,6 +2044,49 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "labEmpty",
+   "waitCursorControl",
+   "lblTotals"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    4
@@ -1018,6 +2114,32 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labTitle",
+   "labTellAFriend"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4
   ],
@@ -1041,6 +2163,36 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labTitle",
+   "labGamerScore",
+   "labAchievementDesc",
+   "labAchievementName",
+   "labAcquiredDate",
+   "labMustPlayGame"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0,
@@ -1066,6 +2218,50 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "labTitle",
+   "labScore",
+   "labEmpty",
+   "waitCursorControl",
+   "lblTotals"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4
   ],
@@ -1088,6 +2284,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "grpAchievements2",
+   "grpAchievements1",
+   "grpAchievements0",
+   "labStaticAchievements",
+   "labStatic1",
+   "graphic"
+  ],
+  "canvas": {
+   "w": 405,
+   "h": 260
+  },
   "sizeModesSeen": [
    0
   ],
@@ -1108,6 +2319,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "imgTitle",
+   "labStaticTrialVersion",
+   "grpPurchased",
+   "imgGScore",
+   "grpClassic"
+  ],
+  "canvas": {
+   "w": 405,
+   "h": 88
+  },
   "sizeModesSeen": [
    16,
    0
@@ -1129,6 +2354,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "grpLeader0",
+   "grpLeader1",
+   "graphic",
+   "lblScoreName",
+   "label"
+  ],
+  "canvas": {
+   "w": 405,
+   "h": 125
+  },
   "sizeModesSeen": [
    0
   ],
@@ -1149,6 +2388,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "grpPresence0",
+   "grpPresence1",
+   "label",
+   "graphic"
+  ],
+  "canvas": {
+   "w": 405,
+   "h": 179
+  },
   "sizeModesSeen": [
    0
   ],
@@ -1171,6 +2423,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "scnBanner",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16
   ],
@@ -1194,6 +2466,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "scnBanner",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16
   ],
@@ -1217,6 +2509,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "figBackground",
+   "scnBanner",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16
   ],
@@ -1240,6 +2552,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "label_Body",
+   "label_header"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -1262,6 +2585,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 345,
+   "h": 95
+  },
   "sizeModesSeen": [
    0,
    16
@@ -1285,6 +2616,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "label_body"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -1303,6 +2644,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "label_Body",
+   "label_header"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -1325,6 +2677,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 728,
+   "h": 90
+  },
   "sizeModesSeen": [
    0,
    16,
@@ -1349,6 +2709,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "Banneranimation1",
+   "XuiImage1",
+   "XuiLabel1"
+  ],
+  "canvas": {
+   "w": 420,
+   "h": 354
+  },
   "sizeModesSeen": [
    0,
    16,
@@ -1373,6 +2745,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 420,
+   "h": 72
+  },
   "sizeModesSeen": [
    0,
    16
@@ -1396,6 +2776,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "labHeader",
+   "labMetaHeader",
+   "lstSettings"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1419,6 +2820,30 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDigital",
+   "labHeader",
+   "metaPanelScene",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody",
+   "btnSoundEffects"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1444,6 +2869,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labBody",
+   "MetaPanelScene",
+   "labCurrentSettingsText",
+   "labCurrentSettings"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1464,6 +2904,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labBody",
+   "MetaPanelScene",
+   "labCurrentSettingsText",
+   "labCurrentSettings"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1482,6 +2937,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnOn",
+   "btnOff",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1500,6 +2970,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnOn",
+   "btnOff",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1518,6 +3003,32 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnOption1",
+   "btnOption2",
+   "btnOption3",
+   "btnOption4",
+   "labHeader",
+   "metaPanelScene",
+   "labCurrentSettingsText",
+   "labMetaBody",
+   "labCurrentSettings"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1543,6 +3054,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1563,6 +3088,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1585,6 +3124,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "List_VerticalSpin",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 2,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labHeader1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1605,6 +3163,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "lstTimezone",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1625,6 +3197,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lstCountries",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1645,6 +3231,31 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lstSettings",
+   "metaPanelScene",
+   "labHeader",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "scnCurrentFormat",
+   "labDescription",
+   "labAVPackInfo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    16
@@ -1669,6 +3280,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnNormal",
+   "btnWide",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "metaPanelScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1694,6 +3328,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody",
+   "labAVPackInfo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -1716,6 +3365,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1736,6 +3399,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lstLanguages",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody",
+   "metaPanelScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1759,6 +3445,22 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody",
+   "btnStandard",
+   "btnIntermediate",
+   "btnExpanded"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1777,6 +3479,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "metaPanelScene",
+   "btnDone",
+   "btnReset",
+   "btnPass",
+   "btnFamilyTimer",
+   "btnContent",
+   "btnLiveC",
+   "btnLiveA",
+   "btnVideo",
+   "btnGame",
+   "labMetaHeader",
+   "labVideoSummary",
+   "imgIcon",
+   "imgIcon1",
+   "labDoneSummary",
+   "labCurrentSetting",
+   "imgIcon2",
+   "labCurrentSettingGame",
+   "labPEGIOnline"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    8
@@ -1801,6 +3540,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody",
+   "btnNo",
+   "btnYes"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1823,6 +3577,48 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "btn_itemSpinner",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labMetaPanel",
+   "radgrpFrequency",
+   "labHeader",
+   "ScriptData1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1844,6 +3640,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "imgCurrentSetting",
+   "imgCurrentSetting1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -1868,6 +3693,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody",
+   "btnYes",
+   "btnNo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1886,6 +3726,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnYes",
+   "btnNo",
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1904,6 +3759,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labPanelText"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -1928,6 +3794,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "lstHintQ",
+   "labStaticText"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -1946,6 +3824,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnConsole",
+   "btnLive",
+   "metaPanelScene",
+   "cntLoadingAnimation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -1969,6 +3876,35 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "metaPanelScene",
+   "btnExplicit",
+   "btnTV",
+   "btnMovie",
+   "btnPlaceHolder",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "AdditionalCurrentSettings",
+   "imgIcon",
+   "imgIcon1",
+   "btnUnrated"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    8
@@ -1993,6 +3929,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody",
+   "btnYes",
+   "btnNo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2013,6 +3964,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lstRating",
+   "lblTabName",
+   "metaPanelScene",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "imgCurrentSetting"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    0
@@ -2039,6 +4013,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lstRating",
+   "lblTabName",
+   "metaPanelScene",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "imgCurrentSetting"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    0
@@ -2063,6 +4060,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTabName",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "labBody",
+   "btnYes",
+   "btnNo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2083,6 +4095,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblHelpTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2103,6 +4154,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody",
+   "listChannels"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2121,6 +4186,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnOn",
+   "btnOff",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2139,6 +4219,31 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnAutoOff",
+   "btnBackgroundDownloads",
+   "metaPanelScene",
+   "labHeader",
+   "labMetaHeader",
+   "labCurrentSetting",
+   "scnCurrentSetting",
+   "labDescription"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -2162,6 +4267,23 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDefault",
+   "btnDashboard",
+   "btnMediaCenter",
+   "btnIPTV",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2184,6 +4306,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "VideoFeed",
+   "NoCameraTextField",
+   "FocusRing"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2204,6 +4347,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 420,
+   "h": 450
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -2220,6 +4371,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 420,
+   "h": 450
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -2236,6 +4395,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnMediaCenter",
+   "labHeader",
+   "metaPanelScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -2259,6 +4438,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelDeviceType",
+   "labelDeviceConnection",
+   "labelDeviceName",
+   "labelHelpText"
+  ],
+  "canvas": {
+   "w": 420,
+   "h": 450
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2279,6 +4471,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnRemoveAffiliation",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2297,6 +4500,24 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "cntLoadingAnimation"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -2313,6 +4534,30 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large_noIntro",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "legend_x",
+   "legend_y",
+   "legend_b",
+   "legend_a",
+   "labHeader",
+   "ctlWait",
+   "labEmpty"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2331,6 +4576,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large_noIntro",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "ctlWait",
+   "labEmpty"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2352,6 +4616,47 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "labelPleaseWaitText",
+   "labelPleaseWaitAnimation"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    16,
@@ -2377,6 +4682,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labRecentAchievementsText",
+   "imgAchievements1",
+   "imgAchievements2",
+   "imgAchievements3",
+   "imgAchievements4",
+   "labAchievementsText",
+   "labAchievementsNum",
+   "labGamerPointsText",
+   "labGamerPointsNum",
+   "labGameTitle",
+   "imgGameTile"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0,
    8
@@ -2398,6 +4723,24 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "Tab2"
+  ],
+  "canvas": {
+   "w": 723,
+   "h": 73
+  },
   "sizeModesSeen": [
    0,
    4
@@ -2424,6 +4767,79 @@
    5,
    2
   ],
+  "blendIsolated": [
+   "ringd under Ripple",
+   "ringd1 under Ripple"
+  ],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "Background",
+   "BG_color_1",
+   "OOBE_background",
+   "Picture_blade1",
+   "Picture_blade2",
+   "Picture_blade3",
+   "Picture_blade4",
+   "Picture_blade5",
+   "LiveVisionEffectOverlay",
+   "grey_trans_fade",
+   "WhiteBootCover",
+   "bootGradient",
+   "blade_0_grey_Left",
+   "blade_1_grey_Left",
+   "blade_2_grey_left",
+   "blade_3_grey_left",
+   "blade_top_back",
+   "blade_top_jewel",
+   "blade_top_face ",
+   "blade2_top_back",
+   "blade2_top_jewel",
+   "blade2_top_face ",
+   "blade3_top_back",
+   "blade3_top_jewel",
+   "blade3_top_face ",
+   "blade4_top_back",
+   "blade4_top_jewel",
+   "blade4_top_face ",
+   "blade_5_txt",
+   "blade_4_txt",
+   "blade_3_txt",
+   "blade_2_txt",
+   "blade_1_txt",
+   "blade_0_txt",
+   "bootshadowLT",
+   "bootshadowRT",
+   "bootburst3",
+   "bootburst2",
+   "bootburst1",
+   "WingBootLeft",
+   "WingBootRT",
+   "wing_rt_front",
+   "wing_left_front",
+   "left_bend_blade_tween",
+   "straight_blade_tween",
+   "right_bend_blade_tween",
+   "imgLogo",
+   "Tab6",
+   "Tab5",
+   "Tab4",
+   "Tab3",
+   "Tab2",
+   "Tab1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    2
@@ -2452,6 +4868,14 @@
    4,
    2
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 100,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -2473,6 +4897,14 @@
    2,
    5
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 1123,
+   "h": 772
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -2507,6 +4939,74 @@
    5,
    3
   ],
+  "blendIsolated": [
+   "ringd under Ripple",
+   "ringd1 under Ripple"
+  ],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "btn_itemSpinner",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "btn_single",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 1024,
+   "h": 768
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -2537,6 +5037,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "XuiLabel1",
+   "XuiLabel2",
+   "XuiLabel3"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -2557,6 +5070,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "labBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2577,6 +5101,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "labBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2597,6 +5132,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labURL",
+   "txt_Header",
+   "XuiLabel1",
+   "XuiLabel3"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2617,6 +5165,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labKey",
+   "labBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2637,6 +5197,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labWaitingText",
+   "LoaderAnimation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2657,6 +5237,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2677,6 +5268,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2697,6 +5299,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labWaitingText",
+   "LoaderAnimation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2717,6 +5339,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnTroubleshooter",
+   "txt_Header",
+   "labBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2737,6 +5371,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labWaitingText",
+   "LoaderAnimation",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2755,6 +5409,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnNetworkSettings",
+   "btnConnection",
+   "labBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2775,6 +5442,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "labBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2795,6 +5473,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnNetworkSettings",
+   "btnConnect",
+   "labBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2815,6 +5506,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Action"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2833,6 +5534,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labAlertMessage"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    8
   ],
@@ -2853,6 +5564,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Title",
+   "txt_Chapter",
+   "txt_TimeLeft",
+   "txt_RunningTime"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2871,6 +5595,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Action",
+   "legend_b"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0,
    16
@@ -2892,6 +5627,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "legend_b",
+   "txt_Action"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0,
    16
@@ -2913,6 +5659,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "XuiLabel1"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    16
   ],
@@ -2933,6 +5689,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2951,6 +5715,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -2971,6 +5743,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_TimeLeft",
+   "txt_RunningTime",
+   "prgbr_Buffer",
+   "prgbr_Playback"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -2989,6 +5774,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "legend_b",
+   "txt_Action"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0,
    16
@@ -3012,6 +5808,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large2",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 5,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "legend_b",
+   "prgbr_Buffer",
+   "Buffering Video...",
+   "hamster wheel green light",
+   "live logo"
+  ],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3034,6 +5852,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 720,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -3052,6 +5878,24 @@
   "unverifiedBlendModes": [
    5
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "offlineBaseScene"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    4,
    0
@@ -3073,6 +5917,31 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnViewAchievements",
+   "btnManageGameFiles",
+   "btnBrowseDownloads",
+   "labHeader",
+   "labGameTitle",
+   "imgGameIcon",
+   "labRecentAchievementsText",
+   "imgAchievements1",
+   "imgAchievements2",
+   "imgAchievements3",
+   "imgAchievements4",
+   "labAchievementsText",
+   "labAchievementsNum",
+   "labGamerPointsText",
+   "labGamerPointsNum",
+   "labGameSummaryTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3096,6 +5965,44 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labAchievementName",
+   "labAcquiredDate",
+   "labPoints",
+   "ctlLoading",
+   "labEmpty",
+   "labGameTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0,
    16
@@ -3121,6 +6028,40 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "ctlLoading",
+   "labEmpty"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0
@@ -3145,6 +6086,22 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "imgGame1",
+   "imgGame2",
+   "imgGame3",
+   "imgGame4",
+   "imgGame5",
+   "imgGame6",
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3163,6 +6120,22 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "imgGame1",
+   "imgGame2",
+   "imgGame3",
+   "imgGame4",
+   "imgGame5",
+   "imgGame6",
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3181,6 +6154,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labBodyText",
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -3197,6 +6181,22 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "imgGame1",
+   "imgGame2",
+   "imgGame3",
+   "imgGame4",
+   "imgGame5",
+   "imgGame6",
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3217,6 +6217,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "botdBillboard",
+   "scnNoProfiles"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3235,6 +6246,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -3255,6 +6276,35 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ctlGamerCard",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3280,6 +6330,43 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   },
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labFoundProfiles",
+   "labSignInText",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3303,6 +6390,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "labHeader",
+   "labMetaHeader",
+   "btnTVStorage",
+   "btnSysInfo",
+   "btnUninstall",
+   "labCurrentSettings",
+   "labMetaBody",
+   "labMetaBodyFull",
+   "labMetaBodyDVR"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -3328,6 +6442,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labFree",
+   "labDescription",
+   "labDvrStorageTitle",
+   "labXboxStorageTitle",
+   "labDvrStorage",
+   "labXboxStorage",
+   "labHoursSd",
+   "labHoursHd",
+   "spnSave"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3346,6 +6487,31 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "btnUninstall",
+   "labFree",
+   "labDirections",
+   "labUninstall",
+   "labServiceName",
+   "labSupportInfo",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0,
@@ -3370,6 +6536,23 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ctlGamerCard",
+   "botdBillboard",
+   "btn_AdBanner",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene",
+   "TitleMetedata"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    0
@@ -3397,6 +6580,23 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ctlGamerCard",
+   "botdBillboard",
+   "btn_AdBanner",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene",
+   "TitleMetedata"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    0
@@ -3423,6 +6623,32 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btn_AdBanner",
+   "botdBillboard",
+   "TitleMetedata",
+   "labFoundProfiles",
+   "labSignInText",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    0
@@ -3445,6 +6671,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labDefaultText",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    16
   ],
@@ -3463,6 +6700,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -3481,6 +6728,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "botdBillboard",
+   "scnNoProfiles"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3499,6 +6757,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -3515,6 +6783,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText",
+   "labActiveText",
+   "imgMusicIcon"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3533,6 +6813,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText",
+   "labActiveText",
+   "imgPicturesIcon"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3551,6 +6843,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "labDefaultText",
+   "labActiveText",
+   "imgPicturesIcon"
+  ],
+  "canvas": {
+   "w": 345,
+   "h": 240
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3573,6 +6877,35 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ctlGamerCard",
+   "TrayScene",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3600,6 +6933,35 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ctlGamerCard",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3625,6 +6987,43 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   },
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labFoundProfiles",
+   "labSignInText",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3650,6 +7049,43 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   },
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labFoundProfiles",
+   "labSignInText",
+   "Arrow_Down",
+   "Arrow_Up",
+   "Arrow_Left",
+   "TrayScene"
+  ],
+  "canvas": {
+   "w": 700,
+   "h": 445
+  },
   "sizeModesSeen": [
    16,
    2,
@@ -3676,6 +7112,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labTotal",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3698,6 +7161,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDelete",
+   "labelHeading",
+   "txt_Directions",
+   "labBody2",
+   "labBody1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3716,6 +7193,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnRename",
+   "btnFormat",
+   "btnTVStorage",
+   "labHeader",
+   "labMetaHead",
+   "labSizeText",
+   "labSize",
+   "labFreeSpaceText",
+   "labFreeSpace",
+   "labDVRSpaceText",
+   "labDVRSpace",
+   "labDevice",
+   "XuiLabel1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3740,6 +7239,42 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeading",
+   "txt_Directions",
+   "labTotal",
+   "txt_EmptyList",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4,
    8
@@ -3763,6 +7298,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDefaultFocus",
+   "txt_Header",
+   "txt_Enumerating",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3781,6 +7337,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "txtMessage"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -3801,6 +7376,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_MetaSubHead",
+   "txt_Size",
+   "txt_Header",
+   "txt_MetaHead",
+   "txt_SizeHead",
+   "listOptions",
+   "image_thumbnail",
+   "txt_Device",
+   "txt_DeviceHead",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3825,6 +7419,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_SelectProfile",
+   "txt_Header",
+   "txt_EmptyList",
+   "labTotal",
+   "labDots",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3853,6 +7484,23 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listOptions",
+   "labHeader",
+   "labMetaHead",
+   "labSizeText",
+   "labSize",
+   "labFreeSpaceText",
+   "labFreeSpace",
+   "labDevice"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3875,6 +7523,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_OwnerInfo",
+   "txt_MetaSubHead",
+   "txt_Owner",
+   "txt_OwnerHead",
+   "txt_Size",
+   "txt_Header",
+   "txt_MetaHead",
+   "txt_SizeHead",
+   "listOptions",
+   "image_thumbnail",
+   "txt_NumberOfItems",
+   "txt_Device",
+   "txt_DeviceHead",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3899,6 +7570,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_SelectProfile",
+   "txt_Header",
+   "txt_EmptyList",
+   "labTotal",
+   "labDots",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3928,6 +7636,47 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_SelectProfile",
+   "txt_Header",
+   "txt_EmptyList",
+   "labTotal",
+   "labDots",
+   "labFree",
+   "labSpaceRequired",
+   "XuiText1",
+   "img_error",
+   "img_check"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8,
@@ -3958,6 +7707,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_SelectProfile",
+   "txt_Header",
+   "txt_EmptyList",
+   "labTotal",
+   "labDots",
+   "labFree"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -3980,6 +7766,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 64,
+   "h": 64
+  },
   "sizeModesSeen": [
    0
   ],
@@ -3998,6 +7792,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 64,
+   "h": 64
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4018,6 +7820,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "temp_bg",
+   "ico_DeviceIcon",
+   "txt_Header",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4038,6 +7861,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "cntLoadingAnimation",
+   "labHeader",
+   "labGamertagCount"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -4064,6 +7914,51 @@
   "unverifiedBlendModes": [
    5
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "cntLoadingAnimation",
+   "labHeader",
+   "listFriendRequestRecipients",
+   "gamerCard",
+   "XuiLabel1",
+   "XuiLabel2",
+   "labSending"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4086,6 +7981,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "headerText",
+   "statusText",
+   "staticWarningText",
+   "focusEater",
+   "waitCursorControl"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4104,6 +8021,34 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "cntLoadingAnimation",
+   "labInfo",
+   "labInfo1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4124,6 +8069,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "cntLoadingAnimation",
+   "labInfo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0,
@@ -4145,6 +8117,41 @@
   "unverifiedBlendModes": [
    5
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "btn_single_no_kill",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "cntLoadingAnimation",
+   "labHeader",
+   "TextBox1",
+   "labSendingRequests"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4165,6 +8172,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "metaPanelScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    16
@@ -4192,6 +8218,41 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelItemCount",
+   "labelLoadingText",
+   "labelLoadingAnimation",
+   "labelNoResultsText"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    16
   ],
@@ -4217,6 +8278,41 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelItemCount",
+   "labelLoadingText",
+   "labelLoadingAnimation",
+   "labelNoResultsText"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    16
   ],
@@ -4239,6 +8335,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnPlayAll",
+   "btnQueueAll",
+   "labelHeader",
+   "labelDeviceName",
+   "labelInfo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4261,6 +8371,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "sceneSongListContainer",
+   "listOptions",
+   "labelAsyncWorkText",
+   "labelAsyncWorkAnimation"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4281,6 +8413,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "sceneAlbumListContainer",
+   "listOptions"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4301,6 +8445,28 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "sceneSongMetadataContainer",
+   "listOptions",
+   "labelAsyncWorkText",
+   "labelAsyncWorkAnimation"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4322,6 +8488,34 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "listSongs",
+   "labelCDName",
+   "labelSongCount",
+   "XuiLabel1"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4343,6 +8537,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "graphic_Loading",
+   "labelSelectedTrack",
+   "labelCDName",
+   "labelTitle",
+   "labelOperation",
+   "labelEditPrompt",
+   "labelStatus",
+   "btnDone"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16
   ],
@@ -4365,6 +8598,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "XuiNavButton1",
+   "XuiNavButton2",
+   "XuiText"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4383,6 +8628,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "XuiNavButton1",
+   "XuiNavButton2",
+   "XuiText2"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4401,6 +8658,31 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labelItemName",
+   "labelEditPrompt",
+   "artistHeader",
+   "genreHeader",
+   "labelArtist",
+   "labelGenre",
+   "labelAlbum"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4422,6 +8704,24 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labelItemName",
+   "labelEditPrompt",
+   "artistHeader",
+   "albumHeader",
+   "GenreHeader",
+   "labelArtist",
+   "labelAlbum",
+   "labelGenre"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0
@@ -4450,6 +8750,51 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnVisualizer",
+   "labelHeader",
+   "labelSongTitle",
+   "labelAlbumName",
+   "labelArtistName",
+   "labelSongCount",
+   "bgBox",
+   "imageAlbumArt",
+   "btnVisCyclopsPrevious",
+   "XuiImage1",
+   "labelAsyncWorkText",
+   "labelAsyncWorkAnimation",
+   "btnVisCyclopsNext",
+   "labelElapsedTime"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0,
    16,
@@ -4478,6 +8823,33 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelSongCount",
+   "labelHeader",
+   "listOptions"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0,
    8
@@ -4500,6 +8872,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "XuiNavButton1",
+   "XuiNavButton2",
+   "XuiText2"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4521,6 +8905,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelHeader",
+   "labelAsyncWorkText",
+   "labelAsyncWorkAnimation",
+   "labelItemCount",
+   "sceneControlContainer",
+   "labelNoResultsText"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4541,6 +8962,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [],
   "errors": []
@@ -4557,6 +8986,23 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "btnB",
+   "btnDummy",
+   "btnFsVisNext",
+   "btnFsVisPrevious",
+   "btnFsVisCyclopsNext",
+   "btnFsVisCyclopsPrevious",
+   "btnFsTrackNext",
+   "btnFsTrackPrevious"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4577,6 +9023,22 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labelSongName",
+   "labelArtistName",
+   "labelAlbumName",
+   "labelGenre",
+   "XuiLabel1",
+   "XuiLabel2",
+   "XuiLabel3"
+  ],
+  "canvas": {
+   "w": 640,
+   "h": 480
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4600,6 +9062,32 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Meta",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4
   ],
@@ -4627,6 +9115,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "txt_Header",
+   "txt_MetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    8
   ],
@@ -4648,6 +9148,16 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    7,
@@ -4673,6 +9183,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btn_Activate",
+   "btn_Cancel",
+   "txt_Header",
+   "txt_Body"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4691,6 +9214,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btn_Review",
+   "scnTestItem7",
+   "scnTestItem5",
+   "scnTestItem4",
+   "scnTestItem3",
+   "scnTestItem2",
+   "scnTestItem1",
+   "scnTestItem0",
+   "txt_Header",
+   "labNatType",
+   "labDeviceType"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -4711,6 +9254,23 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "btn_Review",
+   "scnTestItem4",
+   "scnTestItem3",
+   "scnTestItem2",
+   "scnTestItem1",
+   "scnTestItem0",
+   "labDeviceType"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4731,6 +9291,53 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "cntlLoader",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4751,6 +9358,54 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labSubHeader",
+   "ctlLoading"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4771,6 +9426,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4791,6 +9485,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_MetaBody",
+   "txt_Header",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -4817,6 +9534,42 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "metaPanelScene",
+   "txt_MetaBody",
+   "txt_Header",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    2
@@ -4844,6 +9597,39 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Header",
+   "ctlLoading"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    4
   ],
@@ -4871,6 +9657,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -4896,6 +9705,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_MetaBody",
+   "txt_Header",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    2
@@ -4922,6 +9754,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -4947,6 +9802,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -4970,6 +9848,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btn_SaveTest",
+   "btn_Save",
+   "btn_Cancel",
+   "txt_MetaBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -4988,6 +9880,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btn_Overwrite",
+   "btn_Create",
+   "btn_Cancel",
+   "txt_MetaBody",
+   "txt_Header"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5008,6 +9914,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -5033,6 +9962,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    2
@@ -5059,6 +10011,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    2
@@ -5085,6 +10060,38 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_single",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 7
+   },
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "label_EthernetMAC_Title",
+   "label_EthernetMAC_Value",
+   "txt_MetaBody",
+   "txt_CurrentSettings",
+   "txt_MetaHead"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -5110,6 +10117,29 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "list_items",
+   "metaPanelScene",
+   "txt_Header",
+   "txt_MetaBody",
+   "txt_MetaHead",
+   "txt_CurrentSettings"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2
   ],
@@ -5135,6 +10165,34 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_SSID",
+   "txt_Link",
+   "txt_Act",
+   "img_Link_Disconnected",
+   "img_inAct",
+   "img_Signal0",
+   "img_Signal1",
+   "img_Signal2",
+   "img_Signal3",
+   "img_Signal4",
+   "ctlLoading"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0,
    8
@@ -5157,6 +10215,37 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "BG",
+   "txt_SSID",
+   "txt_Link",
+   "txt_Act",
+   "img_Link_Connected",
+   "img_Link_Disconnected",
+   "img_Act",
+   "img_Signal0",
+   "img_Signal1",
+   "img_Signal2",
+   "img_Signal3",
+   "img_Signal4",
+   "img_inAct",
+   "ctlLoading"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -5177,6 +10266,37 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "BG",
+   "txt_SSID",
+   "txt_Link",
+   "txt_Act",
+   "img_Link_Connected",
+   "img_Link_Disconnected",
+   "img_Act",
+   "img_inAct",
+   "img_Signal0",
+   "img_Signal1",
+   "img_Signal2",
+   "img_Signal3",
+   "img_Signal4",
+   "ctlLoading"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    0
   ],
@@ -5199,6 +10319,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "artPanel",
+   "txtSigningOut"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5219,6 +10350,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "tp_WelcomeText",
+   "metaPanelScene",
+   "lstCountries",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    16
@@ -5247,6 +10399,39 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labActionText",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0
@@ -5270,6 +10455,27 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 16
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "tp_WelcomeText",
+   "metaPanelScene",
+   "lstLanguages",
+   "labHeader"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    16
@@ -5295,6 +10501,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnAdjust",
+   "btnKeep",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5313,6 +10534,32 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "btn_Gamercard",
+    "state": "Normal",
+    "frame": 9,
+    "hidden": 4,
+    "total": 6
+   },
+   {
+    "visual": "metaScene_2line_Short",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 11,
+    "total": 14
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "btnPlaceholder"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    0
@@ -5335,6 +10582,25 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "txt_Enumerating",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5353,6 +10619,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnAdjust",
+   "btnKeep",
+   "labHeader",
+   "labCurrentSettingsText",
+   "labCurrentSettings",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5371,6 +10652,20 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnDone",
+   "btnDontHave",
+   "labHeader",
+   "labActionText",
+   "labMetaBody"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5391,6 +10686,17 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "ctlVideo"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5413,6 +10719,41 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "btnSafety",
+   "btnOptimize",
+   "btnDashboard",
+   "labWelcomeText",
+   "XuiLabel1",
+   "XuiImage1",
+   "ctlGamercard",
+   "TrayScene",
+   "btnPlaceHolder",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    0,
@@ -5439,6 +10780,42 @@
   ],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "metaScene_1line_GamesMid",
+    "state": "Default",
+    "frame": 0,
+    "hidden": 12,
+    "total": 15
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "btnSafety",
+   "btnOptimize",
+   "btnPlayVideo",
+   "btnDashboard",
+   "labWelcomeText",
+   "XuiLabel1",
+   "XuiImage1",
+   "ctlGamercard",
+   "TrayScene",
+   "btnPlaceHolder",
+   "labDots"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    2,
    0,
@@ -5464,6 +10841,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "Header_Text",
+   "btnPlay",
+   "nowPlayingMini",
+   "List",
+   "labelHighlightedOfTotal",
+   "imgIcon",
+   "labelWaitingAnimation",
+   "labelMessage"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8,
@@ -5492,6 +10908,18 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "ImageError",
+   "ImageRenderControl",
+   "ProgressScene"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    8
@@ -5515,6 +10943,21 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "noFamilySettingsGroup",
+   "familySettingsGroup",
+   "headerText",
+   "bodyText",
+   "gamercardControl",
+   "staticText"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5533,6 +10976,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "statusText",
+   "waitCursorControl",
+   "backButton"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5554,6 +11017,64 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "back panel",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 1,
+    "total": 1
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "btnRightShoulder",
+   "btnLeftShoulder",
+   "labConnecting",
+   "labDots",
+   "figInactiveRemote",
+   "txtGamerTimeRemote",
+   "txtGamerTimeLocal",
+   "txtGamertagRemote",
+   "txtGamertagLocal",
+   "imgIconRemote",
+   "imgIconLocal",
+   "ctlRemoteVideoStream",
+   "ctlLocalVideoStream",
+   "labHeader",
+   "metapaneLocal",
+   "metapaneRemote",
+   "figHeaderLocal",
+   "figHeaderRemote",
+   "graphic_meta",
+   "btnSettings",
+   "btnMute",
+   "btnZoom",
+   "btnInvite",
+   "txtHelper",
+   "ctlGamerCardRemote",
+   "ctlGamerCardLocal",
+   "InviteRemote",
+   "txtStatusTimeRemote",
+   "txtInfoRemote",
+   "txtStatusTimeLocal",
+   "txtInfoLocal",
+   "statusPanelRemote",
+   "statusPanelLocal",
+   "labDots_Invite"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    16,
    4
@@ -5582,6 +11103,14 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
+  "canvas": {
+   "w": 162,
+   "h": 25
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5600,6 +11129,26 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": true,
+  "invisibleGroups": [
+   "BlackFade",
+   "acquiringLicenseTxt",
+   "loadingAnim"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5625,6 +11174,45 @@
   "unverifiedBlendModes": [
    2
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labError",
+   "labEmpty",
+   "data",
+   "grpContent",
+   "ctlWait",
+   "twistFilter",
+   "labMetadataUpate"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    8,
    16,
@@ -5664,6 +11252,43 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "labError",
+   "labEmpty",
+   "data",
+   "grpContent",
+   "ctlWait"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    8,
    16
@@ -5692,6 +11317,28 @@
   "unverifiedBlendModes": [
    2
   ],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "Loading_Large",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 7,
+    "total": 7
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "grpSuggested",
+   "labHeader",
+   "data",
+   "labEmpty",
+   "ctlWait"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [
    8
   ],
@@ -5725,6 +11372,19 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "labHeader",
+   "data",
+   "btnRestart",
+   "btnResume"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0
@@ -5745,6 +11405,45 @@
   "sceneTextures": [],
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [],
+  "blendIsolated": [],
+  "codeDrivenStates": [
+   {
+    "visual": "scr_ScrollEndDown",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndUp",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndLeft",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   },
+   {
+    "visual": "scr_ScrollEndRight",
+    "state": "Normal",
+    "frame": 0,
+    "hidden": 3,
+    "total": 3
+   }
+  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [
+   "lblTitle"
+  ],
+  "canvas": {
+   "w": 1120,
+   "h": 770
+  },
   "sizeModesSeen": [],
   "dataAssociationsSeen": [
    0

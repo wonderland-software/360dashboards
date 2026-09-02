@@ -81,7 +81,18 @@ export function renderText(
 
   const span = document.createElement('div');
   span.textContent = text;
-  span.style.cssText = 'width:100%';
+  // MEASURED: the console rasterises glyphs isotropically at the canvas's
+  // HORIZONTAL scale, so inside our anisotropic canvas they need a vertical
+  // counter-scale of sy/sx. Scaling about the TOP of the line block keeps a
+  // top-aligned baseline where it belongs; about the block's CENTRE keeps a
+  // vertically centred block centred, since the browser centres the unscaled
+  // box and the scale is symmetric about that centre.
+  const vcentre = (style & E.TextStyle.VALIGN_CENTER) !== 0;
+  span.style.cssText = [
+    'width:100%',
+    `transform:scaleY(${E.GLYPH_ASPECT})`,
+    `transform-origin:0 ${vcentre ? '50%' : '0'}`,
+  ].join(';');
   if (style & E.TextStyle.ELLIPSIS) {
     span.style.overflow = 'hidden';
     span.style.textOverflow = 'ellipsis';

@@ -24,6 +24,10 @@ INFERRED, both here and in the source.
 | `src/anim/TimelineEngine.ts` | The playhead. A scope per timeline-owning object, Flash-style named-frame commands, control states, a 60 Hz fixed-step clock. Also DOM-free. |
 | `src/anim/bind.ts` | Joins a scope's sampled values to the rendered nodes it animates. |
 | `src/render/update.ts` | `NodeRecord` + `updateNode`: re-applies only what changed, and cascades a resize to the children the way the first render laid them out. |
+| `src/input/InputMap.ts` | The 360 pad over the Gamepad API's standard mapping, merged with a keyboard map, d-pad auto-repeat, and an `InputRouter` with a focus stack. |
+| `src/audio/AudioBank.ts` | The 16 extracted cues, one `AudioContext` unlocked on the first gesture, and the state→cue table. |
+| `src/text/Strings.ts` | `.xus` tables: `applyLocale` patches a parsed scene by (classIndex, propIndex, postorder objectId); `stringsByIndex` for positional tables. |
+| `src/ui/ListView.ts` | `XuiList`/`XuiCommonList` row population from the list visual's own template. |
 | `src/render/Viewport.ts` | The console's canvas→framebuffer transform, then a uniform fit to the window. |
 | `src/telemetry.ts` | `window.__dash`: everything met and everything not honoured. |
 | `src/debug/Inspector.ts` | `?debug` — tree, hover highlight, property dump. |
@@ -60,6 +64,21 @@ transforms compose as XUI composes them. `Show=false` → `display:none`.
 from `P_i` via `C1_i, C2_i` to `P_(i+1)`, and a straight segment stores
 `C1_i = P_i`, `C2_i = P_(i+1)` — which is why 1,782 of the 2,264 figures are
 plain 4-point rectangles. `Closed` is true on every figure in the build.
+
+Gradients and textures are laid out against the **element** box, in a unit
+space that a leading `scale(w,h)` maps onto it. SVG's `objectBoundingBox` means
+the *path's* bbox, and 27 figures carry points outside their stored box, so the
+two are not the same and `objectBoundingBox` mis-scales those fills.
+
+A figure with **no `Fill` block at all** (30 of them) takes the SOLID default in
+the default colour, because XUR omits a property that equals its default; only
+`FillType 0` paints nothing. `FillColor` 0xFF0F0F80 and `StrokeColor` 0xFF0FEB
+come from the XuiTool class-extension schema and live in `xuiEnums.ts`.
+
+`StrokeWidth` is scaled with the points (geometric mean of the two axes) —
+INFERRED and unresolved: only 62 figures are stroked, 1,333 skin figures have a
+point box unlike their element box, and no frame we have shows one big enough
+to settle it. `SCALE_STROKE_WITH_FIGURE` is the switch.
 
 **Points are scaled from their own bounding box to the element's
 Width × Height** (MEASURED — this is the one place where our finding
@@ -120,20 +139,36 @@ and have no `Normal` at all.
 
 ## Text
 
-`PointSize` is **not** a pixel height. MEASURED: em = `PointSize * 100/72`
-design px. Derived twice off `f0060`'s 16-glyph "Console Settings"
-(PointSize 22): the string's ink is 367 screen px against our 264 at
-font-size 22, giving em = 30.57; and the reference 'C' is 35 px tall with
-ConvectionUI's capHeight/em = 0.7001 and a 1.636 vertical scale, giving
-30.55. The two axes differ by exactly 22/21 — the canvas anisotropy — which
-also proves glyphs go through the same view transform as everything else.
-Reading `100/72` as "a real point size at 100 dpi" is INFERRED; the 1.389 is
-measured to about ±1 %.
+`PointSize` is **not** a pixel height, and the two axes behave differently.
+
+**Horizontally** an em is `PointSize * 100/72` design px. Fitted by 1-D
+normalised cross-correlation of the gradient-magnitude column profile of our
+render against `f0060`, reporting the factor our render still needs:
+
+| string | PointSize | kx | ky (before) | ky (after) |
+|---|---|---|---|---|
+| Console Settings | 22 | 1.003 | 0.9445 | 0.988 |
+| Back | 18 | 1.000 | 0.9295 | 0.985 |
+| Select | 18 | 0.997 | 0.9535 | 1.000 |
+| Current Setting | 20 | 0.991 | 0.9865 | 0.997 |
+
+**Vertically the glyphs are not stretched by the canvas.** The "before" column
+is our render with the em applied to both axes: it wants to be 4.65 % shorter,
+mean ky 0.9535, against `sy/sx = 21/22 = 0.9545` — a match to 0.1 %, at four
+sizes, while kx stays at 1. So the console rasterises glyphs **isotropically at
+the canvas's horizontal scale**, and only the layout goes through the
+anisotropic view transform. Text nodes therefore carry `scaleY(21/22)`
+(`GLYPH_ASPECT`), about the top of the line block when the text is top-aligned
+and about its centre when `VALIGN_CENTER` is set. The "after" column is the
+residual: within 1.5 % on all four, and the baseline offsets drop to ≤1 px at
+1080p.
+
+Reading `100/72` as "a real point size at 100 dpi" is INFERRED; both numbers
+are measured.
 
 The line box is the **face's own ascent+descent**, read off the font at
 runtime rather than hard-coded, so the first baseline lands where the console
-puts it (`box top + ascent`; measured 30.7 design px below the box top for a
-30.56 px em, against an ascent of 1.015 em).
+puts it.
 
 `TextStyle` bits are DOCUMENTED: `0x1` drop shadow, `0x2` italic, `0x4` bold,
 `0x8` underline, `0x10` single line (clear = wrap), `0x100/0x200/0x400`
@@ -168,17 +203,45 @@ cannot wedge the engine.
 componentwise, quaternions by shortest-arc slerp; strings, booleans and
 figures hold, which is how an animated `TextureFileName` swaps cleanly).
 `None` holds the earlier keyframe. `Ease` carries signed EaseIn/EaseOut
-(−100…100) and EaseScale (0…100) — **INFERRED**, and the one place the shape
-is defined: all 454 Ease keyframes in the build store 0/0/50, so the corpus
-cannot distinguish curves. We use a cubic Bézier whose control points start on
-the diagonal and are pulled off it by the ease amounts, which reduces exactly
-to a straight line at 0/0, whatever EaseScale is.
+(−100…100) and EaseScale (0…100). What build 6770 stores, over all 454 Ease
+keyframes: `100/100/50` ×237, `100/0/50` ×115, `0/0/50` ×68, `0/100/50` ×19,
+`2/100/50` ×6, `100/-100/50` ×5, `-100/100/50` ×3, `-100/0/50` ×1.
+
+The curve is a cubic Bézier through (0,0) and (1,1) with
+`P1 = (1/3, 1/3 − k·EaseIn/300)` and `P2 = (2/3, 2/3 + k·EaseOut/300)`,
+`k = EaseScale/50`. Because the x control points stay at 1/3 and 2/3, `x(u) = u`
+exactly, so the parameter *is* the input fraction and no root-finding is needed.
+At 0/0 both points land on the diagonal and the curve is the identity.
+
+**The signs are measured, not chosen for looks.** A positive EaseIn pulls the
+first control point *down*, so a `100/0/50` segment starts from a standstill:
+`y = 2u² − u³`, `y'(0) = 0`, peak speed at `u = 2/3`. Against the 60 fps
+capture, dashmain's blade-open transition (`f2159`…`f2185`, Ease `100/0/50`)
+has its per-frame pixel-difference energy rise monotonically from 3.7 to a peak
+of 49.6 at `f2179` — **77 % of the span**, firmly in the second half. Our curve
+peaks at 67 %; the endpoints of the measured span are fuzzy to ±2 frames
+(74–77 %), and the energy mixes many elements with different keyframe spans, so
+the sign convention is settled and the exact shape is pinned to about ±10 % of
+the span. The opposite convention would peak at 33 %.
+
+**Ambient scopes.** A scope with timelines and no named frames has no `Play`
+command to start it, but the console clearly runs those — 12 of dashmain's 43
+are like this (`BG_animation/groupBackground1` is 990 frames) and reference
+frames 1.33 s apart differ by 1.5–1.9 grey levels in exactly those backgrounds.
+They free-run from frame 0 and loop at the last keyframe. That the wrap is a
+loop rather than a hold is INFERRED; a hold would freeze the background, which
+the frames rule out.
 
 **Control states.** `setState(controlId, state)` plays the visual's
 `<State>`…`End<State>` range down the documented fallback chain
 (`Focus→Normal`, `Press→Focus`, `PressDisable→NormalPress→Press`, and the
 INFERRED `Normal→Default`). A visual's `XuiSoundXAudio` child is the console's
 cue for that state; we record it as `lastCue` and play nothing.
+
+**Reference footage caveat.** The 6717 60 fps capture is 30 fps
+frame-doubled — every even frame duplicates the one before it, 0.03–0.18 units
+of pixel-difference energy against 3–50 on the odd ones. Durations off it are
+trustworthy; per-60Hz-frame velocities are not.
 
 **Updates.** `updateNode` re-derives the container style always, rebuilds the
 element's own paint only when a content key changed (`Fill.*`, `Stroke.*`,
@@ -189,6 +252,37 @@ element actually resized. Data attributes stay current: `data-xui-tick` and
 `window.__dash.timeline` reports `{ scopes: [{id, tick, playing, range,
 lastCue}], playing, frozenAt, fps }`, where `fps` counts timeline frames
 stepped in the last second — 60 on a healthy page.
+
+## Lists
+
+The geometry is read out of the skin, not guessed. The `XuiList` visual is a
+TEMPLATE: `control_ListItem` (a `XuiListItem`, 420×**45**, Anchor 15,
+`Visual="XuiButton"`) and two `XuiScrollEnd`s (`control_ScrollUp` /
+`control_ScrollDown`, 27×27, Anchor 12 = RIGHT|BOTTOM, the down one carrying
+`Direction 1`). So the 45 px pitch, the row's look and where the arrows land
+are all data. Row *k* top = list y + 3 + 45*k*.
+
+A control with no `Visual` falls back to a visual named after its **class** —
+the skin defines `XuiList`, `XuiButton`, `XuiLabel`, `XuiCheckbox`,
+`XuiBackButton` by exactly those names. That also explains the only unresolved
+visuals in the build: `XuiScrollEnd` and `XuiScrollEndUp` are class-default
+names the skin never defines.
+
+`ItemsText`/`ItemsImage`/`ItemsNavPath` are CRLF-separated (31 lists use them).
+`lstSettings` declares none, so its rows come from the positional table the
+console indexed, `consoles/dashCSettingsStrings.xus` — see
+`dashboards/blades/settingsList.ts` for the indices.
+
+**Overlay against `f0060`:** the ten rows land on design y 157 + 45*k*, and the
+reference's separators (measured as luma dips in a text-free strip) sit at
+design 155.2, 199.8, 245.1, 290.3, 335.5 against ours at 155.8, 200.8, 245.7,
+290.6, 335.8 — **within about 1 design px**, with the same 45 px pitch. The
+down arrow lands at list-relative (386, 409), i.e. design (532, 563), where the
+frame has it. The row *label ink* sits about 4 design px (7 px at 1080p) lower
+than 6717's; the row and separator geometry is right, so the residual is inside
+the row visual's text placement, and 6717's list is built by different console
+code than 6770's (its `PanelSettings` names nine buttons and omits Themes), so
+the two builds' rows are not the same controls. Not fudged.
 
 ## What is honestly not implemented
 
@@ -203,8 +297,26 @@ Recorded per scene in `window.__dash`, never faked:
   `common://TitleMetadata.xur`). XUI renders a scene to a texture; M1 has no
   offscreen target. The file is present, so this is not a missing asset.
 - **`unverifiedBlendModes`** — `BlendMode` 1 is alpha (DOCUMENTED); 2–5 are
-  guesses and live only in `dashmain.xur` and the blade skins. The raw value
-  is written to `data-xui-blendmode` so a frame can settle it.
+  guesses. They are **not** confined to `dashmain.xur` and the blade skins, as
+  an earlier note here claimed: 2 is in `arcade/2500_LiveArcadeHome`,
+  `arcade/2502_TwistSelectorScene`, `videos/VideoCategories` and
+  `videos/VideoDetails`, and 5 is in `gamercar/GamerCard`,
+  `messenge/FriendRequestMain` and `messenge/SignupComplete`. Settling them
+  needs a frame showing one of those screens, or the blade composition (the
+  elements carrying 2 and 4 in dashmain sit on tabs that are `Opacity 0` at
+  rest). The raw value is on `data-xui-blendmode`.
+- **`blendIsolated`** — CSS isolates a blend inside the nearest stacking
+  context and an ancestor `opacity < 1` makes one; the console has no such
+  rule. Every blended element under a faded ancestor is listed.
+- **`codeDrivenStates`** — visuals whose resolved resting state hides more than
+  half their own children, i.e. the chrome only appears once console code plays
+  a transition into it. `metaScene_1line` is the clear case.
+- **`invisibleAtRest` / `invisibleGroups`** — the whole scene, and which named
+  parts of it, draw nothing at rest. The default route is the case that matters:
+  53 of `dashmain.xur`'s named groups are invisible at rest, `Tab1..Tab6`
+  among them (all `Opacity 0` until console code opens a blade), so **the
+  default route renders only the blade-skin background** and will until the
+  glue drives the tabs.
 - **`unresolvedVisuals` / `missingImages` / `deviceFiles` / `placeholders`** —
   see `tests/smoke/allowlist.json` for the three visuals and three paths the
   build itself cannot supply, each with its reason.

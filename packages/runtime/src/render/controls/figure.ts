@@ -37,8 +37,9 @@ export function renderFigure(p: PropBag, w: number, h: number, ctx: RenderCtx): 
   path.setAttribute('shape-rendering', 'geometricPrecision');
 
   const defs = document.createElementNS(SVG, 'defs');
-  applyFill(path, defs, p, ctx);
-  applyStroke(path, p);
+  const { sx, sy } = figureScale(fig, w, h);
+  applyFill(path, defs, p, ctx, w, h);
+  applyStroke(path, p, sx, sy);
   if (defs.childNodes.length) svg.appendChild(defs);
   svg.appendChild(path);
   return svg;
@@ -71,15 +72,27 @@ function pathData(fig: XuFigure, w: number, h: number, closed: boolean): string 
 }
 const round = (v: number) => Math.round(v * 1000) / 1000;
 
-function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: RenderCtx): void {
+/**
+ * Gradients and textures are laid out against the ELEMENT box, not the path's
+ * own bounding box. SVG's objectBoundingBox units mean the PATH's bbox, and 27
+ * figures carry points outside their stored box (12 of them with negative
+ * coordinates), so those two boxes are not the same and objectBoundingBox
+ * mis-scales the fill. Everything below therefore works in a unit space that a
+ * scale(w,h) maps onto the element box - the same normalised 0..1 space the
+ * Fill.Translation / Scale / Rotation transform is written in.
+ */
+function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: RenderCtx, w: number, h: number): void {
+  // 30 figures store no Fill block at all. XUR omits a property that equals its
+  // default, so "absent" means the DEFAULT fill - solid, in the default colour -
+  // not "no fill". Only FillType 0 means nothing is painted.
   const fill = p.compound('Fill');
-  if (!fill) { path.setAttribute('fill', 'none'); return; }
+  if (!fill) { path.setAttribute('fill', cssColour(E.DEFAULT_FILL_COLOR)); return; }
   const type = fill.num('FillType', E.DEFAULT_FILL_TYPE);
 
   if (type === E.FillType.NONE) { path.setAttribute('fill', 'none'); return; }
 
   if (type === E.FillType.SOLID) {
-    const c = fill.colour('FillColor', { a: 0xff, r: 0x0f, g: 0x0f, b: 0x80 });
+    const c = fill.colour('FillColor', E.DEFAULT_FILL_COLOR);
     path.setAttribute('fill', cssColour(c));
     return;
   }
@@ -94,16 +107,16 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     pat.setAttribute('id', id);
     // The texture covers the figure's box; UVs run 0..1 over it, so the fill
     // transform below is expressed in the same normalised space.
-    pat.setAttribute('patternUnits', 'objectBoundingBox');
-    pat.setAttribute('width', '1');
-    pat.setAttribute('height', '1');
-    pat.setAttribute('patternContentUnits', 'objectBoundingBox');
-    const t = fillTransform(fill);
+    pat.setAttribute('patternUnits', 'userSpaceOnUse');
+    pat.setAttribute('x', '0'); pat.setAttribute('y', '0');
+    pat.setAttribute('width', String(round(w)));
+    pat.setAttribute('height', String(round(h)));
+    const t = unitTransformInUserSpace(fillTransform(fill), w, h);
     if (t) pat.setAttribute('patternTransform', t);
     const img = document.createElementNS(SVG, 'image');
     img.setAttribute('href', res.url);
     img.setAttribute('x', '0'); img.setAttribute('y', '0');
-    img.setAttribute('width', '1'); img.setAttribute('height', '1');
+    img.setAttribute('width', String(round(w))); img.setAttribute('height', String(round(h)));
     img.setAttribute('preserveAspectRatio', 'none');
     pat.appendChild(img);
     defs.appendChild(pat);
@@ -121,7 +134,8 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     const id = `grd${uid++}`;
     const g = document.createElementNS(SVG, radial ? 'radialGradient' : 'linearGradient');
     g.setAttribute('id', id);
-    g.setAttribute('gradientUnits', 'objectBoundingBox');
+    // Unit coordinates, mapped onto the element box by the leading scale(w,h).
+    g.setAttribute('gradientUnits', 'userSpaceOnUse');
     if (radial) {
       g.setAttribute('cx', '0.5'); g.setAttribute('cy', '0.5'); g.setAttribute('r', '0.5');
     } else {
@@ -129,8 +143,7 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
       g.setAttribute('x1', '0'); g.setAttribute('y1', '0.5');
       g.setAttribute('x2', '1'); g.setAttribute('y2', '0.5');
     }
-    const t = fillTransform(fill);
-    if (t) g.setAttribute('gradientTransform', t);
+    g.setAttribute('gradientTransform', `scale(${round(w)} ${round(h)}) ${fillTransform(fill) ?? ''}`.trim());
     for (let i = 0; i < n; i++) {
       const c = colours[i]; if (!c) continue;
       const s = document.createElementNS(SVG, 'stop');
@@ -164,13 +177,25 @@ function fillTransform(fill: PropBag): string | null {
   return `translate(${round(t.x)} ${round(t.y)}) translate(${o.x} ${o.y}) rotate(${round(r)}) scale(${round(s.x)} ${round(s.y)}) translate(${-o.x} ${-o.y})`;
 }
 
-function applyStroke(path: SVGPathElement, p: PropBag): void {
+function applyStroke(path: SVGPathElement, p: PropBag, sx: number, sy: number): void {
   const st = p.compound('Stroke');
   if (!st) { path.setAttribute('stroke', 'none'); return; }
   const w = st.num('StrokeWidth', E.DEFAULT_STROKE_WIDTH);
   if (w <= 0) { path.setAttribute('stroke', 'none'); return; }
-  path.setAttribute('stroke', cssColour(st.colour('StrokeColor', { a: 0xff, r: 0x0f, g: 0x0f, b: 0xeb })));
-  path.setAttribute('stroke-width', String(w));
+  path.setAttribute('stroke', cssColour(st.colour('StrokeColor', E.DEFAULT_STROKE_COLOR)));
+  // The width is authored in point space alongside the points, so it scales
+  // with them; SVG has one width, so use the geometric mean of the two axes.
+  // INFERRED - see SCALE_STROKE_WITH_FIGURE.
+  path.setAttribute('stroke-width', String(round(E.SCALE_STROKE_WITH_FIGURE ? w * Math.sqrt(Math.abs(sx * sy)) : w)));
 }
+
+/** A unit-space transform T, conjugated into user space: S T S-1 with S = scale(w,h). */
+function unitTransformInUserSpace(t: string | null, w: number, h: number): string | null {
+  if (!t) return null;
+  const iw = w ? 1 / w : 1;
+  const ih = h ? 1 / h : 1;
+  return `scale(${round(w)} ${round(h)}) ${t} scale(${round6(iw)} ${round6(ih)})`;
+}
+const round6 = (v: number) => Math.round(v * 1e6) / 1e6;
 
 function clamp01(v: number): number { return v < 0 ? 0 : v > 1 ? 1 : v; }

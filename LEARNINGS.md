@@ -200,6 +200,15 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   xex1tool/build -G Ninja`; the compiled-in retail key decrypts retail
   builds, so the devkit twin was not needed.
 
+## Reference footage
+
+- **The 6717 capture is 30 fps frame-doubled.** (2026-09-02) In
+  `reference/frames/6717-60fps`, every even frame duplicates the one before it:
+  across a blade transition the odd frames carry 3-50 units of pixel-difference
+  energy and the even ones 0.03-0.18. **Durations measured off it are
+  trustworthy; per-60Hz-frame velocities are not** - the smallest honest time
+  step the footage supports is 1/30 s.
+
 ## Process
 
 - **Judges are not the implementer.** Every phase ends with an independent

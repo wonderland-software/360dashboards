@@ -12,4 +12,8 @@ export * from './anim/interp';
 export * from './anim/TimelineEngine';
 export * from './anim/bind';
 export * from './render/Viewport';
+export * from './input/InputMap';
+export * from './audio/AudioBank';
+export * from './text/Strings';
+export * from './ui/ListView';
 export { mountInspector } from './debug/Inspector';

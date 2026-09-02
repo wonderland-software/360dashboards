@@ -92,13 +92,50 @@ export class TimelineScope {
   playRange(startName: string, endName?: string): boolean {
     const start = this.stateFrame(startName);
     if (!start) return false;
-    const end = endName ? this.frameOf(endName) : this.frameOf('End' + start.name) ?? this.frameOf(start.name + 'End');
-    this.range = [start.name, endName ?? (end === null ? start.name : 'End' + start.name)];
+    const end = endName ? { name: endName, frame: this.frameOf(endName) } : this.endFor(start.name);
+    // Label the range with the name that RESOLVED, never with a guess: the
+    // skin writes all three of End<State>, <State>End and <n>End<State>
+    // (metaScene_1line's is 1To2End, legend visuals use 1EndPress), and a range
+    // whose end simply does not exist says so.
+    this.range = [start.name, end?.frame !== null && end ? end.name : '(none)'];
     this.tick = start.frame;
-    this.stopAt = end;
+    this.stopAt = end?.frame ?? null;
     this.playing = true;      // the start frame's own Play command confirms it
     this.dispatch(start.frame);
     return true;
+  }
+
+  /** The three shapes a state's End frame is written in, in the order the skin
+   *  uses them: End<State>, <State>End, and the infix <digits>End<rest>. */
+  private endFor(start: string): { name: string; frame: number | null } | null {
+    const infix = /^(\d+)(.+)$/.exec(start);
+    const guesses = ['End' + start, start + 'End'];
+    if (infix) guesses.push(`${infix[1]}End${infix[2]}`);
+    for (const g of guesses) {
+      const f = this.frameOf(g);
+      if (f !== null) return { name: g, frame: f };
+    }
+    return null;
+  }
+
+  /**
+   * A scope with timelines and NO named frames has no Play command to start it,
+   * but the console clearly runs those: 12 of dashmain's 43 scopes are like this
+   * (BG_animation/groupBackground1 is 990 frames, BG_Animation_OOBE/Ripple 801),
+   * and reference frames 1.33s apart differ by 1.5-1.9 grey levels in exactly
+   * those backgrounds. So they free-run from frame 0 and wrap at the last
+   * keyframe. INFERRED: that the wrap is a loop rather than a hold - a hold
+   * would leave the background frozen, which the frames rule out.
+   */
+  get isAmbient(): boolean {
+    return this.obj.namedFrames.length === 0 && this.obj.timelines.length > 0;
+  }
+  autoplay(): void {
+    if (!this.isAmbient) return;
+    this.tick = 0;
+    this.playing = true;
+    this.range = ['(ambient)', '(loop)'];
+    this.stopAt = null;
   }
 
   /** One 60 Hz step. */
@@ -110,7 +147,11 @@ export class TimelineScope {
     // The backstop only applies when the file did NOT take control: a GoTo of
     // any kind is an explicit instruction and outranks the range's end.
     if (this.playing && !this.jumped && this.stopAt !== null && this.tick >= this.stopAt) this.playing = false;
-    if (this.tick > this.lastFrame) { this.tick = this.lastFrame; this.playing = false; }
+    if (this.tick > this.lastFrame) {
+      // An ambient scope loops; a named range holds on its last frame.
+      if (this.isAmbient) { this.tick = 0; this.invalidate(); }
+      else { this.tick = this.lastFrame; this.playing = false; }
+    }
   }
 
   private jumped = false;
@@ -183,6 +224,8 @@ export class TimelineEngine {
   add(scope: TimelineScope, apply: ScopeApply): TimelineScope {
     this.scopes.set(scope.id, scope);
     this.applies.set(scope.id, apply);
+    // Nothing else will ever start an ambient scope, so start it here.
+    if (scope.isAmbient) { scope.autoplay(); this.applyNow(scope); }
     return scope;
   }
 

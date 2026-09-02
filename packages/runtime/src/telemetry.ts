@@ -19,6 +19,22 @@ export interface SceneReport {
   sceneTextures: string[];
   unknownTextStyleBits: number[];
   unverifiedBlendModes: number[];
+  /** Elements with a non-normal BlendMode under an ancestor with opacity < 1:
+   *  CSS isolates the blend there, the console does not. */
+  blendIsolated: string[];
+  /** Visuals whose resting state hides more than half their children, i.e. the
+   *  chrome only appears once console code plays a transition into it. */
+  codeDrivenStates: { visual: string; state: string; frame: number; hidden: number; total: number }[];
+  /** True when everything the scene draws is invisible at rest (Show=false or
+   *  Opacity 0 all the way down) - the blades root does this until the glue
+   *  drives its tabs. */
+  invisibleAtRest: boolean;
+  /** Named children of the scene root that draw nothing at rest. dashmain's
+   *  Tab1..Tab6 are all Opacity 0 until console code opens a blade, which is
+   *  why the default route shows only the blade-skin background. */
+  invisibleGroups: string[];
+  /** The scene's own XuiCanvas size; NOT always 1120x770. */
+  canvas: { w: number; h: number };
   sizeModesSeen: number[];
   dataAssociationsSeen: number[];
   errors: string[];
@@ -38,6 +54,16 @@ export interface DashTelemetry extends SceneReport {
   gallery: SceneReport[];
   fps: number;
   timeline: TimelineReport;
+  /** The Id of the element that currently has focus, or null. */
+  focusId: string | null;
+  /** The last sound cue fired, and the whole log with the tick it fired on. */
+  lastCue: string | null;
+  cues: { cue: string; scope: string | null; tick: number; played: boolean }[];
+  /** Buttons the router dispatched, newest last. */
+  input: { button: string; repeat: boolean; layer: string | null }[];
+  locale: string;
+  /** What applyLocale actually changed, for the locale smoke check. */
+  localePatches: number;
 }
 
 declare global {
@@ -49,7 +75,9 @@ export function emptyReport(scene = ''): SceneReport {
     scene, controls: 0, objects: 0,
     unknownClasses: [], runtimeDrivenClasses: [], unresolvedVisuals: [],
     missingImages: [], deviceFiles: [], sceneTextures: [], unknownTextStyleBits: [],
-    unverifiedBlendModes: [], sizeModesSeen: [], dataAssociationsSeen: [], errors: [],
+    unverifiedBlendModes: [], blendIsolated: [], codeDrivenStates: [],
+    invisibleAtRest: false, invisibleGroups: [], canvas: { w: 0, h: 0 },
+    sizeModesSeen: [], dataAssociationsSeen: [], errors: [],
   };
 }
 
@@ -57,6 +85,8 @@ export function createTelemetry(build: string): DashTelemetry {
   const t: DashTelemetry = {
     ...emptyReport(), build, placeholders: [], gallery: [], fps: 0,
     timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
+    focusId: null, lastCue: null, cues: [], input: [],
+    locale: 'en', localePatches: 0,
   };
   window.__dash = t;
   return t;

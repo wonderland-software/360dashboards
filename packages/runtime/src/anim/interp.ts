@@ -19,42 +19,44 @@ export const isQuaternion = (v: unknown): v is XuQuaternion =>
 export type Interp = XuInterpolation;
 
 /**
- * INFERRED, and the ONLY place the ease shape is defined.
+ * The ONLY place the ease shape is defined.
  *
- * A keyframe carries EaseIn and EaseOut (signed, -100..100) and EaseScale
- * (0..100). Every one of the 454 Ease keyframes in Blades 6770 stores
- * 0 / 0 / 50, so the corpus cannot distinguish one curve from another and the
- * real formula is unverified. What is required of any candidate is that it
- * reduce to a straight line at 0/0 - otherwise those 454 keyframes would move
- * differently from the 9,771 Linear ones for no reason.
+ * A keyframe carries EaseIn and EaseOut (signed int8, -100..100) and EaseScale
+ * (0..100). What build 6770 actually stores, over all 454 Ease keyframes:
+ *   100/100/50 x237   100/0/50 x115   0/0/50 x68   0/100/50 x19
+ *   2/100/50 x6       100/-100/50 x5  -100/100/50 x3   -100/0/50 x1
+ * (an earlier note here claimed they were all 0/0/50 - that was wrong, and only
+ * 68 of them are).
  *
- * We use a cubic Bezier through (0,0) and (1,1) whose control points start at
- * the linear positions and are pulled off the diagonal by the ease amounts:
+ * The curve is a cubic Bezier through (0,0) and (1,1) whose control points sit
+ * on the diagonal at 0/0 and are pulled OFF it by the ease amounts:
  *
- *   P1 = (1/3, 1/3 + k*easeIn/300)      P2 = (2/3, 2/3 - k*easeOut/300)
- *   k  = EaseScale / 50                 (50 is the corpus value, so k = 1)
+ *   P1 = (1/3, 1/3 - k*easeIn/300)     P2 = (2/3, 2/3 + k*easeOut/300)
+ *   k  = EaseScale / 50                (50 everywhere in the corpus, so k = 1)
  *
- * At EaseIn = EaseOut = 0 the control points sit exactly on the diagonal and
- * the curve IS the identity, whatever EaseScale is.
+ * The signs are the ones the console's motion shows, not the ones that read
+ * nicely: a positive EaseIn pulls the first control point DOWN, so the segment
+ * starts slowly. At 100/0/50 that gives y = 2u^2 - u^3, whose speed is zero at
+ * u = 0 and peaks at u = 2/3 - and dashmain's 26-frame nOpen ranges (Ease
+ * 100/0/50) have their measured per-frame motion energy rising to a peak at
+ * about 77% of the span. The opposite sign convention would have them start at
+ * double speed and decelerate.
+ *
+ * The x control points are fixed at 1/3 and 2/3, and for those
+ *   x(u) = u(1-u)^2 + 2u^2(1-u) + u^3 = u[(1-u) + u]^2 = u
+ * exactly, so no root-finding is needed: the parameter IS the input fraction.
+ *
+ * At EaseIn = EaseOut = 0 both control points land on the diagonal and the
+ * curve is the identity, whatever EaseScale is.
  */
 export function easeCurve(t: number, easeIn: number, easeOut: number, easeScale: number): number {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
   const k = easeScale / 50;
-  const y1 = 1 / 3 + (k * easeIn) / 300;
-  const y2 = 2 / 3 - (k * easeOut) / 300;
+  const y1 = 1 / 3 - (k * easeIn) / 300;
+  const y2 = 2 / 3 + (k * easeOut) / 300;
   if (y1 === 1 / 3 && y2 === 2 / 3) return t;
-  // x(u) has control points fixed at 1/3 and 2/3, so it is strictly increasing
-  // and a bisection on u is both exact enough and impossible to diverge.
-  let lo = 0;
-  let hi = 1;
-  let u = t;
-  for (let i = 0; i < 24; i++) {
-    u = (lo + hi) / 2;
-    const x = bezier(u, 1 / 3, 2 / 3);
-    if (x < t) lo = u; else hi = u;
-  }
-  return clamp01(bezier(u, y1, y2));
+  return clamp01(bezier(t, y1, y2));
 }
 const bezier = (u: number, c1: number, c2: number): number => {
   const v = 1 - u;

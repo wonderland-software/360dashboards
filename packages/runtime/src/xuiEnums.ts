@@ -11,6 +11,18 @@
 // Corpus test used repeatedly below: XUR omits a property whose value equals
 // the class default, so a value that appears EXPLICITLY cannot be the default.
 
+/* ------------------------------------------------------- the view transform */
+
+/**
+ * MEASURED (reference/calibration/README.md, 18 landmarks over two 1920x1080
+ * frames, every one within 0.48px): in 720p output terms
+ *     screen_x = design_x * 8/7        screen_y = design_y * 12/11 - 64
+ * Declared here, above everything, because the glyph rule below is expressed
+ * in terms of these two numbers.
+ */
+export const VIEW_TRANSFORM_SX = 8 / 7;
+export const VIEW_TRANSFORM_SY = 12 / 11;
+
 /* ------------------------------------------------------------------ defaults */
 
 /**
@@ -36,28 +48,40 @@ export const DEFAULT_OPACITY = 1;
 export const DEFAULT_POINT_SIZE = 14;
 
 /**
- * MEASURED. PointSize is NOT an em size in design pixels: a design pixel is
- * bigger than that. Setting font-size to PointSize directly renders every
- * string about 72% of the width the console does.
+ * MEASURED, on two axes that behave differently.
  *
- * Derivation, against f0060's "Console Settings" (Label_Head, PointSize 22),
- * which is 16 glyphs wide so the horizontal fit averages out per-glyph error:
- *   our ink run at font-size 22px            264 px at 1080p
- *   the same string in the reference frame   367 px at 1080p
- *   => em must be 22 * 367/264 = 30.6 design px
- * and the cap height agrees on the other axis: the reference 'C' is 35 px tall
- * at 1080p, our ConvectionUI face has capHeight/em = 0.7001 and the canvas's
- * vertical scale is 12/11 * 1.5, so em = 35 / 0.7001 / 1.6364 = 30.5 design px.
- * The two axes give 30.57 and 30.55 for the same PointSize 22, i.e. the ratio
- * between them is 22/21 - exactly the canvas anisotropy - which confirms that
- * glyphs go through the same view transform as everything else rather than
- * being drawn at a uniform size.
+ * HORIZONTAL. PointSize is not a pixel height; an em is
+ * PointSize * 100/72 design px wide. Fitted by 1-D normalised cross-correlation
+ * of the gradient-magnitude column profile of our render against
+ * reference/frames/6717/f0060.png, which reports the factor our render needs to
+ * match the console:
+ *     "Console Settings"  (PointSize 22)   kx = 1.003
+ *     "Back"              (PointSize 18)   kx = 1.000
+ *     "Select"            (PointSize 18)   kx = 0.997
+ *     "Current Setting"   (PointSize 20)   kx = 0.991
+ * i.e. 100/72 is right to within 0.9% at four sizes.
  *
- * 30.56/22 = 1.389 = 100/72, i.e. PointSize behaves as a true point size
- * rasterised at 100 dpi. That reading is INFERRED; the 1.389 itself is
- * measured, to about +-1%.
+ * VERTICAL. Glyphs are NOT stretched by the canvas's vertical scale. The same
+ * fit on the row profiles wants our text SHORTER:
+ *     title kx 1.003 / ky 0.9445 (ncc 0.93)   Back  ky 0.9295 (ncc 0.97)
+ *     Select      ky 0.9535 (ncc 0.97)        "Current Setting" ky 0.9865 (0.93)
+ * mean ky = 0.9535, against sy/sx = 21/22 = 0.9545 - a match to 0.1%, at four
+ * sizes, while kx stays at 1. So the console rasterises glyphs ISOTROPICALLY at
+ * the canvas's HORIZONTAL scale, and only the layout goes through the
+ * anisotropic view transform. Inside our anisotropic canvas that means text
+ * carries a counter-scale of 21/22 on Y (GLYPH_ASPECT below).
+ *
+ * Reading 100/72 as "a real point size at 100 dpi" is INFERRED; both numbers
+ * themselves are measured.
  */
 export const POINT_SIZE_TO_DESIGN_PX = 100 / 72;
+
+/**
+ * MEASURED (see above): the vertical counter-scale a text node needs so its
+ * glyphs come out isotropic after the canvas's (8/7, 12/11) view transform.
+ * Exactly sy/sx. If the view transform ever becomes uniform this is 1.
+ */
+export const GLYPH_ASPECT = (VIEW_TRANSFORM_SY * 1) / VIEW_TRANSFORM_SX;
 export const DEFAULT_TEXT_COLOR = { a: 0xff, r: 0, g: 0, b: 0 } as const;
 export const DEFAULT_DROP_SHADOW_COLOR = { a: 0x80, r: 0, g: 0, b: 0 } as const;
 /** DOCUMENTED: 16 = TS_SINGLE_LINE. */
@@ -88,6 +112,29 @@ export const FillType = {
 } as const;
 export const DEFAULT_FILL_TYPE = FillType.SOLID;
 
+/** DOCUMENTED (packages/xur/extensions/v5/registry.json, from the XuiTool
+ *  class-extension XML): XuiFigureFill.FillColor 0xFF0F0F80 and
+ *  XuiFigureStroke.StrokeColor 0xFF0F0FEB. The 6770 registry is generated from
+ *  the executable and carries no default values, so these live here.
+ *  30 figures store no Fill block at all; they take the SOLID default and this
+ *  colour, exactly as a figure that stores only a FillColor does. */
+export const DEFAULT_FILL_COLOR = { a: 0xff, r: 0x0f, g: 0x0f, b: 0x80 } as const;
+export const DEFAULT_STROKE_COLOR = { a: 0xff, r: 0x0f, g: 0x0f, b: 0xeb } as const;
+
+/**
+ * INFERRED, and unresolved. A figure's Points are scaled from their bounding
+ * box to the element box (MEASURED, see FIGURE_POINTS_ARE_SCALED_TO_BOX), and a
+ * StrokeWidth is authored in that same point space, so the consistent reading
+ * is that it scales with them. 1,333 skin figures have a point box that differs
+ * from their element box, but only 62 figures are stroked at all, and no
+ * reference frame we have shows one large enough to settle it: the worst case,
+ * BG_Animation_OOBE/Circle, has a 956-unit point box in a 77px element, so a
+ * scaled stroke is 0.4px and an unscaled one is 5px.
+ * Scaling is anisotropic, and SVG has one stroke width, so we use the geometric
+ * mean of the two axes. Set this false to go back to unscaled px.
+ */
+export const SCALE_STROKE_WITH_FIGURE = true;
+
 /**
  * INFERRED, single constant on purpose. Fill.Rotation is the gradient angle in
  * degrees (90 = top-to-bottom, DOCUMENTED); the ORIGIN it rotates about is not
@@ -116,6 +163,8 @@ export const Anchor = {
   BOTTOM: 0x08,
   HCENTER: 0x10,
   VCENTER: 0x20,
+  /** Never used in build 6770: no element sets 0x40 or 0x80. Implemented from
+   *  the documented meaning, not from anything the corpus proves. */
   XSCALE: 0x40,
   YSCALE: 0x80,
 } as const;
@@ -133,6 +182,8 @@ export const Anchor = {
 export const TextStyle = {
   /** paint DropShadowColor behind the glyphs */
   DROP_SHADOW: 0x0001,
+  /** ITALIC and UNDERLINE never occur in build 6770; BOLD occurs once
+   *  (TextStyle 0x1415). Implemented from the documented bit meanings. */
   ITALIC: 0x0002,
   BOLD: 0x0004,
   UNDERLINE: 0x0008,
@@ -183,6 +234,11 @@ export const DEFAULT_SIZE_MODE = SizeMode.NORMAL;
  *  is handled by the caller, not here. */
 export function sizeModeToCss(mode: number): { fit: string; position: string } {
   switch (mode) {
+    // AUTOSIZE resizes the ELEMENT to the image; it never occurs in build 6770
+    // (the corpus uses only 0, 2, 4, 8 and 16) and the caller, not this
+    // function, would have to change the element box, so say so rather than
+    // falling through to NORMAL silently.
+    case SizeMode.AUTOSIZE: return { fit: 'none', position: 'left top' };
     case SizeMode.NORMAL: return { fit: 'none', position: 'left top' };
     case SizeMode.CENTER: return { fit: 'none', position: 'center' };
     case SizeMode.STRETCH: return { fit: 'fill', position: 'center' };
@@ -197,11 +253,25 @@ export const KNOWN_SIZE_MODES: readonly number[] = [0, 1, 2, 4, 8, 16];
 
 /**
  * XuiElement.BlendMode is an ENUM, not flags. DOCUMENTED: 1 = NORMAL (ordinary
- * alpha). 2..5 are UNVERIFIED best guesses; every one of them lives in
- * dashmain.xur or dashskn1/2 BladeSkin.xur (boot bursts, blade jewels, the
- * glass sheen) and never in a content scene, so nothing in the settings scenes
- * depends on them. The raw value is always written to data-xui-blendmode so a
- * frame comparison can settle it.
+ * alpha). Corpus: 1 x258, 4 x32, 2 x22, 5 x18, 3 x6.
+ *
+ * 2..5 are UNVERIFIED. An earlier note here claimed they only occur in
+ * dashmain.xur and the blade skins; that was WRONG and the gallery sweep shows
+ * it - BlendMode 2 is in arcade/2500_LiveArcadeHome, arcade/2502_TwistSelector
+ * Scene, videos/VideoCategories and videos/VideoDetails, and BlendMode 5 is in
+ * gamercar/GamerCard, messenge/FriendRequestMain and messenge/SignupComplete.
+ *
+ * Settling them needs a reference frame showing one of those screens, or the
+ * blade composition (the elements that carry 2 and 4 in dashmain sit on tabs
+ * that are Opacity 0 at rest, so nothing to compare against yet). Until then
+ * the mapping below is a guess, the raw value goes to data-xui-blendmode, and
+ * every use is counted in __dash.unverifiedBlendModes.
+ *
+ * One difference from the console that no mapping fixes: CSS ISOLATES a blend
+ * inside the nearest ancestor that creates a stacking context, and an
+ * opacity < 1 does exactly that, so a blended element under a faded parent
+ * blends with its siblings only, while the console blends it with the whole
+ * frame. Where that happens is counted in __dash.blendIsolated.
  */
 export const BlendMode = {
   NORMAL: 1,
@@ -299,9 +369,18 @@ export const FIGURE_POINTS_ARE_SCALED_TO_BOX = true;
  *    top of the frame and y=770 is 56px below the bottom. That is the console's
  *    TV-safe bleed, and it is why the whole 770-row canvas is never visible.
  */
-export const CANVAS_WIDTH = 1120;
-export const CANVAS_HEIGHT = 770;
-export const VIEW_TRANSFORM = { sx: 8 / 7, sy: 12 / 11, ox: 0, oy: -64 } as const;
+/**
+ * The DASHBOARD ROOT's canvas, and only that. A scene's canvas is its own
+ * XuiCanvas Width/Height: 184 of the 245 canvases in build 6770 are 1120x770
+ * and 61 are not (640x480, 720x480, 345x240, 345x300, 700x445, 420x450,
+ * 1024x768, 1123x772, 723x73, 100x770, 162x25, 64x64, 405x88/125/179/260).
+ * Use canvasSizeOf(root); these two are the fallback and the size the view
+ * transform below was measured against.
+ */
+export const DASHBOARD_CANVAS = { width: 1120, height: 770 } as const;
+export const CANVAS_WIDTH = DASHBOARD_CANVAS.width;
+export const CANVAS_HEIGHT = DASHBOARD_CANVAS.height;
+export const VIEW_TRANSFORM = { sx: VIEW_TRANSFORM_SX, sy: VIEW_TRANSFORM_SY, ox: 0, oy: -64 } as const;
 export const FRAMEBUFFER = { width: 1280, height: 720 } as const;
 /** The slice of the canvas the TV shows, in design units. */
 export const VISIBLE_DESIGN_RECT = {

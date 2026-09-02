@@ -46,22 +46,58 @@ test('None holds the earlier keyframe until the next one lands', () => {
   assert.equal(sampleKeyframes(kfs, 10)[0], 100);
 });
 
-test('Ease at 0/0/50 is exactly Linear, and a non-zero ease bends but stays monotonic', () => {
+test('Ease at 0/0/50 is exactly Linear (68 of the 454 Ease keyframes)', () => {
   const flat = [kf(0, [0], 'Ease'), kf(10, [100])];
   for (const f of [0, 2, 5, 7, 10]) {
     assert.equal(sampleKeyframes(flat, f)[0], f * 10, `frame ${f}`);
   }
   assert.equal(easeCurve(0.5, 0, 0, 50), 0.5);
-  const bent = easeCurve(0.5, 100, 100, 50);
-  assert.ok(bent > 0 && bent < 1);
-  let prev = -1;
-  for (let i = 0; i <= 20; i++) {
-    const v = easeCurve(i / 20, 80, -40, 50);
-    assert.ok(v >= prev - 1e-9, 'ease must not go backwards');
-    prev = v;
-  }
   assert.equal(easeCurve(0, 90, 90, 50), 0);
   assert.equal(easeCurve(1, 90, 90, 50), 1);
+});
+
+test('every ease pair the corpus stores is monotonic and lands on 0 and 1', () => {
+  // The real distribution over build 6770's 454 Ease keyframes.
+  const CORPUS: [number, number, number, number][] = [
+    [100, 100, 50, 237], [100, 0, 50, 115], [0, 0, 50, 68], [0, 100, 50, 19],
+    [2, 100, 50, 6], [100, -100, 50, 5], [-100, 100, 50, 3], [-100, 0, 50, 1],
+  ];
+  for (const [ein, eout, scale] of CORPUS) {
+    assert.equal(easeCurve(0, ein, eout, scale), 0, `${ein}/${eout} at 0`);
+    assert.equal(easeCurve(1, ein, eout, scale), 1, `${ein}/${eout} at 1`);
+    let prev = -1;
+    for (let i = 0; i <= 200; i++) {
+      const v = easeCurve(i / 200, ein, eout, scale);
+      assert.ok(v >= prev - 1e-9, `${ein}/${eout} went backwards at ${i / 200}`);
+      prev = v;
+    }
+  }
+});
+
+test('EaseIn 100 starts from a standstill: y = 2u^2 - u^3, peak speed at u = 2/3', () => {
+  // The console's 26-frame nOpen ranges (Ease 100/0/50) accelerate into their
+  // motion; the opposite sign convention would start them at double speed.
+  for (const u of [0.1, 0.25, 0.5, 0.75, 0.9]) {
+    assert.ok(Math.abs(easeCurve(u, 100, 0, 50) - (2 * u * u - u * u * u)) < 1e-12, `at u=${u}`);
+  }
+  assert.ok(easeCurve(1e-4, 100, 0, 50) / 1e-4 < 0.01, "y'(0) must be ~0");
+  let peak = 0, peakAt = 0, prev = 0;
+  for (let i = 1; i <= 1000; i++) {
+    const y = easeCurve(i / 1000, 100, 0, 50);
+    if (y - prev > peak) { peak = y - prev; peakAt = i / 1000; }
+    prev = y;
+  }
+  assert.ok(Math.abs(peakAt - 2 / 3) < 0.01, `peak speed at ${peakAt}, expected 2/3`);
+});
+
+test("visual_ChatAlert's -100/100 fade is exactly three quarters through at its midpoint", () => {
+  // dashuisk/skin.xur, imgChatOrangeAnimated Opacity: Ease(-100,100,50) from
+  // frame 0 value 1 to frame 100 value 0.
+  assert.equal(easeCurve(0.5, -100, 100, 50), 0.75);
+  const fade = [kf(0, [1], 'Ease', [-100, 100, 50]), kf(100, [0], 'None')];
+  assert.equal(sampleKeyframes(fade, 50)[0], 0.25);
+  // and its mirror, the 100/-100 fade back in on frames 130..230
+  assert.equal(easeCurve(0.5, 100, -100, 50), 0.25);
 });
 
 test('colours blend per channel and strings hold', () => {
@@ -184,6 +220,46 @@ test('freeze pins every scope and blocks the wall clock', () => {
   assert.equal(last, 0.7);
   assert.equal(engine.tick(1000), 0, 'a frozen engine steps nothing');
   assert.equal(engine.get('v')?.tick, 7);
+});
+
+test('a scope with timelines and no named frames free-runs and loops', () => {
+  // 12 of dashmain's 43 scopes are like this; nothing would ever start them.
+  const o = obj([], [timeline('BG', [def('Opacity')], [kf(0, [0]), kf(4, [1])])]);
+  const engine = new TimelineEngine();
+  const scope = new TimelineScope('bg', o);
+  assert.equal(scope.isAmbient, true);
+  engine.add(scope, () => {});
+  assert.equal(scope.playing, true, 'add() must start an ambient scope');
+  for (let i = 0; i < 4; i++) engine.step();
+  assert.equal(scope.tick, 4);
+  engine.step();
+  assert.equal(scope.tick, 0, 'past the last keyframe it wraps, it does not stop');
+  assert.equal(scope.playing, true);
+  // a scope WITH named frames is not ambient and stays put
+  const named = new TimelineScope('v', obj([nf('Normal', 0, 'Stop')], [timeline('X', [def('Opacity')], [kf(0, [0])])]));
+  assert.equal(named.isAmbient, false);
+});
+
+test('a range is labelled with the End frame that actually resolved', () => {
+  // The skin writes all three shapes.
+  const suffix = new TimelineScope('v', obj([nf('1To2', 1, 'Play'), nf('1To2End', 21, 'Stop')], []));
+  suffix.playRange('1To2');
+  assert.deepEqual(suffix.range, ['1To2', '1To2End']);
+  assert.equal(suffix.stopAt, 21);
+
+  const infix = new TimelineScope('v', obj([nf('1Press', 2, 'Play'), nf('1EndPress', 9, 'Stop')], []));
+  infix.playRange('1Press');
+  assert.deepEqual(infix.range, ['1Press', '1EndPress']);
+  assert.equal(infix.stopAt, 9);
+
+  const prefix = new TimelineScope('v', obj([nf('Focus', 0, 'Play'), nf('EndFocus', 5, 'Stop')], []));
+  prefix.playRange('Focus');
+  assert.deepEqual(prefix.range, ['Focus', 'EndFocus']);
+
+  const orphan = new TimelineScope('v', obj([nf('Blink', 3, 'Play')], []));
+  orphan.playRange('Blink');
+  assert.deepEqual(orphan.range, ['Blink', '(none)'], 'a range with no End frame must say so');
+  assert.equal(orphan.stopAt, null);
 });
 
 test('the clock is a fixed-step accumulator at 60 frames a second', () => {
