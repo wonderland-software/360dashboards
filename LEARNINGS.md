@@ -115,6 +115,22 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   velocity claims do not. Blade switches measured on the console: 20
   timeline frames for 1To2, 22 for 2To1/5To4, matching the parsed ranges.
 
+## Rendering (DOM)
+
+- **A CSS transform creates a stacking context, and mix-blend-mode blends
+  only inside one.** With a transform on every element, dashmain's opaque
+  black_cover/top (BlendMode 2) blended against its own group's empty
+  backdrop and painted the upper blade white, and a 13-candidate blend
+  sweep rendered byte-identically (it measured nothing). Containers now
+  position with left/top; only real rotation/scale emits a transform.
+  Check for isolation before trusting any blend measurement.
+- **BlendMode 2 = multiply**, measured after that fix on f0051 and f0034
+  (lowest colour error on both blades). 3 and 4 occur only in blade skins
+  the footage never loads; 5 is a faint wash the frames cannot separate.
+  The table and its errors live in xuiEnums.ts.
+- **Rendered screenshots are Microsoft artwork too:** tests/smoke/out is
+  gitignored like the assets.
+
 ## Screen mapping
 
 - **The 1120x770 canvas maps anisotropically onto 1280x720** (2026-09-02,
