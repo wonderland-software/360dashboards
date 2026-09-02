@@ -112,6 +112,14 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
 - **List item pitch is 45 design px** (row k top = list y + 3 + 45k), not
   the item visual's 47 nor the template's 74; dashmain's hand-placed nav
   buttons sit at y = 153, 198, 243, ... 468.
+- **Figure Points ARE scaled from their bounding box to Width x Height**
+  (runtime agent, measured on the A-button disc: 42 px on screen, stretched
+  predicts 43, unstretched 52; and the list separators run the full 423-unit
+  list width). The research note that said "render points as-is" was wrong.
+- **PointSize is not a pixel height: em = PointSize x 100/72 design px**,
+  derived on both axes (string width and cap height agree to 22/21, the
+  canvas anisotropy). Width 60 / Height 30 are the compiler's omitted
+  defaults (no element in 7,125 stores either).
 - **Label_Head at PointSize 22:** cap height 20.2 design units, baseline at
   box y + 29.2, left bearing about 2.2 design px (for font checks).
 
