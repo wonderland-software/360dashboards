@@ -19,3 +19,6 @@ reference/
 *.wav
 *.xus
 *.xtt
+
+# Rendered screenshots of the dashboard (smoke output) stay local like the assets they draw.
+tests/smoke/out/
