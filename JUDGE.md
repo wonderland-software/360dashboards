@@ -67,4 +67,11 @@ each is closed with what changed.
   "all eases are 0/0/50" claim was false (85% carry real values); (4)
   scopes with timelines but no named frames never play (the background
   animations); (5) range labels name frames that do not exist; (6) the
-  reference capture is 30 fps frame-doubled, now noted. Fixes in progress.
+  reference capture is 30 fps frame-doubled, now noted.
+- **Round 2 @ c188d18: PASS.** Ease direction, parsing and the corpus
+  distribution re-verified independently (blade_1_grey_rt at frame 225
+  matches the hand computation to six digits); ambient scopes advance and
+  loop; range labels resolve; all round-1 Linear/None samples unchanged.
+  Observation for the input phase: driving frames on the M3a page restarts
+  btn_1line_icon's Focus range early, so something in the focus layer
+  re-triggers setState mid-range.
