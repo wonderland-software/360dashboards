@@ -43,12 +43,17 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
 - **XUS string tables** (2026-09-02, 3,234 files): header `XUIS`, u8
   version 1, u8 KIND (not flags), u32 fileSize, u16 count. Kind 1 = keyed:
   value (u16 len + UTF-16BE) then a u32 key; kind 0 = named: value then a
-  second string (only `LiveAddressStrings.xus`); kind 2 = positional (the
-  pack-root `Strings.xus`). The u32 key is `(u8 classIndex, u8 propIndex,
-  u16 objectId)` where objectId is the 1-based POSTORDER index of the object
-  in the sibling `.xur` (children before parent, XuiCanvas last): a locale
-  table patches the scene's string properties one by one. English is the
-  literal text already inside the `.xur`; there is no reference syntax.
+  second string (only `LiveAddressStrings.xus`, root + 11 locales); kind 2
+  = positional (`Strings.xus`, `dashStrings.xus`, `LiveAll.xus`...: 21 in
+  the pack roots and 231 in locale directories, each locale copy with the
+  same entry count as its root twin). So positional and named tables are
+  full parallel translations read by index, and only KEYED tables are
+  patches on a `.xur`; a locale directory holds all three kinds. The keyed
+  u32 is `(u8 classIndex, u8 propIndex, u16 objectId)` where objectId is
+  the 1-based POSTORDER index of the object in the sibling `.xur` (children
+  before parent, XuiCanvas last): the table patches that scene's string
+  properties one by one. English is the literal text already inside the
+  `.xur`; there is no reference syntax.
   Locale key sets legitimately differ (a locale omits entries equal to the
   English), so tests assert keys ⊆ union, not equality. The keyed
   cross-check (every entry resolves to a string property of the sibling

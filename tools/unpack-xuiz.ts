@@ -51,7 +51,16 @@ function kindOf(bytes: Uint8Array): string {
 let failed = 0;
 for (const file of files) {
   const bytes = new Uint8Array(readFileSync(file));
-  const pack = readXuiz(bytes);
+  let pack;
+  try {
+    pack = readXuiz(bytes);
+  } catch (err) {
+    // A non-XUIZ input (the XDBF resource, a truncated file) is a failure
+    // of this run, reported like any other, not a stack trace.
+    failed++;
+    console.log(`NOT_XUIZ ${basename(file)}: ${(err as Error).message}`);
+    continue;
+  }
   const tiling = checkTiling(pack, bytes.byteLength);
   const kinds = new Map<string, number>();
   for (const e of pack.entries) {
