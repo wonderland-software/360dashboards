@@ -84,17 +84,32 @@ export function renderScene(root: XuObject, ctx: RenderCtx): HTMLElement {
     parent: { x: 0, y: 0, w: size.w, h: size.h },
   });
   if (el) host.appendChild(el);
-  ctx.report.invisibleAtRest = el ? isInvisible(el) : true;
-  // Which named parts of the scene draw nothing at rest. The scene root's own
-  // child (the DashScene / XuiTabScene) is transparent for this purpose, so
-  // look one level further in: that is where Tab1..Tab6 live.
+  refreshVisibility(host, ctx.report);
+  return host;
+}
+
+/**
+ * Re-measure what is actually visible, and REPLACE the previous answer.
+ *
+ * This is a snapshot, so it has to be retaken after anything that adds
+ * content: renderScene runs before the glue populates lists, and an empty
+ * lstSettings really is invisible at that moment, so leaving the first
+ * snapshot in place would report a list holding ten rows as invisible.
+ * The app calls this again once the shell has mounted.
+ */
+export function refreshVisibility(host: HTMLElement, report: SceneReport): void {
+  const el = host.firstElementChild instanceof HTMLElement ? host.firstElementChild : null;
+  report.invisibleAtRest = el ? isInvisible(el) : true;
+  report.invisibleGroups.length = 0;
+  // The scene root's own child (the DashScene / XuiTabScene) is transparent
+  // for this purpose, so look one level further in: that is where Tab1..Tab6
+  // live.
   const top = el?.firstElementChild instanceof HTMLElement ? el.firstElementChild : el;
   for (const c of Array.from(top?.children ?? [])) {
     if (!(c instanceof HTMLElement) || c.tagName !== 'DIV') continue;
     const cid = c.dataset['xuiId'];
-    if (cid && isInvisible(c)) note(ctx.report.invisibleGroups, cid);
+    if (cid && isInvisible(c)) note(report.invisibleGroups, cid);
   }
-  return host;
 }
 
 /**
@@ -185,9 +200,9 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
     };
     const visualName = p.str('Visual');
     if (visualName) {
-      const v = ctx.visuals.resolve(visualName);
-      if (!v) note(ctx.report.unresolvedVisuals, visualName);
-      else el.appendChild(instantiateVisual(v, ctx, rect, childOwner, !p.bool('Enabled', true), record, id));
+      const wrap = mountVisual(visualName, ctx, rect, childOwner, !p.bool('Enabled', true), record, id);
+      if (wrap) el.appendChild(wrap);
+      if (record) { record.visualWrap = wrap ?? null; record.visualOwner = childOwner; }
     }
   }
 
@@ -196,6 +211,23 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   appendChildren(el, o, ctx, rect, authored, childOwner, opts.frame ?? 0, record, opts.hostControlId ?? null, faded);
   if (record && (o.timelines.length || o.namedFrames.length)) ctx.nodes?.scope(o, record);
   return el;
+}
+
+/**
+ * Resolve a visual by name and instantiate it. Exported because a control's
+ * Visual is an ANIMATED property - dashmain drives BG_color_1, BG_color_2,
+ * color_highlight_left/rt and blade_top_jewel through the blade palette as the
+ * blades switch - so update.ts has to be able to swap one at runtime. The
+ * palette visuals carry no timelines and no named frames of their own, so a
+ * swap is a pure re-render with nothing to re-bind.
+ */
+export function mountVisual(
+  name: string, ctx: RenderCtx, rect: Rect, owner: Owner, disabled: boolean,
+  hostNode: NodeRecord | undefined, hostControlId: string,
+): HTMLElement | null {
+  const v = ctx.visuals.resolve(name);
+  if (!v) { note(ctx.report.unresolvedVisuals, name); return null; }
+  return instantiateVisual(v, ctx, rect, owner, disabled, hostNode, hostControlId);
 }
 
 /** A control's visual, parked on the frame of the state the control is in. */

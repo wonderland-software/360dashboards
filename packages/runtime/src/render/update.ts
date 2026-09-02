@@ -8,7 +8,7 @@ import { idOf, type XuObject, type XuScalar } from '@xur/index';
 import * as E from '../xuiEnums';
 import { applyAnchor, childDelta, NO_DELTA, type Delta } from './anchor';
 import { authoredRect, PropBag, type Rect } from './props';
-import { containerCss, contentFor, type Kind, type Owner, type RenderCtx } from './DomRenderer';
+import { containerCss, contentFor, mountVisual, type Kind, type Owner, type RenderCtx } from './DomRenderer';
 
 export interface NodeRecord {
   obj: XuObject;
@@ -29,6 +29,9 @@ export interface NodeRecord {
   parentNode?: NodeRecord;
   /** Set on every element inside a control's instantiated visual. */
   hostControlId: string | null;
+  /** A control's instantiated visual subtree, so an animated Visual can swap it. */
+  visualWrap?: HTMLElement | null;
+  visualOwner?: Owner;
 }
 
 /** What DomRenderer calls while building the tree. */
@@ -62,6 +65,24 @@ export function updateNode(node: NodeRecord, keys?: Iterable<string>): void {
   const blend = p.num('BlendMode', 0);
   const css = containerCss(p, rect, blend);
   if (node.el.style.cssText !== css) node.el.style.cssText = css;
+
+  // An animated Visual re-skins a control outright: dashmain drives
+  // BG_color_1/2, color_highlight_left/rt and blade_top_jewel through
+  // blade_1..5_bgcolor / _highlight / _jewel as the blades switch, and §1.3 of
+  // the glue spec is explicit that the timeline decides which - so the DOM has
+  // to follow. Those palette visuals carry no timelines and no named frames,
+  // so the swap is a pure re-render with no scope to re-bind.
+  if ((!touched || touched.includes('Visual')) && node.visualWrap !== undefined) {
+    const name = p.str('Visual');
+    const shown = node.visualWrap?.dataset['xuiVisual'];
+    if (name && name !== shown) {
+      node.visualWrap?.remove();
+      const owner = node.visualOwner ?? { text: p.str('Text'), pointSize: p.num('PointSize', E.POINT_SIZE_INHERIT), imagePath: p.str('ImagePath') };
+      const wrap = mountVisual(name, node.ctx, rect, owner, !p.bool('Enabled', true), node, idOf(node.obj));
+      node.visualWrap = wrap ?? null;
+      if (wrap) node.el.insertBefore(wrap, node.el.firstChild);
+    }
+  }
 
   if (wantsContent || resized) {
     const next = contentFor(node.kind, p, rect, node.ctx, node.owner);

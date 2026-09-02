@@ -1,5 +1,6 @@
 // Routes:
-//   /                       dashmain/dashmain.xur with the shared skin
+//   /                       the Blades shell: dashmain plus every blade's
+//                           panel scene, resting on the current blade
 //   /?scene=<pack>/<path>   one scene
 //   /?gallery               every scene in the manifest, as a contact sheet
 //   &debug                  the inspector panel
@@ -16,16 +17,28 @@
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
-  NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, walk,
+  NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, walk, refreshVisibility,
   InputRouter, Button, AudioBank, Strings, ListView, authoredItems,
   DEFAULT_LOCALE, isNativeLocale,
   FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
 } from '@runtime/index';
-import { POSITIONAL_LISTS } from '@dash/blades/settingsList';
+import { CODE_TABLE_LISTS } from '@dash/blades/consoleSettings';
+import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
+import { DEFAULT_TAB } from '@dash/blades/tabs';
 
 /** The hook the smoke suites drive; nothing in the runtime depends on it. */
 interface DashApi {
   engine: TimelineEngine;
+  /** The Blades shell, on the default route only. */
+  shell?: {
+    go(tab: number): boolean;
+    left(): boolean;
+    right(): boolean;
+    seekRest(tab?: number): void;
+    openLevel(): boolean;
+    closeLevel(): boolean;
+    report(): ShellReport;
+  };
   input: InputRouter;
   audio: AudioBank;
   /** Send one button press through the focus stack, as the pad would. */
@@ -39,8 +52,6 @@ interface DashApi {
   scopeIds(): string[];
 }
 declare global { interface Window { __dashApi?: DashApi } }
-
-const DEFAULT_SCENE = 'dashmain/dashmain.xur';
 
 const params = new URLSearchParams(location.search);
 const host = document.getElementById('app')!;
@@ -65,7 +76,8 @@ async function main(): Promise<void> {
 
   const skin = await Skin.load(assets);
   if (params.has('gallery')) await gallery(assets, skin, telemetry);
-  else await single(assets, skin, telemetry, params.get('scene') ?? DEFAULT_SCENE);
+  else if (params.has('scene')) await single(assets, skin, telemetry, params.get('scene')!);
+  else await blades(assets, skin, telemetry);
   document.body.dataset['ready'] = 'true';
 }
 
@@ -82,6 +94,83 @@ async function loadFont(placeholders: string[]): Promise<void> {
   } catch {
     placeholders.push(`font ${FONT_FAMILY}: could not be checked`);
   }
+}
+
+/* ------------------------------------------------------------- the shell */
+
+/**
+ * The default route: the whole dashboard. dashmain is one scene carrying every
+ * blade transition as a named range, so the shell composes (panels parented
+ * into each blade's scContainer) and then only ever plays ranges.
+ */
+async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<void> {
+  const viewportHost = document.createElement('div');
+  viewportHost.className = 'xui-viewport';
+  host.appendChild(viewportHost);
+  const zoom = Number(params.get('zoom') ?? '1') || 1;
+  const viewport = new Viewport(viewportHost, { consoleView: params.has('console'), zoom });
+
+  const report = emptyReport('dashmain/dashmain.xur');
+  const nodes = new NodeIndex();
+  const engine = new TimelineEngine();
+  const shell = await BladeShell.mount({
+    assets, skin, nodes, engine, report, host: viewport.canvas,
+    state: {
+      ...OFFLINE,
+      signedIn: params.has('signedin'),
+      liveConnected: params.has('live'),
+      iptv: params.has('iptv'),
+      dashStyle: Number(params.get('style') ?? '0') || 0,
+    },
+    render: (root, ctx) => renderScene(root, ctx),
+  });
+  viewport.setCanvas({ w: report.canvas.w, h: report.canvas.h });
+
+  const startTab = Number(params.get('blade') ?? String(DEFAULT_TAB));
+  shell.seekRest(Number.isFinite(startTab) ? startTab : DEFAULT_TAB);
+  publish(t, report);
+
+  const audio = AudioBank.index(assets, params.has('mute'));
+  if (!params.has('mute')) audio.unlockOnGesture();
+  const input = installBladeInput(shell, t, audio);
+  installApi(engine, t, input, audio, []);
+  window.__dashApi!.shell = {
+    go: (tab) => { const ok = shell.go(tab); syncShell(t, shell); return ok; },
+    left: () => { const ok = shell.left(); syncShell(t, shell); return ok; },
+    right: () => { const ok = shell.right(); syncShell(t, shell); return ok; },
+    seekRest: (tab) => { shell.seekRest(tab); syncShell(t, shell); },
+    openLevel: () => { const ok = shell.openLevel(); syncShell(t, shell); return ok; },
+    closeLevel: () => { const ok = shell.closeLevel(); syncShell(t, shell); return ok; },
+    report: () => shell.report(),
+  };
+  syncShell(t, shell);
+  runClock(engine, t);
+
+  if (params.has('debug')) mountInspector(host, shell.dashmain.root, viewport.canvas);
+}
+
+/** Left/right switch the blade; A opens a level, B closes one. */
+function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
+  const router = new InputRouter();
+  router.push({
+    id: 'blades',
+    onButton: (b) => {
+      if (b === Button.Left) shell.left();
+      else if (b === Button.Right) shell.right();
+      else if (b === Button.A) shell.openLevel();
+      else if (b === Button.B) shell.closeLevel();
+      else return;
+      syncShell(t, shell);
+      t.input = router.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer }));
+      t.cues = audio.log.slice(-40).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
+    },
+  });
+  router.attach();
+  return router;
+}
+
+function syncShell(t: DashTelemetry, shell: BladeShell): void {
+  t.shell = shell.report();
 }
 
 async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: string): Promise<void> {
@@ -118,6 +207,10 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
   const lists = await populateLists(scene, ctx, nodes, engine, strings, t);
+  // The visibility snapshot inside renderScene measured the scene BEFORE the
+  // lists were filled, so an empty lstSettings read as invisible. Retake it.
+  refreshVisibility(viewport.canvas.firstElementChild as HTMLElement, report);
+  publish(t, report);
   const input = installInput(engine, lists, t, audio);
   installApi(engine, t, input, audio, lists);
   runClock(engine, t);
@@ -194,7 +287,7 @@ async function populateLists(
   ctx: RenderCtx, nodes: NodeIndex, engine: TimelineEngine, strings: Strings, t: DashTelemetry,
 ): Promise<ListView[]> {
   const out: ListView[] = [];
-  const positional = POSITIONAL_LISTS[scene.id];
+  const positional = CODE_TABLE_LISTS[scene.id];
   let table: string[] = [];
   if (positional) table = await strings.stringsByIndex(positional.pack, positional.table);
 
@@ -206,7 +299,7 @@ async function populateLists(
     if (!node) continue;
     let items: ListItem[] = authoredItems(list);
     if (items.length === 0 && positional && table.length) {
-      items = positional.rows.map((ix) => ({ text: table[ix] ?? `#${ix}` }));
+      items = positional.rows.map((r) => ({ text: table[r.label] ?? `#${r.label}` }));
     }
     if (items.length === 0) continue;
     const view = new ListView(list, node, ctx, nodes, engine, xuiRegistry());

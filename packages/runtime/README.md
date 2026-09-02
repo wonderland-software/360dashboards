@@ -303,6 +303,61 @@ longer re-enters the range (and fires no cue). `TimelineScope.entries` counts
 range starts — a `GoToAndPlay` loop does not increment it — which is what the
 unit and smoke assertions watch.
 
+## The Blades shell (M3b)
+
+The glue lives in `dashboards/blades/` and is described by
+`reference/glue/BLADES_GLUE_SPEC.md`. The one thing to hold on to: **the
+dashboard is one scene.** `dashmain/dashmain.xur` carries 129 objects, 73
+timelines and 2,315 keyframes over 1,299 frames, cut into 39 named ranges, and
+every blade transition is already in there. The shell animates nothing — it
+composes, then plays ranges.
+
+| file | what it holds |
+|---|---|
+| `tabs.ts` | the six blades, the colour index, rest frames, panel scenes, the switch and level range names |
+| `panels.ts` | `PanelSettings`/`PanelStrings`/`PanelScenePaths`, and `MetaPanelScene::GotoIndex` |
+| `consoleSettings.ts` | the 11-row Console Settings table from the executable |
+| `nav.ts` | the eight System nav ids, the pack each resolves in, IPTV hiding |
+| `BladeShell.ts` | mount, `go`, `openLevel`/`closeLevel`, `updateContentPanelVisual` |
+
+Three things that are easy to get wrong and are each pinned by a test:
+
+- **The colour index is one behind the tab index.** The skins define
+  `blade_1..5`; Marketplace (Tab1) wears `blade_5`, the burnt orange. Do not
+  derive one from the other.
+- **`DefaultTab 2` is 1-based** — the console comes up on Xbox LIVE.
+- **The panel-list separator is the two characters `\` `0`, not a NUL byte.**
+  Splitting on a real NUL yields one entry and makes the property look like a
+  single string.
+
+Only adjacent switches exist: `XuiTabScene` can format `%uTo1` and `1To%u`, but
+dashmain sets no `Wrap` and authors no such range, so a jump is impossible
+rather than merely unimplemented. Second level and deeper is a **counter** —
+`NOpen` once, then `NBlink` for every level below it, in **both** directions.
+
+**Two static-render changes the spec required**, both reported rather than
+slipped in:
+
+1. **An animated `Visual` now re-skins its control.** §1.3 is explicit that the
+   blade colour is driven by the timeline and must not be hard-coded, and
+   dashmain drives `BG_color_1`, `BG_color_2`, `color_highlight_left/rt` and
+   `blade_top_jewel` through the palette on every switch. `updateNode` had no
+   path for it, so every blade rendered in Marketplace's orange. The palette
+   visuals carry no timelines and no named frames, so the swap is a pure
+   re-render with no scope to re-bind.
+2. **`DataAssociation` now gates a presenter's text.** A non-zero association
+   selects a secondary slot only console code could fill, so those presenters
+   render empty. `btn_1line_icon` has `txt_line3` (association 0) *and*
+   `text_Label_r` (association 1), and both were showing the control's `Text` —
+   every System nav caption was drawn twice, overlapping.
+
+**Five stills** (`tests/smoke/out/blade*.png`) are rendered through the console
+view at 1920x1080 so they overlay the reference frames directly. Fitting the
+top band (the tab staircase and the page edge) by normalised cross-correlation
+against f0034/f0026/f0042/f0047/f0051 gives dx = 0, −4, −5, −18, −33 px and
+kx = 0.99…1.07: the staircase is within a few px on Marketplace, Xbox LIVE and
+Games and drifts to about 33 px on System. Reported, not tuned away.
+
 ## What is honestly not implemented
 
 Recorded per scene in `window.__dash`, never faked:
@@ -339,7 +394,11 @@ Recorded per scene in `window.__dash`, never faked:
 - **`unresolvedVisuals` / `missingImages` / `deviceFiles` / `placeholders`** —
   see `tests/smoke/allowlist.json` for the three visuals and three paths the
   build itself cannot supply, each with its reason.
-- No input, no audio (state changes record a cue and play nothing), and no
+- The shell composes and switches; it does not yet drive second-level
+  navigation (`PressPath` resolution exists and is tested, but pressing A does
+  not push the target scene), boot ranges, or the metapane focus wiring on a
+  live blade. `XuiScene.TransFrom`/`TransTo` are parsed and ignored.
+- No audio (state changes record a cue and play nothing), and no
   scene-to-scene transitions: `XuiScene.TransFrom`/`TransTo` are parsed and
   ignored. Nothing yet decides which state a control should be in, so states
   change only through `__dashApi`; that is the shell's job.

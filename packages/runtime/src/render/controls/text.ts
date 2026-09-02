@@ -42,12 +42,19 @@ export function renderText(
   const unknownBits = style & ~E.KNOWN_TEXT_STYLE_BITS;
   if (unknownBits) noteNum(ctx.report.unknownTextStyleBits, unknownBits);
 
-  if (!ownText && owner) {
-    const assoc = p.num('DataAssociation', E.DATA_ASSOCIATION_PRIMARY);
+  // DataAssociation picks WHICH slot of the owning control a presenter shows.
+  // 0 is the control's own Text; anything else is a secondary slot only the
+  // console's code could fill (a list row's second line, a gamercard field).
+  // Rendering the primary text into those too is why btn_1line_icon drew every
+  // nav caption twice - it has txt_line3 (association 0) AND text_Label_r
+  // (association 1), and both were showing the same string.
+  let assoc = E.DATA_ASSOCIATION_PRIMARY;
+  if (!ownText) {
+    assoc = p.num('DataAssociation', E.DATA_ASSOCIATION_PRIMARY);
     noteNum(ctx.report.dataAssociationsSeen, assoc);
   }
-
-  const text = ownText ? p.str('Text') : (owner?.text ?? '');
+  const secondary = !ownText && assoc !== E.DATA_ASSOCIATION_PRIMARY;
+  const text = ownText ? p.str('Text') : (secondary ? '' : (owner?.text ?? ''));
   // XuiControl.PointSize wins over the visual's when the control sets it.
   const ownerSize = owner && owner.pointSize !== E.POINT_SIZE_INHERIT ? owner.pointSize : null;
   const points = ownerSize ?? p.num('PointSize', E.DEFAULT_POINT_SIZE);

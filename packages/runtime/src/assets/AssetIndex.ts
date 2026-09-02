@@ -33,11 +33,24 @@ export interface ResolvedAsset {
 export class AssetIndex {
   /** pack -> lowercased path -> manifest entry */
   private readonly byPack = new Map<string, Map<string, ManifestEntry>>();
+  /** lowercased basename -> "<pack>/<path>", for bare PressPath resolution.
+   *  Every .xur basename in the build is unique across all 30 packs (swept:
+   *  zero collisions), so a bare name resolves with one global index. */
+  private readonly byBasename = new Map<string, string>();
+  private readonly basenameCollisions = new Set<string>();
 
   private constructor(readonly manifest: Manifest, readonly base: string) {
     for (const pack of manifest.packs) {
       const m = new Map<string, ManifestEntry>();
-      for (const e of pack.entries) m.set(normalisePath(e.path), e);
+      for (const e of pack.entries) {
+        m.set(normalisePath(e.path), e);
+        const base = basenameOf(e.path);
+        if (this.byBasename.has(base) && this.byBasename.get(base) !== pack.name + '/' + e.path) {
+          this.basenameCollisions.add(base);
+        } else {
+          this.byBasename.set(base, pack.name + '/' + e.path);
+        }
+      }
       this.byPack.set(pack.name, m);
     }
   }
@@ -62,6 +75,21 @@ export class AssetIndex {
     return out;
   }
 
+  /**
+   * Resolve a bare file name (a XuiNavButton.PressPath) to "<pack>/<path>".
+   * The console names the pack in code and the XUR names the file; because
+   * basenames are globally unique this index gets the same answer, and a
+   * collision is reported rather than guessed at.
+   */
+  findByBasename(name: string): string | null {
+    const base = basenameOf(name);
+    if (this.basenameCollisions.has(base)) return null;
+    return this.byBasename.get(base) ?? null;
+  }
+
+  /** Names that exist in more than one pack; empty in build 6770. */
+  get collisions(): string[] { return [...this.basenameCollisions]; }
+
   entry(pack: string, path: string): ManifestEntry | undefined {
     return this.byPack.get(pack)?.get(normalisePath(path));
   }
@@ -85,6 +113,13 @@ export class AssetIndex {
     }
     return { url: this.url(scenePack, path), pack: scenePack, path, deviceFile: false };
   }
+}
+
+/** The file name alone, lowercased. */
+export function basenameOf(p: string): string {
+  const n = normalisePath(p);
+  const i = n.lastIndexOf('/');
+  return i < 0 ? n : n.slice(i + 1);
 }
 
 /** XUR paths are authored on Windows, so both separators and any case occur. */

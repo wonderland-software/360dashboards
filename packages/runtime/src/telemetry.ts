@@ -61,6 +61,8 @@ export interface DashTelemetry extends SceneReport {
   cues: { cue: string; scope: string | null; tick: number; played: boolean }[];
   /** Buttons the router dispatched, newest last. */
   input: { button: string; repeat: boolean; layer: string | null }[];
+  /** The Blades shell's state, on the default route only. */
+  shell: unknown;
   locale: string;
   /** What applyLocale actually changed, for the locale smoke check. */
   localePatches: number;
@@ -85,7 +87,7 @@ export function createTelemetry(build: string): DashTelemetry {
   const t: DashTelemetry = {
     ...emptyReport(), build, placeholders: [], gallery: [], fps: 0,
     timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
-    focusId: null, lastCue: null, cues: [], input: [],
+    focusId: null, lastCue: null, cues: [], input: [], shell: null,
     locale: 'en', localePatches: 0,
   };
   window.__dash = t;

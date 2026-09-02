@@ -4631,7 +4631,9 @@
    "h": 770
   },
   "sizeModesSeen": [],
-  "dataAssociationsSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
   "errors": []
  },
  {
@@ -4660,7 +4662,9 @@
    "h": 772
   },
   "sizeModesSeen": [],
-  "dataAssociationsSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
   "errors": []
  },
  {
@@ -4770,12 +4774,17 @@
   ],
   "dataAssociationsSeen": [
    0,
-   3,
-   2,
    1,
+   2,
    4,
+   3,
    5,
-   6
+   6,
+   7,
+   11,
+   10,
+   9,
+   8
   ],
   "errors": []
  },

@@ -38,8 +38,12 @@ try {
     [...document.querySelectorAll('[data-xui-class="XuiListItem"]')].map((el) => ({
       id: el.dataset.xuiId, transform: el.style.transform, text: el.textContent,
     })));
-  check(rows.length === 10, `expected 10 Console Settings rows, got ${rows.length}`);
-  const LABELS = ['Display', 'Audio', 'Themes', 'Language', 'Clock', 'Locale', 'Startup', 'Shutdown', 'Screen Saver', 'System Info'];
+  // Eleven rows, in the order of the 11-entry code table at VA 0x920143d0 -
+  // NOT the scene's own 9-entry PanelSettings, which names no control that
+  // exists in the file.
+  check(rows.length === 11, `expected 11 Console Settings rows, got ${rows.length}`);
+  const LABELS = ['Display', 'Audio', 'Themes', 'Language', 'Clock', 'Locale',
+    'Startup', 'Shutdown', 'Screen Saver', 'Remote Control', 'System Info'];
   rows.forEach((r, k) => {
     check(r.text === LABELS[k], `row ${k} is "${r.text}", expected "${LABELS[k]}"`);
     const want = `translate(0px, ${ROW_TOP + ROW_PITCH * k}px)`;
@@ -89,7 +93,7 @@ try {
   // Wrap: XuiCommonList.Wrap is unset on lstSettings, so the ends must clamp.
   for (let i = 0; i < 12; i++) await page.p.evaluate(() => window.__dashApi.press('Down'));
   const d3 = await dash(page.p);
-  check(d3.focusId === 'lstSettings_item9', `without Wrap the last row must clamp, got ${d3.focusId}`);
+  check(d3.focusId === 'lstSettings_item10', `without Wrap the last row must clamp, got ${d3.focusId}`);
 
   /* --------------------------------- focus states are edge-triggered ------- */
 
@@ -100,19 +104,19 @@ try {
   // entries counts every range START on the scope (its Normal at build time and
   // its Focus when focus arrived), and a GoToAndPlay loop does not add to it -
   // so an accidental re-entry is the only thing that can move this number.
-  const before = await scope(page.p, 'lstSettings_item9');
-  check(before?.state === 'Focus', `row 9 should be in Focus, got ${before?.state}`);
+  const before = await scope(page.p, 'lstSettings_item10');
+  check(before?.state === 'Focus', `the last row should be in Focus, got ${before?.state}`);
   await page.p.evaluate(() => window.__dashApi.stepFrames(78));
-  const mid = await scope(page.p, 'lstSettings_item9');
+  const mid = await scope(page.p, 'lstSettings_item10');
   for (let i = 0; i < 8; i++) await page.p.evaluate(() => window.__dashApi.press('Down'));
   await page.p.evaluate(() => window.__dashApi.stepFrames(40));
-  const after = await scope(page.p, 'lstSettings_item9');
+  const after = await scope(page.p, 'lstSettings_item10');
   check(after?.entries === before?.entries,
     `8 clamped Down presses must not re-enter the Focus range; entries went ${before?.entries} -> ${after?.entries}`);
   check(after.tick > mid.tick,
     `the playhead must keep advancing through the clamped presses (${mid?.tick} -> ${after?.tick})`);
   check(after.state === 'Focus' && after.range?.startsWith('Focus'),
-    `row 9 should still be in its Focus range, got ${after?.state}/${after?.range}`);
+    `the last row should still be in its Focus range, got ${after?.state}/${after?.range}`);
   // and the clamp is silent: no cue for a move that did not happen
   const dClamp = await dash(page.p);
   const focusCues = dClamp.cues.filter((c) => c.cue === 'btn_Focus').length;
@@ -124,10 +128,10 @@ try {
   // A real move still does play the range: leave row 9 and come back.
   await page.p.evaluate(() => window.__dashApi.press('Up'));
   await page.p.evaluate(() => window.__dashApi.press('Down'));
-  const back = await scope(page.p, 'lstSettings_item9');
+  const back = await scope(page.p, 'lstSettings_item10');
   // +2: KillFocus on the way out, Focus on the way back. Both are real edges.
   check(back?.entries === (after?.entries ?? 0) + 2,
-    `leaving and re-entering row 9 is two state changes, ${after?.entries} -> ${back?.entries}`);
+    `leaving and re-entering the last row is two state changes, ${after?.entries} -> ${back?.entries}`);
   check(back?.state === 'Focus', `and it ends in Focus, got ${back?.state}`);
 
   /* ------------------------------- visible text is not "invisible" --------- */
