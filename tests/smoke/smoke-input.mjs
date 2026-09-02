@@ -14,10 +14,10 @@ const CHROME = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Conte
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
 const SCENE = 'consoles/dashSysCslSet.xur';
 
-// MEASURED: row k top = list y (154) + LIST_ITEM_TOP (3) + 45k. The reference
+// MEASURED: row k top = list y (154) + 45k, LIST_ITEM_TOP being 0. The reference
 // frame's separators land on the same line to within about one design pixel.
 const ROW_PITCH = 45;
-const ROW_TOP = 3;
+const ROW_TOP = 0;
 
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); };
@@ -91,6 +91,58 @@ try {
   const d3 = await dash(page.p);
   check(d3.focusId === 'lstSettings_item9', `without Wrap the last row must clamp, got ${d3.focusId}`);
 
+  /* --------------------------------- focus states are edge-triggered ------- */
+
+  // A state range is motion, not a property: re-issuing Focus restarts it at
+  // its opening frame. Held against a clamped end, the 100ms d-pad auto-repeat
+  // used to re-enter XuiButton's Focus range ten times a second, so its
+  // playhead never got past the first third of the 15..253 loop.
+  // entries counts every range START on the scope (its Normal at build time and
+  // its Focus when focus arrived), and a GoToAndPlay loop does not add to it -
+  // so an accidental re-entry is the only thing that can move this number.
+  const before = await scope(page.p, 'lstSettings_item9');
+  check(before?.state === 'Focus', `row 9 should be in Focus, got ${before?.state}`);
+  await page.p.evaluate(() => window.__dashApi.stepFrames(78));
+  const mid = await scope(page.p, 'lstSettings_item9');
+  for (let i = 0; i < 8; i++) await page.p.evaluate(() => window.__dashApi.press('Down'));
+  await page.p.evaluate(() => window.__dashApi.stepFrames(40));
+  const after = await scope(page.p, 'lstSettings_item9');
+  check(after?.entries === before?.entries,
+    `8 clamped Down presses must not re-enter the Focus range; entries went ${before?.entries} -> ${after?.entries}`);
+  check(after.tick > mid.tick,
+    `the playhead must keep advancing through the clamped presses (${mid?.tick} -> ${after?.tick})`);
+  check(after.state === 'Focus' && after.range?.startsWith('Focus'),
+    `row 9 should still be in its Focus range, got ${after?.state}/${after?.range}`);
+  // and the clamp is silent: no cue for a move that did not happen
+  const dClamp = await dash(page.p);
+  const focusCues = dClamp.cues.filter((c) => c.cue === 'btn_Focus').length;
+  await page.p.evaluate(() => window.__dashApi.press('Down'));
+  const dClamp2 = await dash(page.p);
+  check(dClamp2.cues.filter((c) => c.cue === 'btn_Focus').length === focusCues,
+    'a clamped press must not fire btn_Focus');
+
+  // A real move still does play the range: leave row 9 and come back.
+  await page.p.evaluate(() => window.__dashApi.press('Up'));
+  await page.p.evaluate(() => window.__dashApi.press('Down'));
+  const back = await scope(page.p, 'lstSettings_item9');
+  // +2: KillFocus on the way out, Focus on the way back. Both are real edges.
+  check(back?.entries === (after?.entries ?? 0) + 2,
+    `leaving and re-entering row 9 is two state changes, ${after?.entries} -> ${back?.entries}`);
+  check(back?.state === 'Focus', `and it ends in Focus, got ${back?.state}`);
+
+  /* ------------------------------- visible text is not "invisible" --------- */
+
+  // renderText builds div > div, so a paint walk that only counts non-DIV
+  // children calls every text-only control invisible. The paint boxes carry
+  // data-xui-paint so they are counted.
+  check(d3.invisibleAtRest === false, 'a scene with visible text must not be invisibleAtRest');
+  for (const id of ['labHeader', 'labMetaHeader', 'legend_a', 'legend_b']) {
+    check(!d3.invisibleGroups.includes(id), `${id} paints text and must not be in invisibleGroups`);
+  }
+  const painted = await page.p.evaluate(() =>
+    document.querySelectorAll('[data-xui-paint="text"]').length);
+  check(painted > 10, `expected the text paint boxes to be tagged, found ${painted}`);
+
   await page.p.evaluate(() => window.__dashApi.stepFrames(40));
   await (await page.p.$('.xui-canvas')).screenshot({ path: `${OUT}/list.png` });
   await page.close();
@@ -139,6 +191,9 @@ function title(p) { return p.evaluate(() => document.querySelector('[data-xui-id
 function scope(p, tail) {
   return p.evaluate((tail) => {
     const s = window.__dashApi.engine.all().find((s) => s.id.includes(tail));
-    return s ? { id: s.id, tick: s.tick, playing: s.playing, range: s.range ? s.range.join('..') : null } : null;
+    return s ? {
+      id: s.id, tick: s.tick, playing: s.playing, state: s.state, entries: s.entries,
+      range: s.range ? s.range.join('..') : null,
+    } : null;
   }, tail);
 }

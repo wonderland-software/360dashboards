@@ -59,6 +59,10 @@ export function renderText(
   const lh = size * (lb.ascent + lb.descent) + lineAdjust;
 
   const box = document.createElement('div');
+  // Tag it: a text paint box is a DIV whose children are DIVs, so a
+  // "does this subtree paint anything" walk has no other way to tell it apart
+  // from an empty container.
+  box.dataset['xuiPaint'] = 'text';
   box.style.cssText = [
     'position:absolute', 'left:0', 'top:0',
     `width:${w}px`, `height:${h}px`,

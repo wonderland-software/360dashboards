@@ -273,16 +273,35 @@ names the skin never defines.
 console indexed, `consoles/dashCSettingsStrings.xus` — see
 `dashboards/blades/settingsList.ts` for the indices.
 
-**Overlay against `f0060`:** the ten rows land on design y 157 + 45*k*, and the
-reference's separators (measured as luma dips in a text-free strip) sit at
-design 155.2, 199.8, 245.1, 290.3, 335.5 against ours at 155.8, 200.8, 245.7,
-290.6, 335.8 — **within about 1 design px**, with the same 45 px pitch. The
-down arrow lands at list-relative (386, 409), i.e. design (532, 563), where the
-frame has it. The row *label ink* sits about 4 design px (7 px at 1080p) lower
-than 6717's; the row and separator geometry is right, so the residual is inside
-the row visual's text placement, and 6717's list is built by different console
-code than 6770's (its `PanelSettings` names nine buttons and omits Themes), so
-the two builds' rows are not the same controls. Not fudged.
+**Overlay against `f0060`**, fitted by normalised cross-correlation of
+gradient-magnitude row profiles between our 1920×1080 console-view render and
+the frame (`dy` in design px; negative means our render sits lower):
+
+| | row text | separator strip |
+|---|---|---|
+| `LIST_ITEM_TOP = 3` | −3.12 / −3.30 / −2.99 | −2.93 (ncc 0.95) |
+| `LIST_ITEM_TOP = 0` | −1.34 / −0.31 / +0.06 | +0.06 (ncc 0.96) |
+
+So **row k's top is list.y + 45k**, with no 3 px inset. The old +3 came from
+reading the calibration's "row 0 top edge = design 157" as the row origin, when
+157 is the half-intensity crossing of a separator figure 3 design px tall that
+starts at the row's y = 0. Both halves of the list move together, which is what
+makes it a geometry answer rather than a text one — the header label and the
+row labels carry the same `TextStyle` (0x4011, **no** `VALIGN_CENTER` bit) and
+go down the same top-aligned path, so no text rule could have moved one without
+the other. Residuals now match the header's (+0.61 design px).
+
+The down arrow lands at list-relative (386, 409), i.e. design (532, 560), where
+the frame has it; the up arrow is correctly hidden at the top of the list.
+
+**Focus states are edge-triggered.** A state range is motion, not a property:
+re-issuing `Focus` restarts it at its opening frame, and XuiButton's Focus runs
+frame 15 → 253 with `EndFocus` looping back to `FocusLoop` at 28. `ListView.move`
+returns `null` when a clamp absorbs the press and `ListView.focus` is a no-op
+when the index has not changed, so a held d-pad at either end of a list no
+longer re-enters the range (and fires no cue). `TimelineScope.entries` counts
+range starts — a `GoToAndPlay` loop does not increment it — which is what the
+unit and smoke assertions watch.
 
 ## What is honestly not implemented
 

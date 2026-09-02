@@ -39,6 +39,13 @@ export class TimelineScope {
   range: [string, string] | null = null;
   /** The XuiSoundXAudio cue the last dispatched frame would have fired. */
   lastCue: string | null = null;
+  /** The state name currently playing, for telemetry and for asserting that a
+   *  range is not re-entered while nothing has changed. */
+  state: string | null = null;
+  /** How many times a range has been STARTED on this scope. A range that is
+   *  looping via GoToAndPlay does not increment it; only a fresh playRange
+   *  does, which is what makes an accidental re-entry visible. */
+  entries = 0;
 
   constructor(readonly id: string, readonly obj: XuObject, readonly hostControlId: string | null = null) {
     for (const f of obj.namedFrames) {
@@ -98,6 +105,8 @@ export class TimelineScope {
     // (metaScene_1line's is 1To2End, legend visuals use 1EndPress), and a range
     // whose end simply does not exist says so.
     this.range = [start.name, end?.frame !== null && end ? end.name : '(none)'];
+    this.state = startName;
+    this.entries += 1;
     this.tick = start.frame;
     this.stopAt = end?.frame ?? null;
     this.playing = true;      // the start frame's own Play command confirms it
@@ -305,10 +314,17 @@ export class TimelineEngine {
     if (delta.size) this.applies.get(s.id)?.(s, delta);
   }
 
-  report(): { scopes: { id: string; tick: number; playing: boolean; range: string | null; lastCue: string | null }[]; playing: number; frozenAt: number | null } {
+  report(): {
+    scopes: { id: string; tick: number; playing: boolean; range: string | null; state: string | null; entries: number; lastCue: string | null }[];
+    playing: number; frozenAt: number | null;
+  } {
     const scopes = this.all()
       .filter((s) => s.playing || s.tick !== 0 || s.range !== null)
-      .map((s) => ({ id: s.id, tick: s.tick, playing: s.playing, range: s.range ? s.range.join('..') : null, lastCue: s.lastCue }));
+      .map((s) => ({
+        id: s.id, tick: s.tick, playing: s.playing,
+        range: s.range ? s.range.join('..') : null,
+        state: s.state, entries: s.entries, lastCue: s.lastCue,
+      }));
     return { scopes, playing: this.all().filter((s) => s.playing).length, frozenAt: this.frozenAt };
   }
 }

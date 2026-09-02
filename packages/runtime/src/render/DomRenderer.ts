@@ -97,19 +97,29 @@ export function renderScene(root: XuObject, ctx: RenderCtx): HTMLElement {
   return host;
 }
 
-/** Everything a scene draws can be hidden at rest: dashmain's Tab1..Tab6 all
- *  carry Opacity 0 until console code opens a blade, so the default route shows
- *  only the blade-skin background. Reported rather than papered over. */
+/**
+ * Everything a scene draws can be hidden at rest: dashmain's Tab1..Tab6 all
+ * carry Opacity 0 until console code opens a blade, so the default route shows
+ * only the blade-skin background. Reported rather than papered over.
+ *
+ * "Paints something" means an <svg> or <img> child, or a text paint box. Text
+ * is the trap: renderText builds div > div, so a walk that only treats
+ * non-DIV children as paint calls every text-only control invisible - that
+ * mistake flagged 39 scenes, 1,324 groups, and labHeader/labMetaHeader in the
+ * Console Settings scene. Hence data-xui-paint on the box renderText makes.
+ */
 function isInvisible(el: HTMLElement): boolean {
   const visible = (n: HTMLElement, opacity: number): boolean => {
     if (n.style.display === 'none') return false;
     const o = n.style.opacity === '' ? 1 : Number(n.style.opacity);
     const acc = opacity * (Number.isFinite(o) ? o : 1);
     if (acc <= 0.001) return false;
-    if (n.firstElementChild && n.firstElementChild.tagName !== 'DIV') return true; // svg / img / text
+    if (n.dataset['xuiPaint']) return true;               // a text paint box
     for (const c of Array.from(n.children)) {
-      if (c instanceof HTMLElement && c.tagName === 'DIV') { if (visible(c, acc)) return true; }
-      else return true;
+      if (!(c instanceof HTMLElement)) return true;       // <svg>: a figure
+      if (c.tagName !== 'DIV') return true;               // <img>, <svg>
+      if (c.dataset['xuiPaint']) return true;
+      if (visible(c, acc)) return true;
     }
     return false;
   };

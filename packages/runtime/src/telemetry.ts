@@ -41,7 +41,7 @@ export interface SceneReport {
 }
 
 export interface TimelineReport {
-  scopes: { id: string; tick: number; playing: boolean; range: string | null; lastCue: string | null }[];
+  scopes: { id: string; tick: number; playing: boolean; range: string | null; state: string | null; entries: number; lastCue: string | null }[];
   playing: number;
   frozenAt: number | null;
   /** Timeline frames stepped in the last second; 60 is the console's rate. */

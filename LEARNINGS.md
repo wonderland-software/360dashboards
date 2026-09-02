@@ -125,9 +125,15 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   bleed). sx/sy = 22/21, so circles are 4.8% wider than tall on the console
   and a uniform scale is tens of pixels wrong. Fit landed on exactly
   1920/1120 with 0.12 px offset, ruling out a capture crop.
-- **List item pitch is 45 design px** (row k top = list y + 3 + 45k), not
-  the item visual's 47 nor the template's 74; dashmain's hand-placed nav
-  buttons sit at y = 153, 198, 243, ... 468.
+- **List item pitch is 45 design px and row k's top is list y + 45k with
+  NO inset.** The calibration's "row 0 top = 157" was the half-intensity
+  crossing of a 3 px separator figure that starts at the row's own y (154);
+  reading it as the row origin put every row label 3 design px low (Judge
+  C). dashmain's hand-placed nav buttons sit at y = 153, 198, 243, ... 468.
+- **Focus transitions must be edge-triggered.** A clamped d-pad press that
+  re-issued setState('Focus') re-entered the button's Focus range ten times
+  a second under auto-repeat, so the FocusLoop never got past its first
+  third (Judge D). focus() is a no-op when the index is unchanged.
 - **Figure Points ARE scaled from their bounding box to Width x Height**
   (runtime agent, measured on the A-button disc: 42 px on screen, stretched
   predicts 43, unstretched 52; and the list separators run the full 423-unit

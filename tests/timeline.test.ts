@@ -262,6 +262,34 @@ test('a range is labelled with the End frame that actually resolved', () => {
   assert.equal(orphan.stopAt, null);
 });
 
+test('re-entering a range restarts it, which is why focus must be edge-triggered', () => {
+  // XuiButton's shape: Focus at 15, FocusLoop at 28, EndFocus at 253 looping
+  // back. Re-issuing Focus mid-range throws the playhead back to 15, so a
+  // caller that plays a state on every tick (or on every d-pad auto-repeat at
+  // the clamped end of a list) never lets the loop run.
+  const o = obj(
+    [nf('Focus', 15, 'Play'), nf('FocusLoop', 28, 'Play'), nf('EndFocus', 253, 'GoToAndPlay', 'FocusLoop')],
+    [timeline('shineLoop', [def('Opacity')], [kf(15, [0]), kf(253, [1])])],
+  );
+  const s = new TimelineScope('v', o);
+  s.playRange('Focus');
+  assert.equal(s.entries, 1);
+  for (let i = 0; i < 78; i++) s.step();
+  assert.equal(s.tick, 93, 'left alone the playhead just advances');
+
+  // the bug: a second playRange while nothing changed
+  s.playRange('Focus');
+  assert.equal(s.tick, 15, 'a re-entry restarts the range from its opening frame');
+  assert.equal(s.entries, 2, 'and entries counts it, which is what the tests assert on');
+
+  // left alone it reaches EndFocus and loops back to FocusLoop, without
+  // counting as a new entry
+  for (let i = 0; i < 238; i++) s.step();
+  assert.equal(s.tick, 28, 'EndFocus GoToAndPlay must land on FocusLoop');
+  assert.equal(s.playing, true);
+  assert.equal(s.entries, 2, 'a GoToAndPlay loop is not a re-entry');
+});
+
 test('the clock is a fixed-step accumulator at 60 frames a second', () => {
   const o = obj([nf('Normal', 0, 'Play')], [timeline('X', [def('Opacity')], [kf(0, [0]), kf(600, [1])])]);
   const engine = new TimelineEngine();

@@ -233,8 +233,14 @@ function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetr
       const list = lists[0];
       if (!list) return;
       if (b === Button.Down || b === Button.Up) {
-        t.focusId = list.move(b === Button.Down ? 1 : -1);
-        fire(audio, engine, t, 'Focus');
+        // move() returns null when the clamp absorbed it. Nothing happened, so
+        // nothing plays: no state re-entry and no cue. A held d-pad at the end
+        // of a list is silent on the console too.
+        const moved = list.move(b === Button.Down ? 1 : -1);
+        if (moved !== null) {
+          t.focusId = moved;
+          fire(audio, engine, t, 'Focus');
+        }
       } else if (b === Button.A) {
         const row = list.focusIndex;
         if (row >= 0) engine.setState(`${list.id}_item${row}`, 'Press');

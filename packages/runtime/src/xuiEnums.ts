@@ -391,14 +391,28 @@ export const VISIBLE_DESIGN_RECT = {
 /* ---------------------------------------------------------------------- lists */
 
 /**
- * MEASURED: XuiCommonList / XuiList stack their rows on a 45 design-px pitch
- * (row k top = list.y + LIST_ITEM_TOP + 45k), not on the 47px height of the
- * row visual nor the 74px of the XuiList template. Confirmed against
- * dashmain's hand-placed nav buttons at y = 153,198,243..468 and against the
- * ten row edges measured in f0060.
+ * MEASURED. Row k's top = list.y + LIST_ITEM_PITCH * k. The pitch is not
+ * inferred: the XuiList visual's own row template, control_ListItem, is
+ * authored 420x45, and the ten row edges in f0060 sit 45 design px apart.
+ *
+ * LIST_ITEM_TOP was 3 and that was WRONG. It came from reading the
+ * calibration's "list row 0 top edge = design 157" as the row's origin, when
+ * 157 is the half-intensity crossing of a separator FIGURE that is 3 design px
+ * tall and starts at the row's y=0. Fitting our 1920x1080 console-view render
+ * against f0060 by normalised cross-correlation settles it, and both halves of
+ * the list move together:
+ *
+ *                        row text (dy, design px)   separator strip (dy)
+ *   LIST_ITEM_TOP = 3    -3.12 / -3.30 / -2.99      -2.93 (ncc 0.95)
+ *   LIST_ITEM_TOP = 0    -1.34 / -0.31 / +0.06      +0.06 (ncc 0.96)
+ *
+ * i.e. at 0 the rows land within 0.3 design px, the same quality as the header
+ * label (+0.61). A text-placement rule could never have fixed this: the header
+ * and the row labels carry the SAME TextStyle (0x4011, no VALIGN_CENTER bit),
+ * so they go down the same top-aligned path, and only the row's origin differs.
  */
 export const LIST_ITEM_PITCH = 45;
-export const LIST_ITEM_TOP = 3;
+export const LIST_ITEM_TOP = 0;
 
 /* ---------------------------------------------------------------------- fonts */
 

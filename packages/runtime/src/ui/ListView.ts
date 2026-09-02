@@ -182,9 +182,25 @@ export class ListView {
     if (this.ends.down) this.ends.down.el.style.visibility = top + this.visibleCount < this.items.length ? 'visible' : 'hidden';
   }
 
-  focus(i: number, state: 'Focus' | 'InitFocus' = 'Focus'): string | null {
+  /**
+   * EDGE-TRIGGERED. A state range is a piece of motion, not a property: playing
+   * it again restarts it from its opening frame. XuiButton's Focus range runs
+   * frame 15 to 253 and its EndFocus GoToAndPlay's back to FocusLoop at 28, so
+   * a Focus re-issued while focus has not moved throws the playhead back to 15
+   * and the row's shine never gets past the first third of its loop.
+   *
+   * That is exactly what a held d-pad used to do at either end of the list:
+   * move() clamps, focus() was called with the index it already had, and the
+   * 100ms auto-repeat re-entered the range ten times a second.
+   *
+   * So: only an actual change of focused row plays anything. `force` exists for
+   * the caller that really does want to replay a state (a re-entry into the
+   * scene), and nothing on the input path passes it.
+   */
+  focus(i: number, state: 'Focus' | 'InitFocus' = 'Focus', force = false): string | null {
     if (this.items.length === 0) return null;
     const prev = this.focused;
+    if (prev === i && !force) return this.focusId;   // no edge, no state change
     this.focused = i;
     if (prev >= 0 && prev !== i) this.engine.setState(this.rows[prev]!.id, 'KillFocus');
     this.engine.setState(this.rows[i]!.id, state);
@@ -192,13 +208,18 @@ export class ListView {
     return this.focusId;
   }
 
-  /** DOCUMENTED: XuiList.Wrap decides whether the ends join up. */
+  /**
+   * DOCUMENTED: XuiList.Wrap decides whether the ends join up. Returns null
+   * when the move was absorbed by a clamp, so the caller can tell "focus moved"
+   * from "focus was already there" - the cue depends on it.
+   */
   move(delta: number): string | null {
     if (this.items.length === 0) return null;
     const wrap = propByName(this.list, 'Wrap')?.value === true;
     let next = this.focused + delta;
     if (next < 0) next = wrap ? this.items.length - 1 : 0;
     if (next >= this.items.length) next = wrap ? 0 : this.items.length - 1;
+    if (next === this.focused) return null;
     return this.focus(next);
   }
 

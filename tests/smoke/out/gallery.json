@@ -30,7 +30,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnPolicyInformation",
    "btnAboutMSPoints",
    "btnDownloadHistory",
@@ -38,8 +37,7 @@
    "btnWindowsLiveID",
    "btnContactInformation",
    "btnMyMemberships",
-   "cntLoadingAnimation",
-   "txt_Header"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -87,7 +85,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnPolicyInformation",
    "btnAboutMSPoints",
    "btnDownloadHistory",
@@ -96,7 +93,6 @@
    "btnContactInformation",
    "btnMyMemberships",
    "cntLoadingAnimation",
-   "txt_Header",
    "btnGraduateAccount"
   ],
   "canvas": {
@@ -140,8 +136,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "legend_B",
-   "labHeader"
+   "legend_B"
   ],
   "canvas": {
    "w": 1120,
@@ -178,8 +173,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "labPanelText",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -220,8 +214,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "labPanelText",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -253,7 +246,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "labWhatIS",
    "btnTopic4",
    "btnTopic3",
@@ -292,8 +284,7 @@
   "invisibleGroups": [
    "labMetaPanel",
    "GamerCard",
-   "labInformation",
-   "txt_Header"
+   "labInformation"
   ],
   "canvas": {
    "w": 1120,
@@ -333,8 +324,7 @@
   "invisibleGroups": [
    "labPanelText",
    "GamerCard",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -380,8 +370,7 @@
    "GamerCard",
    "btnYes",
    "cntLoadingAnimation",
-   "labChangeIDQuestion",
-   "txt_Header"
+   "labChangeIDQuestion"
   ],
   "canvas": {
    "w": 1120,
@@ -421,8 +410,7 @@
   "invisibleGroups": [
    "labPanelText",
    "GamerCard",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -463,8 +451,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "labPanelText",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -505,8 +492,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "labPanelText",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -549,8 +535,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "lstPostalCodeData",
-   "labSceneTitle"
+   "lstPostalCodeData"
   ],
   "canvas": {
    "w": 1120,
@@ -589,8 +574,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "lstStates",
-   "labSceneTitle"
+   "lstStates"
   ],
   "canvas": {
    "w": 1120,
@@ -633,12 +617,10 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnChangeLiveID",
    "btnRemovePassword",
    "btnChangePassword",
-   "cntLoadingAnimation",
-   "txt_Header"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -685,8 +667,7 @@
    "GamerCard",
    "btnYesChangeID",
    "cntLoadingAnimation",
-   "labChangeIDQuestion",
-   "txt_Header"
+   "labChangeIDQuestion"
   ],
   "canvas": {
    "w": 1120,
@@ -729,12 +710,10 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnContent",
    "btnPrivacyAndFriends",
    "btnGameplay",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -765,24 +744,8 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
-  "invisibleGroups": [
-   "labMetaHead",
-   "labNewOnlineFriends",
-   "labNewOnlineFriendsTag",
-   "labCommunications",
-   "labCommunicationsTag",
-   "labCommunicationsVideo",
-   "labCommunicationsVideoTag",
-   "labProfileSharing",
-   "labProfileSharingTag",
-   "labProfileViewing",
-   "labProfileViewingTag",
-   "labOnlinePresence",
-   "labOnlinePresenceTag",
-   "labFriends",
-   "labFriendsTag"
-  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
   "canvas": {
    "w": 640,
    "h": 480
@@ -817,10 +780,8 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnLiveOnXbox1",
-   "btnLiveMultiplayerGames",
-   "labHeader"
+   "btnLiveMultiplayerGames"
   ],
   "canvas": {
    "w": 1120,
@@ -851,12 +812,10 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
    "labCurrentSettingText",
-   "labCurrentSetting",
-   "imgGameRatingIcon",
-   "labCurrentSettingTag"
+   "imgGameRatingIcon"
   ],
   "canvas": {
    "w": 640,
@@ -894,15 +853,13 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnFriends",
    "btnOnlinePresence",
    "btnProfileViewing",
    "btnProfileSharing",
    "btnCommunicationsVideo",
    "btnCommunications",
-   "btnNewFriendsRequests",
-   "labHeader"
+   "btnNewFriendsRequests"
   ],
   "canvas": {
    "w": 1120,
@@ -943,10 +900,8 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnPurchaseContent",
-   "btnViewUserContent",
-   "labHeader"
+   "btnViewUserContent"
   ],
   "canvas": {
    "w": 1120,
@@ -989,9 +944,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "listItems",
-   "metaPanelScene"
+   "listItems"
   ],
   "canvas": {
    "w": 1120,
@@ -1054,9 +1007,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labHeader"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -1081,14 +1032,8 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
-  "invisibleGroups": [
-   "labPurchasedContent",
-   "labPurchasedContentTag",
-   "labCustomContent",
-   "labCustomContentTag",
-   "labMetaHead"
-  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
   "canvas": {
    "w": 640,
    "h": 480
@@ -1113,14 +1058,8 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
-  "invisibleGroups": [
-   "labLiveXbox1",
-   "labLiveXbox1Tag",
-   "labLMPGames",
-   "labLMPGamesTag",
-   "labMetaHead"
-  ],
+  "invisibleAtRest": false,
+  "invisibleGroups": [],
   "canvas": {
    "w": 640,
    "h": 480
@@ -1164,11 +1103,8 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
-   "labHeader",
    "cntLoadingAnimation",
-   "lstSettings",
-   "labMetaHeader"
+   "lstSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -1199,10 +1135,8 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "labCurrentSettingText",
-   "labCurrentSetting",
    "labContent"
   ],
   "canvas": {
@@ -1246,12 +1180,10 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnDisabled",
    "btnFriends",
    "btnEnabled",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -1301,9 +1233,7 @@
   "invisibleGroups": [
    "btnDisabled",
    "btnEnabled",
-   "metaPanelScene",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -1353,9 +1283,7 @@
   "invisibleGroups": [
    "btnDisabled",
    "btnEnabled",
-   "metaPanelScene",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -1396,11 +1324,9 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
    "btnCodeOfConduct",
    "btnPrivacyStatement",
-   "btnTermsOfUse",
-   "labHeader"
+   "btnTermsOfUse"
   ],
   "canvas": {
    "w": 1120,
@@ -1472,8 +1398,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "scnButtonGrp",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -1506,8 +1431,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "botdArcadeAd",
-   "txt_Header",
-   "metaPanelScene",
    "scnFeaturedGamesContainer",
    "labFeaturedGames"
   ],
@@ -1540,10 +1463,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblText",
-   "lblTitle"
+   "lblText"
   ],
   "canvas": {
    "w": 345,
@@ -1569,10 +1491,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblText",
-   "lblTitle"
+   "lblText"
   ],
   "canvas": {
    "w": 345,
@@ -1598,10 +1519,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblText",
-   "lblTitle"
+   "lblText"
   ],
   "canvas": {
    "w": 345,
@@ -1627,10 +1547,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblText",
-   "lblTitle"
+   "lblText"
   ],
   "canvas": {
    "w": 345,
@@ -1656,10 +1575,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblText",
-   "lblTitle"
+   "lblText"
   ],
   "canvas": {
    "w": 345,
@@ -1693,11 +1611,10 @@
     "total": 7
    }
   ],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
    "lblText",
-   "ctrlLoading",
-   "lblTitle"
+   "ctrlLoading"
   ],
   "canvas": {
    "w": 345,
@@ -1757,9 +1674,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "figBackground",
-   "labTitle",
-   "lblTotals"
+   "figBackground"
   ],
   "canvas": {
    "w": 1120,
@@ -1826,7 +1741,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
    "labError",
    "labEmpty",
    "ctlWait",
@@ -1889,13 +1803,11 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
    "btnAction4",
    "btnAction3",
    "btnAction2",
    "btnAction1",
    "btnAction0",
-   "lblRatingText",
    "imgGameRating",
    "btnAction5",
    "ctlWait"
@@ -1962,14 +1874,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
    "youTileImage",
    "meTileImage",
-   "youGamertagText",
-   "youCredText",
-   "meCredText",
-   "totalPointsText",
-   "labMustPlayGame",
    "waitCursorControl"
   ],
   "canvas": {
@@ -2015,7 +1921,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
    "lblInfo",
    "grpRadio"
   ],
@@ -2078,10 +1983,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
-   "labEmpty",
-   "waitCursorControl",
-   "lblTotals"
+   "waitCursorControl"
   ],
   "canvas": {
    "w": 1120,
@@ -2132,10 +2034,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labTitle",
-   "labTellAFriend"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -2181,14 +2080,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labTitle",
-   "labGamerScore",
-   "labAchievementDesc",
-   "labAchievementName",
-   "labAcquiredDate",
-   "labMustPlayGame"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -2252,11 +2144,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "figBackground",
-   "labTitle",
-   "labScore",
-   "labEmpty",
-   "waitCursorControl",
-   "lblTotals"
+   "waitCursorControl"
   ],
   "canvas": {
    "w": 1120,
@@ -2554,10 +2442,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "label_Body",
-   "label_header"
+   "label_Body"
   ],
   "canvas": {
    "w": 345,
@@ -2646,10 +2533,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "label_Body",
-   "label_header"
+   "label_Body"
   ],
   "canvas": {
    "w": 345,
@@ -2788,9 +2674,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
-   "labHeader",
-   "labMetaHeader",
    "lstSettings"
   ],
   "canvas": {
@@ -2833,10 +2716,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnDigital",
-   "labHeader",
-   "metaPanelScene",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody",
    "btnSoundEffects"
   ],
@@ -2874,11 +2753,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
    "labBody",
-   "MetaPanelScene",
-   "labCurrentSettingsText",
-   "labCurrentSettings"
+   "MetaPanelScene"
   ],
   "canvas": {
    "w": 1120,
@@ -2909,11 +2785,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
    "labBody",
-   "MetaPanelScene",
-   "labCurrentSettingsText",
-   "labCurrentSettings"
+   "MetaPanelScene"
   ],
   "canvas": {
    "w": 1120,
@@ -2943,9 +2816,6 @@
   "invisibleGroups": [
    "btnOn",
    "btnOff",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -2976,9 +2846,6 @@
   "invisibleGroups": [
    "btnOn",
    "btnOff",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3019,11 +2886,7 @@
    "btnOption2",
    "btnOption3",
    "btnOption4",
-   "labHeader",
-   "metaPanelScene",
-   "labCurrentSettingsText",
-   "labMetaBody",
-   "labCurrentSettings"
+   "labMetaBody"
   ],
   "canvas": {
    "w": 1120,
@@ -3059,9 +2922,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3093,9 +2953,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3135,10 +2992,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labHeader",
-   "labHeader1"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -3167,10 +3021,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "lstTimezone",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3202,9 +3053,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "lstCountries",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3244,10 +3092,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "lstSettings",
-   "metaPanelScene",
-   "labHeader",
-   "labMetaHeader",
-   "labCurrentSetting",
    "scnCurrentFormat",
    "labDescription",
    "labAVPackInfo"
@@ -3293,11 +3137,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnNormal",
-   "btnWide",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
-   "metaPanelScene"
+   "btnWide"
   ],
   "canvas": {
    "w": 1120,
@@ -3333,9 +3173,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody",
    "labAVPackInfo"
   ],
@@ -3370,9 +3207,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -3412,9 +3246,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "lstLanguages",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody",
    "metaPanelScene"
   ],
@@ -3449,9 +3280,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody",
    "btnStandard",
    "btnIntermediate",
@@ -3491,8 +3319,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "metaPanelScene",
    "btnDone",
    "btnReset",
    "btnPass",
@@ -3502,15 +3328,10 @@
    "btnLiveA",
    "btnVideo",
    "btnGame",
-   "labMetaHeader",
-   "labVideoSummary",
    "imgIcon",
    "imgIcon1",
-   "labDoneSummary",
    "labCurrentSetting",
-   "imgIcon2",
-   "labCurrentSettingGame",
-   "labPEGIOnline"
+   "imgIcon2"
   ],
   "canvas": {
    "w": 1120,
@@ -3544,9 +3365,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody",
    "btnNo",
    "btnYes"
@@ -3612,7 +3430,6 @@
   "invisibleGroups": [
    "labMetaPanel",
    "radgrpFrequency",
-   "labHeader",
    "ScriptData1"
   ],
   "canvas": {
@@ -3659,9 +3476,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "imgCurrentSetting",
    "imgCurrentSetting1"
   ],
@@ -3697,9 +3511,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody",
    "btnYes",
    "btnNo"
@@ -3732,9 +3543,6 @@
   "invisibleGroups": [
    "btnYes",
    "btnNo",
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody"
   ],
   "canvas": {
@@ -3763,7 +3571,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
    "labPanelText"
   ],
   "canvas": {
@@ -3798,7 +3605,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
    "lstHintQ",
    "labStaticText"
   ],
@@ -3845,9 +3651,7 @@
   "invisibleGroups": [
    "btnConsole",
    "btnLive",
-   "metaPanelScene",
-   "cntLoadingAnimation",
-   "labHeader"
+   "cntLoadingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -3888,14 +3692,10 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "metaPanelScene",
    "btnExplicit",
    "btnTV",
    "btnMovie",
    "btnPlaceHolder",
-   "labMetaHeader",
-   "labCurrentSetting",
    "AdditionalCurrentSettings",
    "imgIcon",
    "imgIcon1",
@@ -3933,9 +3733,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody",
    "btnYes",
    "btnNo"
@@ -3977,10 +3774,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "lstRating",
-   "lblTabName",
-   "metaPanelScene",
-   "labMetaHeader",
-   "labCurrentSetting",
    "imgCurrentSetting"
   ],
   "canvas": {
@@ -4026,10 +3819,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "lstRating",
-   "lblTabName",
-   "metaPanelScene",
-   "labMetaHeader",
-   "labCurrentSetting",
    "imgCurrentSetting"
   ],
   "canvas": {
@@ -4064,9 +3853,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "lblTabName",
-   "labMetaHeader",
-   "labCurrentSetting",
    "labBody",
    "btnYes",
    "btnNo"
@@ -4127,9 +3913,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "lblHelpTitle"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -4158,9 +3942,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody",
    "listChannels"
   ],
@@ -4192,9 +3973,6 @@
   "invisibleGroups": [
    "btnOn",
    "btnOff",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -4233,10 +4011,6 @@
   "invisibleGroups": [
    "btnAutoOff",
    "btnBackgroundDownloads",
-   "metaPanelScene",
-   "labHeader",
-   "labMetaHeader",
-   "labCurrentSetting",
    "scnCurrentSetting",
    "labDescription"
   ],
@@ -4275,9 +4049,6 @@
    "btnDashboard",
    "btnMediaCenter",
    "btnIPTV",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -4318,10 +4089,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "VideoFeed",
-   "NoCameraTextField",
-   "FocusRing"
+   "VideoFeed"
   ],
   "canvas": {
    "w": 1120,
@@ -4407,9 +4175,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "btnMediaCenter",
-   "labHeader",
-   "metaPanelScene"
+   "btnMediaCenter"
   ],
   "canvas": {
    "w": 1120,
@@ -4442,7 +4208,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelDeviceType",
    "labelDeviceConnection",
    "labelDeviceName",
    "labelHelpText"
@@ -4475,8 +4240,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "btnRemoveAffiliation",
-   "labHeader"
+   "btnRemoveAffiliation"
   ],
   "canvas": {
    "w": 1120,
@@ -4649,8 +4413,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeader",
-   "labelPleaseWaitText",
    "labelPleaseWaitAnimation"
   ],
   "canvas": {
@@ -4693,9 +4455,6 @@
    "imgAchievements4",
    "labAchievementsText",
    "labAchievementsNum",
-   "labGamerPointsText",
-   "labGamerPointsNum",
-   "labGameTitle",
    "imgGameTile"
   ],
   "canvas": {
@@ -4811,11 +4570,6 @@
    "blade4_top_jewel",
    "blade4_top_face ",
    "blade_5_txt",
-   "blade_4_txt",
-   "blade_3_txt",
-   "blade_2_txt",
-   "blade_1_txt",
-   "blade_0_txt",
    "bootshadowLT",
    "bootshadowRT",
    "bootburst3",
@@ -5041,9 +4795,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "XuiLabel1",
-   "XuiLabel2",
    "XuiLabel3"
   ],
   "canvas": {
@@ -5074,7 +4826,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "labBody"
   ],
   "canvas": {
@@ -5105,7 +4856,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "labBody"
   ],
   "canvas": {
@@ -5136,10 +4886,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labURL",
-   "txt_Header",
-   "XuiLabel1",
-   "XuiLabel3"
+   "XuiLabel1"
   ],
   "canvas": {
    "w": 1120,
@@ -5169,9 +4916,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labKey",
-   "labBody",
-   "txt_Header"
+   "labBody"
   ],
   "canvas": {
    "w": 1120,
@@ -5209,9 +4954,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labWaitingText",
-   "LoaderAnimation",
-   "txt_Header"
+   "LoaderAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -5241,8 +4984,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labBody",
-   "txt_Header"
+   "labBody"
   ],
   "canvas": {
    "w": 1120,
@@ -5272,8 +5014,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labBody",
-   "txt_Header"
+   "labBody"
   ],
   "canvas": {
    "w": 1120,
@@ -5311,9 +5052,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labWaitingText",
-   "LoaderAnimation",
-   "txt_Header"
+   "LoaderAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -5344,7 +5083,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnTroubleshooter",
-   "txt_Header",
    "labBody"
   ],
   "canvas": {
@@ -5383,9 +5121,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labWaitingText",
-   "LoaderAnimation",
-   "txt_Header"
+   "LoaderAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -5415,8 +5151,7 @@
   "invisibleGroups": [
    "btnNetworkSettings",
    "btnConnection",
-   "labBody",
-   "txt_Header"
+   "labBody"
   ],
   "canvas": {
    "w": 1120,
@@ -5446,7 +5181,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "labBody"
   ],
   "canvas": {
@@ -5479,8 +5213,7 @@
   "invisibleGroups": [
    "btnNetworkSettings",
    "btnConnect",
-   "labBody",
-   "txt_Header"
+   "labBody"
   ],
   "canvas": {
    "w": 1120,
@@ -5509,9 +5242,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "txt_Action"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 720,
    "h": 480
@@ -5537,9 +5268,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labAlertMessage"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 720,
    "h": 480
@@ -5567,12 +5296,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "txt_Title",
-   "txt_Chapter",
-   "txt_TimeLeft",
-   "txt_RunningTime"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 720,
    "h": 480
@@ -5599,7 +5323,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Action",
    "legend_b"
   ],
   "canvas": {
@@ -5631,8 +5354,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "legend_b",
-   "txt_Action"
+   "legend_b"
   ],
   "canvas": {
    "w": 720,
@@ -5662,9 +5384,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "XuiLabel1"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 720,
    "h": 480
@@ -5747,8 +5467,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_TimeLeft",
-   "txt_RunningTime",
    "prgbr_Buffer",
    "prgbr_Playback"
   ],
@@ -5778,8 +5496,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "legend_b",
-   "txt_Action"
+   "legend_b"
   ],
   "canvas": {
    "w": 720,
@@ -5924,8 +5641,6 @@
    "btnViewAchievements",
    "btnManageGameFiles",
    "btnBrowseDownloads",
-   "labHeader",
-   "labGameTitle",
    "imgGameIcon",
    "labRecentAchievementsText",
    "imgAchievements1",
@@ -5933,10 +5648,7 @@
    "imgAchievements3",
    "imgAchievements4",
    "labAchievementsText",
-   "labAchievementsNum",
-   "labGamerPointsText",
-   "labGamerPointsNum",
-   "labGameSummaryTitle"
+   "labGamerPointsText"
   ],
   "canvas": {
    "w": 1120,
@@ -5991,13 +5703,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "labAchievementName",
-   "labAcquiredDate",
-   "labPoints",
-   "ctlLoading",
-   "labEmpty",
-   "labGameTitle"
+   "ctlLoading"
   ],
   "canvas": {
    "w": 1120,
@@ -6054,9 +5760,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "ctlLoading",
-   "labEmpty"
+   "ctlLoading"
   ],
   "canvas": {
    "w": 1120,
@@ -6219,10 +5923,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "botdBillboard",
-   "scnNoProfiles"
+   "botdBillboard"
   ],
   "canvas": {
    "w": 345,
@@ -6356,7 +6059,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labFoundProfiles",
    "labSignInText",
    "Arrow_Down",
    "Arrow_Up",
@@ -6402,13 +6104,9 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
-   "labHeader",
-   "labMetaHeader",
    "btnTVStorage",
    "btnSysInfo",
    "btnUninstall",
-   "labCurrentSettings",
    "labMetaBody",
    "labMetaBodyFull",
    "labMetaBodyDVR"
@@ -6454,13 +6152,9 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "labFree",
    "labDescription",
    "labDvrStorageTitle",
-   "labXboxStorageTitle",
    "labDvrStorage",
-   "labXboxStorage",
    "labHoursSd",
    "labHoursHd",
    "spnSave"
@@ -6499,13 +6193,9 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "btnUninstall",
-   "labFree",
    "labDirections",
    "labUninstall",
-   "labServiceName",
-   "labSupportInfo",
    "labDots"
   ],
   "canvas": {
@@ -6638,7 +6328,6 @@
    "btn_AdBanner",
    "botdBillboard",
    "TitleMetedata",
-   "labFoundProfiles",
    "labSignInText",
    "Arrow_Down",
    "Arrow_Up",
@@ -6730,10 +6419,9 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "botdBillboard",
-   "scnNoProfiles"
+   "botdBillboard"
   ],
   "canvas": {
    "w": 345,
@@ -7013,7 +6701,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labFoundProfiles",
    "labSignInText",
    "Arrow_Down",
    "Arrow_Up",
@@ -7075,7 +6762,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labFoundProfiles",
    "labSignInText",
    "Arrow_Down",
    "Arrow_Up",
@@ -7130,11 +6816,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labHeader",
-   "labTotal",
-   "labFree"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -7166,7 +6848,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnDelete",
-   "labelHeading",
    "txt_Directions",
    "labBody2",
    "labBody1"
@@ -7200,14 +6881,6 @@
    "btnRename",
    "btnFormat",
    "btnTVStorage",
-   "labHeader",
-   "labMetaHead",
-   "labSizeText",
-   "labSize",
-   "labFreeSpaceText",
-   "labFreeSpace",
-   "labDVRSpaceText",
-   "labDVRSpace",
    "labDevice",
    "XuiLabel1"
   ],
@@ -7265,10 +6938,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeading",
    "txt_Directions",
-   "labTotal",
-   "txt_EmptyList",
    "labDots"
   ],
   "canvas": {
@@ -7311,8 +6981,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnDefaultFocus",
-   "txt_Header",
-   "txt_Enumerating",
    "labDots"
   ],
   "canvas": {
@@ -7349,7 +7017,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "txtMessage"
   ],
   "canvas": {
@@ -7380,16 +7047,8 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_MetaSubHead",
-   "txt_Size",
-   "txt_Header",
-   "txt_MetaHead",
-   "txt_SizeHead",
    "listOptions",
-   "image_thumbnail",
-   "txt_Device",
-   "txt_DeviceHead",
-   "labFree"
+   "image_thumbnail"
   ],
   "canvas": {
    "w": 1120,
@@ -7445,12 +7104,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_SelectProfile",
-   "txt_Header",
-   "txt_EmptyList",
-   "labTotal",
-   "labDots",
-   "labFree"
+   "labDots"
   ],
   "canvas": {
    "w": 1120,
@@ -7489,12 +7143,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listOptions",
-   "labHeader",
-   "labMetaHead",
-   "labSizeText",
-   "labSize",
-   "labFreeSpaceText",
-   "labFreeSpace",
    "labDevice"
   ],
   "canvas": {
@@ -7528,19 +7176,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "txt_OwnerInfo",
-   "txt_MetaSubHead",
-   "txt_Owner",
-   "txt_OwnerHead",
-   "txt_Size",
-   "txt_Header",
-   "txt_MetaHead",
-   "txt_SizeHead",
    "listOptions",
-   "image_thumbnail",
-   "txt_NumberOfItems",
-   "txt_Device",
-   "txt_DeviceHead",
-   "labFree"
+   "image_thumbnail"
   ],
   "canvas": {
    "w": 1120,
@@ -7596,12 +7233,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_SelectProfile",
-   "txt_Header",
-   "txt_EmptyList",
-   "labTotal",
-   "labDots",
-   "labFree"
+   "labDots"
   ],
   "canvas": {
    "w": 1120,
@@ -7662,14 +7294,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_SelectProfile",
-   "txt_Header",
-   "txt_EmptyList",
-   "labTotal",
    "labDots",
-   "labFree",
-   "labSpaceRequired",
-   "XuiText1",
    "img_error",
    "img_check"
   ],
@@ -7733,12 +7358,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_SelectProfile",
-   "txt_Header",
-   "txt_EmptyList",
-   "labTotal",
-   "labDots",
-   "labFree"
+   "labDots"
   ],
   "canvas": {
    "w": 1120,
@@ -7834,7 +7454,6 @@
   "invisibleGroups": [
    "temp_bg",
    "ico_DeviceIcon",
-   "txt_Header",
    "txt_MetaHead"
   ],
   "canvas": {
@@ -7881,7 +7500,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "cntLoadingAnimation",
-   "labHeader",
    "labGamertagCount"
   ],
   "canvas": {
@@ -7948,11 +7566,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "cntLoadingAnimation",
-   "labHeader",
    "listFriendRequestRecipients",
    "gamerCard",
-   "XuiLabel1",
-   "XuiLabel2",
    "labSending"
   ],
   "canvas": {
@@ -7993,7 +7608,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "headerText",
    "statusText",
    "staticWarningText",
    "focusEater",
@@ -8040,7 +7654,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "cntLoadingAnimation",
    "labInfo",
    "labInfo1"
@@ -8088,7 +7701,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "cntLoadingAnimation",
    "labInfo"
   ],
@@ -8144,8 +7756,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "cntLoadingAnimation",
-   "labHeader",
-   "TextBox1",
    "labSendingRequests"
   ],
   "canvas": {
@@ -8183,10 +7793,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labelHeader",
-   "metaPanelScene"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -8244,8 +7851,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelItemCount",
-   "labelLoadingText",
    "labelLoadingAnimation",
    "labelNoResultsText"
   ],
@@ -8304,8 +7909,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelItemCount",
-   "labelLoadingText",
    "labelLoadingAnimation",
    "labelNoResultsText"
   ],
@@ -8341,8 +7944,6 @@
   "invisibleGroups": [
    "btnPlayAll",
    "btnQueueAll",
-   "labelHeader",
-   "labelDeviceName",
    "labelInfo"
   ],
   "canvas": {
@@ -8383,10 +7984,8 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeader",
    "sceneSongListContainer",
    "listOptions",
-   "labelAsyncWorkText",
    "labelAsyncWorkAnimation"
   ],
   "canvas": {
@@ -8417,7 +8016,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeader",
    "sceneAlbumListContainer",
    "listOptions"
   ],
@@ -8457,10 +8055,8 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeader",
    "sceneSongMetadataContainer",
    "listOptions",
-   "labelAsyncWorkText",
    "labelAsyncWorkAnimation"
   ],
   "canvas": {
@@ -8508,8 +8104,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "listSongs",
-   "labelCDName",
-   "labelSongCount",
    "XuiLabel1"
   ],
   "canvas": {
@@ -8564,12 +8158,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "graphic_Loading",
-   "labelSelectedTrack",
-   "labelCDName",
-   "labelTitle",
-   "labelOperation",
-   "labelEditPrompt",
-   "labelStatus",
    "btnDone"
   ],
   "canvas": {
@@ -8600,11 +8188,10 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
    "XuiNavButton1",
-   "XuiNavButton2",
-   "XuiText"
+   "XuiNavButton2"
   ],
   "canvas": {
    "w": 1120,
@@ -8630,11 +8217,10 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
    "XuiNavButton1",
-   "XuiNavButton2",
-   "XuiText2"
+   "XuiNavButton2"
   ],
   "canvas": {
    "w": 1120,
@@ -8670,13 +8256,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "labelItemName",
    "labelEditPrompt",
-   "artistHeader",
-   "genreHeader",
-   "labelArtist",
-   "labelGenre",
    "labelAlbum"
   ],
   "canvas": {
@@ -8708,15 +8288,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
-   "labelItemName",
-   "labelEditPrompt",
-   "artistHeader",
-   "albumHeader",
-   "GenreHeader",
-   "labelArtist",
-   "labelAlbum",
-   "labelGenre"
+   "labelEditPrompt"
   ],
   "canvas": {
    "w": 1120,
@@ -8777,19 +8349,13 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnVisualizer",
-   "labelHeader",
-   "labelSongTitle",
    "labelAlbumName",
-   "labelArtistName",
-   "labelSongCount",
    "bgBox",
    "imageAlbumArt",
    "btnVisCyclopsPrevious",
    "XuiImage1",
-   "labelAsyncWorkText",
    "labelAsyncWorkAnimation",
-   "btnVisCyclopsNext",
-   "labelElapsedTime"
+   "btnVisCyclopsNext"
   ],
   "canvas": {
    "w": 1120,
@@ -8842,8 +8408,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelSongCount",
-   "labelHeader",
    "listOptions"
   ],
   "canvas": {
@@ -8874,11 +8438,10 @@
   "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
    "XuiNavButton1",
-   "XuiNavButton2",
-   "XuiText2"
+   "XuiNavButton2"
   ],
   "canvas": {
    "w": 1120,
@@ -8931,10 +8494,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labelHeader",
-   "labelAsyncWorkText",
    "labelAsyncWorkAnimation",
-   "labelItemCount",
    "sceneControlContainer",
    "labelNoResultsText"
   ],
@@ -9026,15 +8586,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labelSongName",
-   "labelArtistName",
-   "labelAlbumName",
-   "labelGenre",
-   "XuiLabel1",
-   "XuiLabel2",
-   "XuiLabel3"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 640,
    "h": 480
@@ -9080,10 +8632,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "txt_Meta",
-   "txt_Header"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -9119,9 +8668,7 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "list_items",
-   "txt_Header",
-   "txt_MetaBody"
+   "list_items"
   ],
   "canvas": {
    "w": 1120,
@@ -9151,9 +8698,7 @@
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "txt_Header"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -9188,9 +8733,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btn_Activate",
-   "btn_Cancel",
-   "txt_Header",
-   "txt_Body"
+   "btn_Cancel"
   ],
   "canvas": {
    "w": 1120,
@@ -9219,16 +8762,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btn_Review",
-   "scnTestItem7",
-   "scnTestItem5",
-   "scnTestItem4",
-   "scnTestItem3",
-   "scnTestItem2",
    "scnTestItem1",
-   "scnTestItem0",
-   "txt_Header",
-   "labNatType",
-   "labDeviceType"
+   "scnTestItem0"
   ],
   "canvas": {
    "w": 1120,
@@ -9258,14 +8793,9 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "btn_Review",
-   "scnTestItem4",
-   "scnTestItem3",
-   "scnTestItem2",
    "scnTestItem1",
-   "scnTestItem0",
-   "labDeviceType"
+   "scnTestItem0"
   ],
   "canvas": {
    "w": 1120,
@@ -9331,8 +8861,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "cntlLoader",
-   "txt_Header"
+   "cntlLoader"
   ],
   "canvas": {
    "w": 1120,
@@ -9398,7 +8927,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "labSubHeader",
    "ctlLoading"
   ],
@@ -9458,9 +8986,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "txt_Header"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -9498,11 +9024,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_MetaBody",
-   "txt_Header",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9560,11 +9082,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "metaPanelScene",
-   "txt_MetaBody",
-   "txt_Header",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9623,7 +9141,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Header",
    "ctlLoading"
   ],
   "canvas": {
@@ -9670,11 +9187,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9718,11 +9231,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_MetaBody",
-   "txt_Header",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9767,11 +9276,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9815,11 +9320,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9855,8 +9356,7 @@
    "btn_SaveTest",
    "btn_Save",
    "btn_Cancel",
-   "txt_MetaBody",
-   "txt_Header"
+   "txt_MetaBody"
   ],
   "canvas": {
    "w": 1120,
@@ -9886,9 +9386,7 @@
   "invisibleGroups": [
    "btn_Overwrite",
    "btn_Create",
-   "btn_Cancel",
-   "txt_MetaBody",
-   "txt_Header"
+   "btn_Cancel"
   ],
   "canvas": {
    "w": 1120,
@@ -9927,11 +9425,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -9975,11 +9469,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -10024,11 +9514,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "txt_CurrentSettings"
   ],
   "canvas": {
    "w": 1120,
@@ -10080,13 +9566,8 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
    "label_EthernetMAC_Title",
-   "label_EthernetMAC_Value",
-   "txt_MetaBody",
-   "txt_CurrentSettings",
-   "txt_MetaHead"
+   "label_EthernetMAC_Value"
   ],
   "canvas": {
    "w": 1120,
@@ -10130,10 +9611,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "list_items",
-   "metaPanelScene",
-   "txt_Header",
-   "txt_MetaBody",
-   "txt_MetaHead",
    "txt_CurrentSettings"
   ],
   "canvas": {
@@ -10177,9 +9654,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_SSID",
-   "txt_Link",
-   "txt_Act",
    "img_Link_Disconnected",
    "img_inAct",
    "img_Signal0",
@@ -10362,10 +9836,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "tp_WelcomeText",
-   "metaPanelScene",
-   "lstCountries",
-   "labHeader"
+   "lstCountries"
   ],
   "canvas": {
    "w": 1120,
@@ -10424,10 +9895,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "labActionText",
-   "labHeader"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
@@ -10467,10 +9935,7 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "tp_WelcomeText",
-   "metaPanelScene",
-   "lstLanguages",
-   "labHeader"
+   "lstLanguages"
   ],
   "canvas": {
    "w": 1120,
@@ -10507,9 +9972,6 @@
   "invisibleGroups": [
    "btnAdjust",
    "btnKeep",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -10553,7 +10015,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "btnPlaceholder"
   ],
   "canvas": {
@@ -10594,7 +10055,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "txt_Enumerating",
    "labDots"
   ],
   "canvas": {
@@ -10625,9 +10085,6 @@
   "invisibleGroups": [
    "btnAdjust",
    "btnKeep",
-   "labHeader",
-   "labCurrentSettingsText",
-   "labCurrentSettings",
    "labMetaBody"
   ],
   "canvas": {
@@ -10657,10 +10114,7 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "btnDone",
-   "btnDontHave",
-   "labHeader",
-   "labActionText",
-   "labMetaBody"
+   "btnDontHave"
   ],
   "canvas": {
    "w": 1120,
@@ -10690,7 +10144,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "ctlVideo"
   ],
   "canvas": {
@@ -10738,7 +10191,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "btnSafety",
    "btnOptimize",
    "btnDashboard",
@@ -10799,7 +10251,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "btnSafety",
    "btnOptimize",
    "btnPlayVideo",
@@ -10867,14 +10318,11 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "Header_Text",
    "btnPlay",
    "nowPlayingMini",
    "List",
-   "labelHighlightedOfTotal",
    "imgIcon",
-   "labelWaitingAnimation",
-   "labelMessage"
+   "labelWaitingAnimation"
   ],
   "canvas": {
    "w": 1120,
@@ -10949,7 +10397,6 @@
   "invisibleGroups": [
    "noFamilySettingsGroup",
    "familySettingsGroup",
-   "headerText",
    "bodyText",
    "gamercardControl",
    "staticText"
@@ -10986,9 +10433,8 @@
     "total": 7
    }
   ],
-  "invisibleAtRest": true,
+  "invisibleAtRest": false,
   "invisibleGroups": [
-   "statusText",
    "waitCursorControl",
    "backButton"
   ],
@@ -11038,7 +10484,6 @@
   "invisibleGroups": [
    "btnRightShoulder",
    "btnLeftShoulder",
-   "labConnecting",
    "labDots",
    "figInactiveRemote",
    "txtGamerTimeRemote",
@@ -11049,7 +10494,6 @@
    "imgIconLocal",
    "ctlRemoteVideoStream",
    "ctlLocalVideoStream",
-   "labHeader",
    "metapaneLocal",
    "metapaneRemote",
    "figHeaderLocal",
@@ -11062,11 +10506,8 @@
    "txtHelper",
    "ctlGamerCardRemote",
    "ctlGamerCardLocal",
-   "InviteRemote",
    "txtStatusTimeRemote",
-   "txtInfoRemote",
    "txtStatusTimeLocal",
-   "txtInfoLocal",
    "statusPanelRemote",
    "statusPanelLocal",
    "labDots_Invite"
@@ -11200,7 +10641,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "labError",
    "labEmpty",
    "data",
@@ -11278,7 +10718,6 @@
   ],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "labError",
    "labEmpty",
    "data",
@@ -11330,7 +10769,6 @@
   "invisibleAtRest": false,
   "invisibleGroups": [
    "grpSuggested",
-   "labHeader",
    "data",
    "labEmpty",
    "ctlWait"
@@ -11376,7 +10814,6 @@
   "codeDrivenStates": [],
   "invisibleAtRest": false,
   "invisibleGroups": [
-   "labHeader",
    "data",
    "btnRestart",
    "btnResume"
@@ -11437,9 +10874,7 @@
    }
   ],
   "invisibleAtRest": false,
-  "invisibleGroups": [
-   "lblTitle"
-  ],
+  "invisibleGroups": [],
   "canvas": {
    "w": 1120,
    "h": 770
