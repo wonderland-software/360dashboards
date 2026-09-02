@@ -90,6 +90,7 @@ export class BladeShell {
     );
     await shell.parentPanels();
     shell.applyIptv();
+    shell.applySignInState();
     bindTimelines(opts.nodes, opts.engine);
     shell.seekRest();
     shell.updateContentPanelVisual();
@@ -165,6 +166,25 @@ export class BladeShell {
     }
     for (const node of this.nodes.byId.get('navSystemSetUp') ?? []) {
       node.overrides.set('NavDown', '');
+    }
+  }
+
+  /**
+   * With no profile the console draws the Y and X legend glyphs desaturated
+   * and with NO caption: "Sign Out" only means anything once someone is signed
+   * in, and sign-in state is code-driven, not in the scene. The scene ships the
+   * caption because the signed-in case is the common one, so we clear it in the
+   * state the footage is actually in. Recorded in PLACEHOLDERS as Live/profile
+   * dependent.
+   */
+  applySignInState(): void {
+    if (this.state.signedIn) return;
+    for (const id of ['legend_x', 'legend_y']) {
+      for (const node of this.nodes.byId.get(id) ?? []) {
+        node.overrides.set('Text', '');
+        node.overrides.set('Enabled', false);
+        updateNode(node, ['Text', 'Enabled', 'Visual']);
+      }
     }
   }
 

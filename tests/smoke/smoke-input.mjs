@@ -19,6 +19,8 @@ const SCENE = 'consoles/dashSysCslSet.xur';
 const ROW_PITCH = 45;
 const ROW_TOP = 0;
 
+const XY_HELPER = `window.__xy = ${xyOf.toString()}`;
+
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); };
 
@@ -36,7 +38,7 @@ try {
 
   const rows = await page.p.evaluate(() =>
     [...document.querySelectorAll('[data-xui-class="XuiListItem"]')].map((el) => ({
-      id: el.dataset.xuiId, transform: el.style.transform, text: el.textContent,
+      id: el.dataset.xuiId, xy: window.__xy(el), text: el.textContent,
     })));
   // Eleven rows, in the order of the 11-entry code table at VA 0x920143d0 -
   // NOT the scene's own 9-entry PanelSettings, which names no control that
@@ -46,13 +48,13 @@ try {
     'Startup', 'Shutdown', 'Screen Saver', 'Remote Control', 'System Info'];
   rows.forEach((r, k) => {
     check(r.text === LABELS[k], `row ${k} is "${r.text}", expected "${LABELS[k]}"`);
-    const want = `translate(0px, ${ROW_TOP + ROW_PITCH * k}px)`;
-    check(r.transform === want, `row ${k} at ${r.transform}, expected ${want}`);
+    const want = `0,${ROW_TOP + ROW_PITCH * k}`;
+    check(r.xy === want, `row ${k} at ${r.xy}, expected ${want}`);
   });
 
   const ends = await page.p.evaluate(() =>
     [...document.querySelectorAll('[data-xui-class="XuiScrollEnd"]')].map((el) => ({
-      id: el.dataset.xuiId, transform: el.style.transform, visibility: el.style.visibility,
+      id: el.dataset.xuiId, xy: window.__xy(el), visibility: el.style.visibility,
     })));
   check(ends.length === 2, `expected both ScrollEnds from the XuiList template, got ${ends.length}`);
   const down = ends.find((e) => e.id === 'control_ScrollDown');
@@ -60,7 +62,7 @@ try {
   // 10 rows in a 435-tall list shows 9, so there is more below and nothing above.
   check(down?.visibility === 'visible', 'the down arrow must show while rows sit below the fold');
   check(up?.visibility === 'hidden', 'the up arrow must be hidden at the top of the list');
-  check(down?.transform === 'translate(386px, 409px)', `down arrow at ${down?.transform} (Anchor 12 from a 420x74 template into a 423x435 list)`);
+  check(down?.xy === '386,409', `down arrow at ${down?.xy} (Anchor 12 from a 420x74 template into a 423x435 list)`);
 
   /* --------------------------------------------------------- focus and cues */
 
@@ -183,6 +185,7 @@ console.log('SMOKE_PASS');
 
 async function open(browser, url) {
   const p = await browser.newPage();
+  await p.evaluateOnNewDocument(XY_HELPER);
   await p.setViewport({ width: 1120, height: 770, deviceScaleFactor: 1 });
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
@@ -200,4 +203,17 @@ function scope(p, tail) {
       range: s.range ? s.range.join('..') : null,
     } : null;
   }, tail);
+}
+
+/**
+ * An element's position in design units, whichever CSS property carries it:
+ * a plain container is placed with left/top so it does not create a stacking
+ * context (which would isolate mix-blend-mode), and only a rotated or scaled
+ * element gets a transform.
+ */
+function xyOf(el) {
+  const t = el.style.transform;
+  const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(t);
+  if (m) return `${Math.round(+m[1])},${Math.round(+m[2])}`;
+  return `${Math.round(parseFloat(el.style.left) || 0)},${Math.round(parseFloat(el.style.top) || 0)}`;
 }

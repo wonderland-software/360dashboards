@@ -1423,9 +1423,7 @@
   "deviceFiles": [],
   "sceneTextures": [],
   "unknownTextStyleBits": [],
-  "unverifiedBlendModes": [
-   2
-  ],
+  "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [],
   "invisibleAtRest": false,
@@ -1704,9 +1702,7 @@
   "deviceFiles": [],
   "sceneTextures": [],
   "unknownTextStyleBits": [],
-  "unverifiedBlendModes": [
-   2
-  ],
+  "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [
    {
@@ -4523,8 +4519,7 @@
   "unverifiedBlendModes": [
    4,
    3,
-   5,
-   2
+   5
   ],
   "blendIsolated": [
    "ringd under Ripple",
@@ -4619,8 +4614,7 @@
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [
    3,
-   4,
-   2
+   4
   ],
   "blendIsolated": [],
   "codeDrivenStates": [],
@@ -4650,7 +4644,6 @@
   "unverifiedBlendModes": [
    3,
    4,
-   2,
    5
   ],
   "blendIsolated": [],
@@ -4693,7 +4686,6 @@
   "unknownTextStyleBits": [],
   "unverifiedBlendModes": [
    4,
-   2,
    5,
    3
   ],
@@ -10621,9 +10613,7 @@
   "deviceFiles": [],
   "sceneTextures": [],
   "unknownTextStyleBits": [],
-  "unverifiedBlendModes": [
-   2
-  ],
+  "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [
    {
@@ -10762,9 +10752,7 @@
   "deviceFiles": [],
   "sceneTextures": [],
   "unknownTextStyleBits": [],
-  "unverifiedBlendModes": [
-   2
-  ],
+  "unverifiedBlendModes": [],
   "blendIsolated": [],
   "codeDrivenStates": [
    {

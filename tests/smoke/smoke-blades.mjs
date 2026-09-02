@@ -30,6 +30,8 @@ const PANELS = {
   4: 'mediabla/mediaSignedOut.xur',
 };
 
+const XY_HELPER = `window.__xy = ${xyOf.toString()}`;
+
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); };
 
@@ -93,7 +95,7 @@ try {
   const rows = await sys.p.evaluate(() =>
     [...document.querySelectorAll('[data-xui-class="XuiNavButton"]')]
       .filter((e) => e.dataset.xuiId?.startsWith('nav') && e.closest('[data-xui-id="System"]'))
-      .map((e) => ({ id: e.dataset.xuiId, hidden: e.style.display === 'none', transform: e.style.transform })));
+      .map((e) => ({ id: e.dataset.xuiId, hidden: e.style.display === 'none', xy: window.__xy(e) })));
   check(rows.length === 8, `the System blade authors 8 nav buttons, found ${rows.length}`);
   const shown = rows.filter((r) => !r.hidden);
   check(shown.length === 7, `offline the footage shows 7 rows, got ${shown.length}`);
@@ -103,8 +105,7 @@ try {
   for (const r of rows) {
     const k = ['navSettings', 'navPControls', 'navMemory', 'navNetwork', 'navWindowMediaConnect',
       'navLiveVision', 'navSystemSetUp', 'navIPTVSettings'].indexOf(r.id);
-    check(r.transform === `translate(297px, ${153 + 45 * k}px)`,
-      `${r.id} at ${r.transform}, expected translate(297px, ${153 + 45 * k}px)`);
+    check(r.xy === `297,${153 + 45 * k}`, `${r.id} at ${r.xy}, expected 297,${153 + 45 * k}`);
   }
   await sys.close();
 
@@ -167,6 +168,7 @@ console.log('SMOKE_PASS');
 
 async function open(browser, url) {
   const p = await browser.newPage();
+  await p.evaluateOnNewDocument(XY_HELPER);
   await p.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
@@ -192,4 +194,17 @@ function pageLeft(p) {
     const el = document.querySelector('[data-xui-id="content_panel_blink"]');
     return el ? Math.round(el.getBoundingClientRect().left) : -1;
   });
+}
+
+/**
+ * An element's position in design units, whichever CSS property carries it:
+ * a plain container is placed with left/top so it does not create a stacking
+ * context (which would isolate mix-blend-mode), and only a rotated or scaled
+ * element gets a transform.
+ */
+function xyOf(el) {
+  const t = el.style.transform;
+  const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(t);
+  if (m) return `${Math.round(+m[1])},${Math.round(+m[2])}`;
+  return `${Math.round(parseFloat(el.style.left) || 0)},${Math.round(parseFloat(el.style.top) || 0)}`;
 }

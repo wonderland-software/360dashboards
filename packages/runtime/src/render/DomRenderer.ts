@@ -275,15 +275,33 @@ function appendChildren(
 
 /** The element container's whole style string. Shared by the first render and
  *  by update.ts so an animated element cannot drift from a static one. */
+/**
+ * A plain container is positioned with left/top, NOT with a transform.
+ *
+ * This matters for blending, not for geometry. `transform` creates a stacking
+ * context, and an element's `mix-blend-mode` only ever blends within its
+ * nearest one - so while every element carried a transform, dashmain's
+ * `black_cover/top` (an opaque grey-to-white rectangle over the top 282 design
+ * px at BlendMode 2) blended against its own group's empty backdrop instead of
+ * against the blade behind it. Sweeping thirteen candidate mappings moved the
+ * pixels by exactly nothing, which is how the isolation was found.
+ *
+ * So the transform is emitted only when there is a real rotation or scale to
+ * apply; a rotated or scaled element still isolates, and so does one with
+ * opacity < 1, both of which are counted in __dash.blendIsolated.
+ */
 export function containerCss(p: PropBag, rect: Rect, blend: number): string {
   const pivot = p.vec('Pivot', E.DEFAULT_PIVOT);
   const scale = p.vec('Scale', E.DEFAULT_SCALE);
   const opacity = p.num('Opacity', E.DEFAULT_OPACITY);
+  const t = transform(rect, p, scale);
   return [
-    'position:absolute', 'left:0', 'top:0',
+    'position:absolute',
+    t === null ? `left:${fmt(rect.x)}px` : 'left:0',
+    t === null ? `top:${fmt(rect.y)}px` : 'top:0',
     `width:${fmt(rect.w)}px`, `height:${fmt(rect.h)}px`,
-    `transform-origin:${fmt(pivot.x)}px ${fmt(pivot.y)}px`,
-    `transform:${transform(rect, p, scale)}`,
+    t === null ? '' : `transform-origin:${fmt(pivot.x)}px ${fmt(pivot.y)}px`,
+    t === null ? '' : `transform:${t}`,
     opacity === 1 ? '' : `opacity:${opacity}`,
     p.bool('Show', true) ? '' : 'display:none',
     p.bool('ClipChildren', false) ? 'overflow:hidden' : '',
@@ -309,8 +327,10 @@ export function contentFor(
 
 export type { Owner };
 
-function transform(rect: Rect, p: PropBag, scale: { x: number; y: number; z: number }): string {
+/** Null when a plain left/top will do - see containerCss. */
+function transform(rect: Rect, p: PropBag, scale: { x: number; y: number; z: number }): string | null {
   const parts = [`translate(${fmt(rect.x)}px, ${fmt(rect.y)}px)`];
+  let needed = false;
   const q = p.quat('Rotation');
   if (q) {
     // A quaternion in a y-down screen space maps straight onto CSS rotate3d,
@@ -320,10 +340,11 @@ function transform(rect: Rect, p: PropBag, scale: { x: number; y: number; z: num
     const angle = 2 * Math.atan2(len, q.w);
     if (len > 1e-6 && Math.abs(angle) > 1e-6) {
       parts.push(`rotate3d(${fmt(q.x / len)}, ${fmt(q.y / len)}, ${fmt(q.z / len)}, ${fmt((angle * 180) / Math.PI)}deg)`);
+      needed = true;
     }
   }
-  if (scale.x !== 1 || scale.y !== 1) parts.push(`scale(${fmt(scale.x)}, ${fmt(scale.y)})`);
-  return parts.join(' ');
+  if (scale.x !== 1 || scale.y !== 1) { parts.push(`scale(${fmt(scale.x)}, ${fmt(scale.y)})`); needed = true; }
+  return needed ? parts.join(' ') : null;
 }
 
 function blendCss(mode: number): string {

@@ -252,42 +252,77 @@ export const KNOWN_SIZE_MODES: readonly number[] = [0, 1, 2, 4, 8, 16];
 /* ----------------------------------------------------------------- BlendMode */
 
 /**
- * XuiElement.BlendMode is an ENUM, not flags. DOCUMENTED: 1 = NORMAL (ordinary
- * alpha). Corpus: 1 x258, 4 x32, 2 x22, 5 x18, 3 x6.
+ * XuiElement.BlendMode is an ENUM, not flags. DOCUMENTED: 1 = NORMAL.
+ * Corpus: 1 x258, 4 x32, 2 x22, 5 x18, 3 x6.
  *
- * 2..5 are UNVERIFIED. An earlier note here claimed they only occur in
- * dashmain.xur and the blade skins; that was WRONG and the gallery sweep shows
- * it - BlendMode 2 is in arcade/2500_LiveArcadeHome, arcade/2502_TwistSelector
- * Scene, videos/VideoCategories and videos/VideoDetails, and BlendMode 5 is in
- * gamercar/GamerCard, messenge/FriendRequestMain and messenge/SignupComplete.
+ * MODE 2 IS MEASURED = multiply. dashmain's black_cover/top is an OPAQUE
+ * grey-to-white rectangle (gradient 200,200,200 -> 255,255,255) covering the
+ * top 282 design px of the whole canvas at BlendMode 2, so it is a large,
+ * high-contrast oracle. Sweeping thirteen CSS blend modes and comparing the
+ * top band of our 1920x1080 console-view render against f0051 and f0034:
  *
- * Settling them needs a reference frame showing one of those screens, or the
- * blade composition (the elements that carry 2 and 4 in dashmain sit on tabs
- * that are Opacity 0 at rest, so nothing to compare against yet). Until then
- * the mapping below is a guess, the raw value goes to data-xui-blendmode, and
- * every use is counted in __dash.unverifiedBlendModes.
+ *   candidate      f0051 ncc / mad     f0034 ncc / mad
+ *   multiply       0.5006 / 37.12      0.3239 / 44.37    <- best colour error, both
+ *   darken         0.5014 / 38.50      0.3169 / 45.68
+ *   color-burn     0.4909 / 37.72      0.3085 / 45.34
+ *   exclusion      0.5007 / 51.14      0.3958 / 64.34    <- correlates, wrong colour
+ *   difference     0.4883 / 56.53      0.3734 / 69.18
+ *   normal         0.2163 / 64.04      0.0626 / 75.98
+ *   screen         0.1484 / 71.68      0.0000 / 83.46
+ *   plus-lighter   0.1013 / 75.80     -0.0220 / 88.40    <- the previous guess
  *
- * One difference from the console that no mapping fixes: CSS ISOLATES a blend
- * inside the nearest ancestor that creates a stacking context, and an
- * opacity < 1 does exactly that, so a blended element under a faded parent
- * blends with its siblings only, while the console blends it with the whole
- * frame. Where that happens is counted in __dash.blendIsolated.
+ * multiply has the lowest absolute colour error on BOTH blades and is top
+ * three on correlation on both; exclusion and difference correlate by
+ * inverting structure and are 14-20 MAD worse on colour. darken and
+ * color-burn are its near neighbours and a frame with a stronger backdrop
+ * could still separate them.
+ *
+ * 3, 4 and 5 remain UNVERIFIED. 3 and 4 occur only in the blade skins, which
+ * the footage never loads (no dash user, so no DashStyle). 5 is only
+ * white_cover, a 50-100/255 alpha wash: the same sweep moves its NCC by 0.005
+ * on f0051 and the MAD ordering disagrees between the two blades, so nothing
+ * separates it.
+ *
+ * THE ISOLATION TRAP, and why this took a second pass. CSS `mix-blend-mode`
+ * blends only within the nearest stacking context, and `transform` creates
+ * one. While every element carried a transform, black_cover/top blended
+ * against its own group's empty backdrop, so all thirteen candidates rendered
+ * IDENTICALLY - the sweep looked like it had settled the question when it had
+ * measured nothing. containerCss now places plain containers with left/top and
+ * emits a transform only for a real rotation or scale. An element that is
+ * rotated, scaled or under an opacity < 1 still isolates, and those are
+ * counted in __dash.blendIsolated.
  */
 export const BlendMode = {
   NORMAL: 1,
-  ADD: 2,
+  /** MEASURED = multiply. See the sweep in the comment above. */
+  MODULATE: 2,
   SUBTRACT: 3,
-  MODULATE: 4,
+  ADD: 4,
   SCREEN: 5,
 } as const;
-export const UNVERIFIED_BLEND_MODES: readonly number[] = [2, 3, 4, 5];
+/** 2 is settled; 3 and 4 occur only in the blade skins and 5 only on
+ *  white_cover, neither of which any frame we have can separate. */
+export const UNVERIFIED_BLEND_MODES: readonly number[] = [3, 4, 5];
+
+/**
+ * Set by the app from ?blend=<n>:<css> so a candidate mapping can be swept
+ * against the reference frames. Empty in normal operation.
+ */
+export const BLEND_OVERRIDES = new Map<number, string>();
 
 export function blendModeToCss(mode: number): string | null {
+  const o = BLEND_OVERRIDES.get(mode);
+  if (o !== undefined) return o === 'normal' ? null : o;
+  return blendModeToCssDefault(mode);
+}
+
+function blendModeToCssDefault(mode: number): string | null {
   switch (mode) {
     case 0: case BlendMode.NORMAL: return null;
-    case BlendMode.ADD: return 'plus-lighter';   // UNVERIFIED
+    case BlendMode.MODULATE: return 'multiply';   // MEASURED, see above
     case BlendMode.SUBTRACT: return 'difference'; // UNVERIFIED
-    case BlendMode.MODULATE: return 'multiply';   // UNVERIFIED
+    case BlendMode.ADD: return 'plus-lighter';    // UNVERIFIED
     case BlendMode.SCREEN: return 'screen';       // UNVERIFIED
     default: return null;
   }

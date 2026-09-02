@@ -20,7 +20,7 @@ import {
   NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, walk, refreshVisibility,
   InputRouter, Button, AudioBank, Strings, ListView, authoredItems,
   DEFAULT_LOCALE, isNativeLocale,
-  FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
+  BLEND_OVERRIDES, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
 } from '@runtime/index';
 import { CODE_TABLE_LISTS } from '@dash/blades/consoleSettings';
 import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
@@ -68,6 +68,11 @@ main().catch((err: unknown) => {
 });
 
 async function main(): Promise<void> {
+  // ?blend=5:screen - sweep a candidate BlendMode mapping against the frames.
+  for (const spec of params.getAll('blend')) {
+    const [n, css] = spec.split(':');
+    if (n && css) BLEND_OVERRIDES.set(Number(n), css);
+  }
   const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
   const assets = await AssetIndex.load(base);
   const telemetry = createTelemetry(assets.build);
@@ -128,6 +133,11 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
 
   const startTab = Number(params.get('blade') ?? String(DEFAULT_TAB));
   shell.seekRest(Number.isFinite(startTab) ? startTab : DEFAULT_TAB);
+  // ?hide=a,b - ablation, to find which element paints a region. AFTER the
+  // seek: applyNow rewrites cssText wholesale and would wipe an inline hide.
+  for (const id of (params.get('hide') ?? '').split(',').filter(Boolean)) {
+    for (const n of nodes.byId.get(id) ?? []) n.el.style.setProperty('display', 'none', 'important');
+  }
   publish(t, report);
 
   const audio = AudioBank.index(assets, params.has('mute'));
