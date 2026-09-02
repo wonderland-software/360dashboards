@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+.env
+.env.*
+.vercel
+
+# Microsoft-owned inputs and everything derived from them stay local.
+# Recreate with: npm run extract
+vendor/
+extracted/
+public/assets/
+reference/
+*.xex
+*.xzp
+*.xur
+*.xma
+*.wav
+*.xus
+*.xtt

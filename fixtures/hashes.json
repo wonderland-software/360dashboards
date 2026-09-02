@@ -1,0 +1,35 @@
+{
+  "note": "sha256 of the Microsoft-owned inputs. vendor/ is gitignored, so these hashes are the only thing in the repo that pins which bytes the extractor ran against. npm run extract refuses to touch a file whose hash does not match.",
+  "files": {
+    "vendor/archive/Blades/Retail/6770/dash.xex": {
+      "sha256": "63939cdd152141a3020336505deaad2d8d5715f0ab2f3ab1762eed780e45969f",
+      "bytes": 4374528,
+      "role": "required",
+      "what": "Blades retail build 6770 dashboard executable; holds the 28 XUIZ resource packs and the FFFE07D1 XDBF database."
+    },
+    "vendor/archive/Blades/Retail/6770/shrdres.xzp": {
+      "sha256": "c411c9f29e6b6031c2e4ce9a3e38e1d3fc9a9ec4d17bf99ba80fb2260a1fb12e",
+      "bytes": 260178,
+      "role": "required",
+      "what": "Loose shared-resource XUIZ pack that sits next to dash.xex."
+    },
+    "vendor/archive/Blades/Devkit/6719 (7776.0 XDK)/dash.xex": {
+      "sha256": "7f9184136f04c9569061327b4c02a9ed8f23a4418ca8e38b79ef42897a030127",
+      "bytes": 4374528,
+      "role": "reference",
+      "what": "Devkit twin, build 6719. Not extracted; kept to diff a format question against a second build."
+    },
+    "vendor/archive/Blades/Devkit/6719 (7776.0 XDK)/shrdres.xzp": {
+      "sha256": "c411c9f29e6b6031c2e4ce9a3e38e1d3fc9a9ec4d17bf99ba80fb2260a1fb12e",
+      "bytes": 260178,
+      "role": "reference",
+      "what": "Byte-identical to the retail 6770 shrdres.xzp - the shared pack did not change between the two builds."
+    },
+    "vendor/archive/Blades/Devkit/6719 (7776.0 XDK)/xshell.xex": {
+      "sha256": "e9574873b67647cbd32b21b77df787fb342b1b215f35ee310d53ab556b602c60",
+      "bytes": 1548288,
+      "role": "reference",
+      "what": "Devkit shell executable. Not extracted."
+    }
+  }
+}

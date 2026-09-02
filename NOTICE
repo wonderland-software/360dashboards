@@ -1,0 +1,15 @@
+360dashboards is licensed under the GNU General Public License v3.0 (see LICENSE).
+
+The XUR binary-format knowledge and the XUI class/property registry XML files
+under packages/xur/extensions/ are derived from XUIHelper by SGCSam
+(https://github.com/SGCSam/XUIHelper), GPL-3.0. The TypeScript parser in
+packages/xur/ is a port of its V5 reader.
+
+The XUIZ container layout was verified by hand against the real files; the
+XZP-Tool-v3 project (https://github.com/NGxDTV/XZP-Tool-v3) was read as a
+reference and no code from it was copied.
+
+The Xbox 360 dashboard executables, resource packs, artwork, sounds, strings
+and fonts are copyright Microsoft. None of them are distributed in this
+repository. The extraction tools operate on files the user supplies locally
+from https://github.com/thedev0ps/Xbox-360-Dashboard-Archive.
