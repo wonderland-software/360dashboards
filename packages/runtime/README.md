@@ -34,7 +34,7 @@ INFERRED, both here and in the source.
 
 ## Coordinates
 
-**The design canvas is 1120×770** for every one of the 263 scenes.
+**The design canvas is 1120×770 for the dashboard root and 184 of the 245 canvases**; 61 scenes declare other sizes (640×480, 720×480, 345×240 for `dashcomm/TitleMetadata` and more, see `canvasSizeOf`), and each scene renders in its own declared canvas.
 
 **Canvas → framebuffer** (MEASURED, 18 landmarks over two 1920×1080 reference
 frames, all within 0.48 px; see `reference/calibration/README.md`), in 720p
@@ -93,7 +93,7 @@ contradicted a note we were given, so both checks are written out):
    the 423-wide list. In `f0060` they run screen x 250…977, i.e. design
    145.8…570.0, against the list's authored x 146…569.
 
-A zero-extent axis is drawn 1:1; 12 figures carry points outside the box, so
+A zero-extent axis is drawn 1:1; 27 figures carry points outside the box (12 of them with negative coordinates), so
 the SVG never clips.
 
 Fill (`FillType`, DOCUMENTED, default SOLID because 372 fills carry a

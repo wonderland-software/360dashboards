@@ -53,7 +53,16 @@ each is closed with what changed.
   scaled with the geometry; (7) PLACEHOLDERS' file:// claim fires nowhere;
   (8) data-xui-state records the requested, not resolved, state; (9) 27
   overflowing figures mis-scale gradient space; (10) defaults hardcoded
-  outside xuiEnums. Fixes in progress.
+  outside xuiEnums.
+- **Round 2 @ c188d18: PASS for the render, honesty row open.** Re-measured:
+  'C' stem 31.72 vs 31.34 px (was 33.26), baseline within 0.4 px, discs
+  within 0.6 px, list separators within 0.35 design px, per-scene canvas
+  and resolved states verified. Still open: the invisible-at-rest
+  detector counts text controls as invisible (false positives on 39
+  scenes); PLACEHOLDERS.md had not actually been rewritten; two stale
+  README sentences. New: row label ink sits 2.4-3.1 design px low with
+  identical heights, a baseline rule inside the row visual. Fixes in
+  progress.
 
 ## Phase D, timelines (M2) — Judge D
 
