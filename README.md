@@ -36,6 +36,16 @@ both gitignored. `npm run extract` reproduces the whole dump and asserts
 the expected counts (`fixtures/expected-6770.json`), so a partial dump
 cannot pass.
 
+## Controls
+
+A controller works through the Gamepad API with the standard mapping. Without
+one, the keyboard maps as: Enter = A, Esc or Backspace = B, X = X, Y = Y,
+Q/E = LB/RB (blade switch), arrows or WASD = d-pad, Tab = Guide (a no-op,
+see PLACEHOLDERS.md). Routes: `/` is the dashboard, `/?scene=<pack>/<file>.xur`
+renders one scene, `/?gallery` renders every scene, `&debug` adds the
+inspector, `&locale=de-de` applies a localized string table, `&mute` silences
+cues, `&frame=N` freezes every timeline at frame N.
+
 ## Stack (verified 2026-09-02, don't re-litigate)
 
 - Vite 8 + TypeScript 5.6 strict, zero runtime dependencies.
