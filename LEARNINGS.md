@@ -99,6 +99,22 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   database (XACH/XCXT/XITB/XMAT sections, localized "Interfaz Xbox 360"
   strings): the dashboard's own title record, not needed for rendering.
 
+## Motion
+
+- **Ease keyframes carry real parameters:** of 454 Ease keyframes, 237 are
+  100/100/50, 115 are 100/0/50, only 68 are 0/0/50; nine store -100 (byte
+  0x9c) so EaseIn/EaseOut are SIGNED int8. Judge D measured the console's
+  blade open (26-frame nOpen, Ease 100/0/50) as accelerating with peak
+  speed at ~77% of the span: a cubic-bezier whose first control point sits
+  BELOW the diagonal for positive EaseIn (y1 = 1/3 - k*easeIn/300, y2 =
+  2/3 + k*easeOut/300). Scopes with timelines and no named frames (12 in
+  dashmain: the background animations, 800-990 frames) run continuously
+  and wrap.
+- **The "1080p60" reference capture is 30 fps frame-doubled** (every even
+  frame is a near duplicate); durations survive that, per-60Hz-frame
+  velocity claims do not. Blade switches measured on the console: 20
+  timeline frames for 1To2, 22 for 2To1/5To4, matching the parsed ranges.
+
 ## Screen mapping
 
 - **The 1120x770 canvas maps anisotropically onto 1280x720** (2026-09-02,

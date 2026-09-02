@@ -54,3 +54,17 @@ each is closed with what changed.
   (8) data-xui-state records the requested, not resolved, state; (9) 27
   overflowing figures mis-scale gradient space; (10) defaults hardcoded
   outside xuiEnums. Fixes in progress.
+
+## Phase D, timelines (M2) — Judge D
+
+- **2026-09-02, round 1 @ 528f5ef: FAIL.** Verified clean: keyframe
+  sampling exact on six timelines incl. quaternion slerp and indexed
+  gradient stops, every named-frame command on the exact tick, blade-switch
+  durations against the console (20 and 22 timeline frames), the 60 Hz
+  fixed-step clock. Findings: (1) the ease curve is inverted (console
+  accelerates into a blade open, ours decelerated); (2) EaseIn/EaseOut
+  parsed unsigned (-100 arrived as 156) — fixed in packages/xur; (3) the
+  "all eases are 0/0/50" claim was false (85% carry real values); (4)
+  scopes with timelines but no named frames never play (the background
+  animations); (5) range labels name frames that do not exist; (6) the
+  reference capture is 30 fps frame-doubled, now noted. Fixes in progress.

@@ -355,8 +355,11 @@ function readTimeline(ctx: Ctx, owner: XuObject): XuTimeline {
   for (let k = 0; k < keyframeCount; k++) {
     const keyframe = r.i32();
     const interp = r.u8();
-    const easeIn = r.u8();
-    const easeOut = r.u8();
+    // EaseIn/EaseOut are SIGNED (-100..100): nine keyframes in Blades 6770
+    // store 0x9c = -100 (e.g. skin visual_ChatAlert's 130-frame fade). Judge
+    // D caught them arriving as 156. EaseScale is 0..100.
+    const easeIn = r.i8();
+    const easeOut = r.i8();
     const easeScale = r.u8();
     const interpolation = INTERPOLATIONS[interp];
     if (!interpolation) throw new Error(`timeline "${elementId}" frame ${keyframe}: interpolation byte ${interp} is not valid`);

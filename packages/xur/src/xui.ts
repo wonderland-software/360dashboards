@@ -93,7 +93,9 @@ function writeTimeline(out: string[], tl: XuTimeline, owner: XuObject): void {
   for (const k of tl.keyframes) {
     out.push('<KeyFrame>', `<Time>${k.keyframe}</Time>`, `<Interpolation>${['Linear', 'None', 'Ease'].indexOf(k.interpolation)}</Interpolation>`);
     if (k.easeIn !== 0 || k.easeOut !== 0 || k.easeScale !== 50) {
-      out.push(`<EaseIn>${k.easeIn}</EaseIn>`, `<EaseOut>${k.easeOut}</EaseOut>`, `<EaseScale>${k.easeScale}</EaseScale>`);
+      // XUIHelper prints the raw bytes (its fields are unsigned), so -100
+      // must appear as 156 for the diff to stay byte-exact.
+      out.push(`<EaseIn>${k.easeIn & 0xff}</EaseIn>`, `<EaseOut>${k.easeOut & 0xff}</EaseOut>`, `<EaseScale>${k.easeScale}</EaseScale>`);
     }
     for (const def of defs) {
       if (!def.flags.includes('indexed')) {
