@@ -20,6 +20,10 @@ INFERRED, both here and in the source.
 | `src/render/controls/figure.ts` | `XuiFigure` → inline SVG path, gradients, texture patterns, stroke. |
 | `src/render/controls/image.ts` | `XuiImage` / `XuiImagePresenter` → `<img>` with SizeMode. |
 | `src/render/controls/text.ts` | `XuiText` / `XuiTextPresenter` → a flex box, PointSize → px, alignment, drop shadow. |
+| `src/anim/interp.ts` | Keyframe arithmetic: Linear / None / Ease sampling, colour blending, quaternion slerp. DOM-free, so `tests/timeline.test.ts` drives it directly. |
+| `src/anim/TimelineEngine.ts` | The playhead. A scope per timeline-owning object, Flash-style named-frame commands, control states, a 60 Hz fixed-step clock. Also DOM-free. |
+| `src/anim/bind.ts` | Joins a scope's sampled values to the rendered nodes it animates. |
+| `src/render/update.ts` | `NodeRecord` + `updateNode`: re-applies only what changed, and cascades a resize to the children the way the first render laid them out. |
 | `src/render/Viewport.ts` | The console's canvas→framebuffer transform, then a uniform fit to the window. |
 | `src/telemetry.ts` | `window.__dash`: everything met and everything not honoured. |
 | `src/debug/Inspector.ts` | `?debug` — tree, hover highlight, property dump. |
@@ -137,6 +141,55 @@ left/right/centre, `0x1000` vertical centre, `0x4000` ellipsis; default 16.
 No unknown bit occurs anywhere in the build — the gallery sweep confirms it.
 The drop-shadow **offset** (1 design px down-right) is INFERRED.
 
+## Timelines (M2)
+
+**Clock.** 60 timeline frames a second, DOCUMENTED, driven by a fixed-step
+accumulator: whole frames only, so a slow animation frame cannot smear an
+animation into a different shape, and a backgrounded tab is clamped rather
+than fast-forwarded. `?frame=N` pins every scope for a deterministic
+screenshot, `?play=<scope>:<from>-<to>` opens a range on load, and `&manual`
+hands the clock to `window.__dashApi.stepFrames()` so a test's answer cannot
+depend on the machine it runs on.
+
+**Scopes.** One per object that owns named frames or timelines. A timeline
+names its target child by Id, and the same skin visual is instantiated by
+many controls, so targets are resolved once at bind time inside that scope's
+own subtree — six copies of `legend_A` get six scopes, each pointing at its
+own `Button1`. Scope ids are the chain of element Ids down to the object.
+
+**Commands** are Flash-shaped and fire when the playhead lands on a frame:
+`Play` continue, `Stop` halt, `GoTo`/`GoToAndPlay`/`GoToAndStop` jump to a
+named target. A jump is an explicit instruction and outranks `playRange`'s
+end-of-range backstop, which is what lets `EndFocus → GoToAndPlay(loop)` cycle
+instead of stopping. Chains are bounded at 8 jumps a frame so a cyclic file
+cannot wedge the engine.
+
+**Interpolation.** `Linear` blends (numbers, colours per channel, vectors
+componentwise, quaternions by shortest-arc slerp; strings, booleans and
+figures hold, which is how an animated `TextureFileName` swaps cleanly).
+`None` holds the earlier keyframe. `Ease` carries signed EaseIn/EaseOut
+(−100…100) and EaseScale (0…100) — **INFERRED**, and the one place the shape
+is defined: all 454 Ease keyframes in the build store 0/0/50, so the corpus
+cannot distinguish curves. We use a cubic Bézier whose control points start on
+the diagonal and are pulled off it by the ease amounts, which reduces exactly
+to a straight line at 0/0, whatever EaseScale is.
+
+**Control states.** `setState(controlId, state)` plays the visual's
+`<State>`…`End<State>` range down the documented fallback chain
+(`Focus→Normal`, `Press→Focus`, `PressDisable→NormalPress→Press`, and the
+INFERRED `Normal→Default`). A visual's `XuiSoundXAudio` child is the console's
+cue for that state; we record it as `lastCue` and play nothing.
+
+**Updates.** `updateNode` re-derives the container style always, rebuilds the
+element's own paint only when a content key changed (`Fill.*`, `Stroke.*`,
+`Points`, text or image properties), and relays out the children only when the
+element actually resized. Data attributes stay current: `data-xui-tick` and
+`data-xui-range` on the scope's element.
+
+`window.__dash.timeline` reports `{ scopes: [{id, tick, playing, range,
+lastCue}], playing, frozenAt, fps }`, where `fps` counts timeline frames
+stepped in the last second — 60 on a healthy page.
+
 ## What is honestly not implemented
 
 Recorded per scene in `window.__dash`, never faked:
@@ -155,5 +208,7 @@ Recorded per scene in `window.__dash`, never faked:
 - **`unresolvedVisuals` / `missingImages` / `deviceFiles` / `placeholders`** —
   see `tests/smoke/allowlist.json` for the three visuals and three paths the
   build itself cannot supply, each with its reason.
-- Timelines only ever run to a still state; there is no playhead, no input,
-  no audio, no scene transitions. That is M2.
+- No input, no audio (state changes record a cue and play nothing), and no
+  scene-to-scene transitions: `XuiScene.TransFrom`/`TransTo` are parsed and
+  ignored. Nothing yet decides which state a control should be in, so states
+  change only through `__dashApi`; that is the shell's job.

@@ -12,6 +12,7 @@ import { createServer } from 'node:net';
 const SUITES = [
   'tests/smoke/smoke-boot.mjs',
   'tests/smoke/smoke-gallery.mjs',
+  'tests/smoke/smoke-timeline.mjs',
 ];
 
 let server = null;

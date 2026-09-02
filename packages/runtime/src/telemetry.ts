@@ -24,11 +24,20 @@ export interface SceneReport {
   errors: string[];
 }
 
+export interface TimelineReport {
+  scopes: { id: string; tick: number; playing: boolean; range: string | null; lastCue: string | null }[];
+  playing: number;
+  frozenAt: number | null;
+  /** Timeline frames stepped in the last second; 60 is the console's rate. */
+  fps: number;
+}
+
 export interface DashTelemetry extends SceneReport {
   build: string;
   placeholders: string[];
   gallery: SceneReport[];
   fps: number;
+  timeline: TimelineReport;
 }
 
 declare global {
@@ -45,7 +54,10 @@ export function emptyReport(scene = ''): SceneReport {
 }
 
 export function createTelemetry(build: string): DashTelemetry {
-  const t: DashTelemetry = { ...emptyReport(), build, placeholders: [], gallery: [], fps: 0 };
+  const t: DashTelemetry = {
+    ...emptyReport(), build, placeholders: [], gallery: [], fps: 0,
+    timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
+  };
   window.__dash = t;
   return t;
 }

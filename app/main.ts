@@ -4,11 +4,29 @@
 //   /?gallery               every scene in the manifest, as a contact sheet
 //   &debug                  the inspector panel
 //   &console                apply the console's canvas->framebuffer transform
+//   &frame=N                freeze every timeline scope at frame N (deterministic)
+//   &play=<scope>:<a>-<b>   play a named-frame range on load; <scope> matches
+//                           the tail of a scope id, <a>/<b> are frame names
+//   &manual                 do not run the wall clock; the range sits on its
+//                           opening frame until __dashApi.stepFrames() moves it
+//                           (what the smoke suites use to stay deterministic)
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
-  FONT_FAMILY, type RenderCtx, type SceneReport,
+  NodeIndex, bindTimelines, TimelineEngine,
+  FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry,
 } from '@runtime/index';
+
+/** The hook the smoke suites drive; nothing in the runtime depends on it. */
+interface DashApi {
+  engine: TimelineEngine;
+  setState(controlId: string, state: string): boolean;
+  playRange(scopeId: string, from: string, to?: string): boolean;
+  /** Step exactly N timeline frames, synchronously, ignoring wall time. */
+  stepFrames(n: number): void;
+  scopeIds(): string[];
+}
+declare global { interface Window { __dashApi?: DashApi } }
 
 const DEFAULT_SCENE = 'dashmain/dashmain.xur';
 
@@ -54,7 +72,7 @@ async function loadFont(placeholders: string[]): Promise<void> {
   }
 }
 
-async function single(assets: AssetIndex, skin: Skin, t: ReturnType<typeof createTelemetry>, id: string): Promise<void> {
+async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: string): Promise<void> {
   const viewportHost = document.createElement('div');
   viewportHost.className = 'xui-viewport';
   host.appendChild(viewportHost);
@@ -64,14 +82,68 @@ async function single(assets: AssetIndex, skin: Skin, t: ReturnType<typeof creat
   const scene = await loadScene(assets, id);
   const report = emptyReport(id);
   report.unknownClasses.push(...scene.unknownClasses);
-  const ctx: RenderCtx = { assets, pack: scene.pack, visuals: new VisualScope(indexVisuals(scene.root), skin), report };
+  const nodes = new NodeIndex();
+  const ctx: RenderCtx = { assets, pack: scene.pack, visuals: new VisualScope(indexVisuals(scene.root), skin), report, nodes };
   viewport.mount(renderScene(scene.root, ctx));
   publish(t, report);
+
+  const engine = bindTimelines(nodes);
+  installApi(engine, t);
+  runClock(engine, t);
 
   if (params.has('debug')) mountInspector(host, scene.root, viewport.canvas);
 }
 
-async function gallery(assets: AssetIndex, skin: Skin, t: ReturnType<typeof createTelemetry>): Promise<void> {
+/** ?frame= and ?play= are the deterministic entry points; without either, the
+ *  scene stays on the still frame the renderer chose and nothing ticks. */
+function runClock(engine: TimelineEngine, t: DashTelemetry): void {
+  const frame = params.get('frame');
+  if (frame !== null && Number.isFinite(Number(frame))) engine.freeze(Number(frame));
+
+  for (const spec of params.getAll('play')) {
+    const m = /^(.*?):([^-]+)(?:-(.+))?$/.exec(spec);
+    if (!m) { t.errors.push(`bad ?play= "${spec}"`); continue; }
+    const [, wanted, from, to] = m;
+    const scope = engine.all().find((s) => s.id === wanted || s.id.endsWith('/' + wanted) || s.obj.className === wanted);
+    if (!scope) { t.errors.push(`?play= names no scope: "${wanted}"`); continue; }
+    if (!engine.playRange(scope.id, from!, to)) t.errors.push(`?play= no named frame "${from}" in ${scope.id}`);
+  }
+
+  // ?frame= pins the engine outright, and ?manual hands the clock to the test
+  // harness; either way nothing advances on its own.
+  if (params.has('manual') || engine.frozenAt !== null) {
+    t.timeline = { ...engine.report(), fps: 0 };
+    return;
+  }
+
+  let last = performance.now();
+  let stepped = 0;
+  let window1s = last;
+  const loop = (now: number) => {
+    stepped += engine.tick(now - last);
+    last = now;
+    if (now - window1s >= 1000) {
+      t.timeline = { ...engine.report(), fps: Math.round((stepped * 1000) / (now - window1s)) };
+      stepped = 0; window1s = now;
+    } else {
+      t.timeline = { ...engine.report(), fps: t.timeline.fps };
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
+
+function installApi(engine: TimelineEngine, t: DashTelemetry): void {
+  window.__dashApi = {
+    engine,
+    setState: (controlId, state) => { const ok = engine.setState(controlId, state); t.timeline = { ...engine.report(), fps: t.timeline.fps }; return ok; },
+    playRange: (scopeId, from, to) => { const ok = engine.playRange(scopeId, from, to); t.timeline = { ...engine.report(), fps: t.timeline.fps }; return ok; },
+    stepFrames: (n) => { for (let i = 0; i < n; i++) engine.step(); t.timeline = { ...engine.report(), fps: t.timeline.fps }; },
+    scopeIds: () => engine.all().map((s) => s.id),
+  };
+}
+
+async function gallery(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<void> {
   const wrap = document.createElement('div');
   wrap.className = 'gallery';
   const h = document.createElement('h1');
