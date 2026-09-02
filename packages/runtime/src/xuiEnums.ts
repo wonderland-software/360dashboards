@@ -34,6 +34,30 @@ export const DEFAULT_OPACITY = 1;
 
 /** DOCUMENTED (XuiElements.xml): XuiText / XuiTextPresenter. */
 export const DEFAULT_POINT_SIZE = 14;
+
+/**
+ * MEASURED. PointSize is NOT an em size in design pixels: a design pixel is
+ * bigger than that. Setting font-size to PointSize directly renders every
+ * string about 72% of the width the console does.
+ *
+ * Derivation, against f0060's "Console Settings" (Label_Head, PointSize 22),
+ * which is 16 glyphs wide so the horizontal fit averages out per-glyph error:
+ *   our ink run at font-size 22px            264 px at 1080p
+ *   the same string in the reference frame   367 px at 1080p
+ *   => em must be 22 * 367/264 = 30.6 design px
+ * and the cap height agrees on the other axis: the reference 'C' is 35 px tall
+ * at 1080p, our ConvectionUI face has capHeight/em = 0.7001 and the canvas's
+ * vertical scale is 12/11 * 1.5, so em = 35 / 0.7001 / 1.6364 = 30.5 design px.
+ * The two axes give 30.57 and 30.55 for the same PointSize 22, i.e. the ratio
+ * between them is 22/21 - exactly the canvas anisotropy - which confirms that
+ * glyphs go through the same view transform as everything else rather than
+ * being drawn at a uniform size.
+ *
+ * 30.56/22 = 1.389 = 100/72, i.e. PointSize behaves as a true point size
+ * rasterised at 100 dpi. That reading is INFERRED; the 1.389 itself is
+ * measured, to about +-1%.
+ */
+export const POINT_SIZE_TO_DESIGN_PX = 100 / 72;
 export const DEFAULT_TEXT_COLOR = { a: 0xff, r: 0, g: 0, b: 0 } as const;
 export const DEFAULT_DROP_SHADOW_COLOR = { a: 0x80, r: 0, g: 0, b: 0 } as const;
 /** DOCUMENTED: 16 = TS_SINGLE_LINE. */
@@ -214,6 +238,9 @@ export const DATA_ASSOCIATION_PRIMARY = 0;
  * define the state a control is in.
  */
 export const VISUAL_STATE_FALLBACK: Readonly<Record<string, string>> = {
+  /** INFERRED: 17 visuals (metaScene_1line among them) name their resting
+   *  frame "Default" and have no "Normal" at all. */
+  Normal: 'Default',
   Focus: 'Normal',
   InitFocus: 'Focus',
   KillFocus: 'Normal',
@@ -255,23 +282,44 @@ export const FIGURE_POINTS_ARE_SCALED_TO_BOX = true;
 /* ---------------------------------------------------------------- the viewport */
 
 /**
- * How the 1120x770 design canvas reaches the framebuffer. INFERRED and
- * deliberately a single tunable: XUI draws in back-buffer pixels with a 2D view
- * transform the title sets, and the working hypothesis is that the whole canvas
- * fills the whole 1280x720 buffer - a NON-uniform scale.
+ * How the 1120x770 design canvas reaches the framebuffer. MEASURED, in 720p
+ * output terms, over 18 landmarks across two 1920x1080 reference frames
+ * (reference/calibration/README.md); every landmark fits within 0.48px at
+ * 1080p:
  *
- * Our own measurement against f0060.png agrees on x (1920/1120 to within 1px on
- * two independent features) but not on y: fitting the legend buttons and the
- * header text needs roughly y_screen = 1.6*y_design - 100, i.e. a taller scale
- * with the top of the canvas off-screen. That cannot be reconciled with a plain
- * whole-canvas stretch, and the difference is a compositing question (the blade
- * shell places the content scene) rather than a renderer one, so the numbers
- * below stay as the documented hypothesis until the calibration lands.
+ *   screen_x = design_x * 8/7
+ *   screen_y = design_y * 12/11 - 64
+ *
+ * Two things that a uniform letterbox would get wrong, so do not "fix" them:
+ *  - the mapping is ANISOTROPIC, sx/sy = 22/21. A circle authored in design
+ *    space reaches the TV 4.8% wider than tall. The A button really is an
+ *    ellipse on a 360.
+ *  - the canvas is TALLER than the screen and is NOT centred: it renders as
+ *    1280x840, of which the middle 720 rows show. Design y=0 is 64px above the
+ *    top of the frame and y=770 is 56px below the bottom. That is the console's
+ *    TV-safe bleed, and it is why the whole 770-row canvas is never visible.
  */
 export const CANVAS_WIDTH = 1120;
 export const CANVAS_HEIGHT = 770;
-export const VIEW_TRANSFORM = { sx: 1280 / 1120, sy: 720 / 770, ox: 0, oy: 0 } as const;
+export const VIEW_TRANSFORM = { sx: 8 / 7, sy: 12 / 11, ox: 0, oy: -64 } as const;
 export const FRAMEBUFFER = { width: 1280, height: 720 } as const;
+/** The slice of the canvas the TV shows, in design units. */
+export const VISIBLE_DESIGN_RECT = {
+  x: 0, y: -VIEW_TRANSFORM.oy / VIEW_TRANSFORM.sy,
+  w: CANVAS_WIDTH, h: FRAMEBUFFER.height / VIEW_TRANSFORM.sy,
+} as const;
+
+/* ---------------------------------------------------------------------- lists */
+
+/**
+ * MEASURED: XuiCommonList / XuiList stack their rows on a 45 design-px pitch
+ * (row k top = list.y + LIST_ITEM_TOP + 45k), not on the 47px height of the
+ * row visual nor the 74px of the XuiList template. Confirmed against
+ * dashmain's hand-placed nav buttons at y = 153,198,243..468 and against the
+ * ten row edges measured in f0060.
+ */
+export const LIST_ITEM_PITCH = 45;
+export const LIST_ITEM_TOP = 3;
 
 /* ---------------------------------------------------------------------- fonts */
 

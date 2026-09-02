@@ -76,12 +76,24 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   29 resources plus `shrdres.xzp` are byte-identical to retail 6770; only
   key, entry point, checksum, filetime and version differ. Two builds signed
   with two keys vouching for every asset byte (Judge A).
-- **Three non-XUI resource types** (2026-09-02): `*.scb` (5 files, 136-300
-  bytes) are compact scene scripts for `ScriptScene`: a length-prefixed
-  ASCII string table (`btnJoin`, `native`, `LiveUpsell`, `labHeader`,
-  `Text`, `Query`, `%s`...) followed by small opcodes binding elements to
-  native scenes and data queries; they are the scripted part of the
-  marketplace and video screens and will be interpreted in the glue phase.
+- **`.scb` scene scripts are decoded** (2026-09-02, `tools/scb-decode.py`,
+  all five files byte-exact; the interpreter's readers live at
+  0x9258f6b8 ParseScript / 0x9258f2b8 ReadNode in dash.xex). Layout: u8
+  version 2, string table (varint count, varint len + ASCII), varint
+  statement count, statements. varint = one byte below 0x80, else two
+  bytes big-endian masked to 15 bits. Statement = u8 kind (1 then, 2 else,
+  3 else-if, 4 proc, 5 onload, 6 onselect, 7 onpress, 0x0b ontimer, 0x0c
+  onchanged with $Value, 0x0e/0x0f transition begin/end with $TransType),
+  name index unless kind 0-3, varint argc, nodes. Node tags: 1 if, 2
+  value (vtype 0 none, 1/2 i32, 4 string index, 5 i64; kind 0 literal, 1
+  $variable, 3 dotted path), 3 call (native/proc/script + named args), 4
+  assignment elem.prop = value, 5 read elem.prop, 6 navigate (page,
+  native, back...), 7 return, 8 binary op (0 ==, 1 !=, 6 &&, 7 ||), 9
+  block over value, 10 format(fmt, args). Builtins: GetFocus, SetFocus,
+  SetTimer, KillTimer, DataSet_GetItemCount, PlayTimeline, wcsicmp. The
+  marketplace script binds four buttons to native scenes; the video
+  scripts drive a ScriptData query/state machine ($Value 1 querying, 3
+  complete, -1 error). Decoded pseudo-code: reference/scb/decoded.txt.
   `neon/modules.ox` (373 KB, mostly zero then binary) is a module blob for
   the "neon" background effect, not UI data. `FFFE07D1` is an XDBF title
   database (XACH/XCXT/XITB/XMAT sections, localized "Interfaz Xbox 360"

@@ -17,6 +17,10 @@ export function renderImage(
 
   const res = ctx.assets.resolveImage(ctx.pack, raw);
   if (res.deviceFile) { note(ctx.report.deviceFiles, res.path); return null; }
+  // XUI can point an image at a SCENE and render it to a texture: eleven scenes
+  // do it with common://TitleMetadata.xur. The file exists; drawing it needs an
+  // offscreen render target, which M1 does not have.
+  if (/\.xur$/i.test(res.path)) { note(ctx.report.sceneTextures, raw); return null; }
   if (!res.url) { note(ctx.report.missingImages, raw); return null; }
 
   const css = E.sizeModeToCss(mode);

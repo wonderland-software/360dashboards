@@ -1,0 +1,5754 @@
+[
+ {
+  "scene": "accountm/1500_AccountManagementHome.xur",
+  "controls": 15,
+  "objects": 80,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/1500_AccountManagementHomeGraduation.xur",
+  "controls": 16,
+  "objects": 81,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/1501_MyMemberships.xur",
+  "controls": 12,
+  "objects": 66,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/1502_ContactInformation.xur",
+  "controls": 16,
+  "objects": 176,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/1503_LivePassword.xur",
+  "controls": 14,
+  "objects": 148,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_AboutMSPointsList.xur",
+  "controls": 12,
+  "objects": 50,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_ChangeLiveIDCongrats.xur",
+  "controls": 11,
+  "objects": 59,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_ChangeLiveIDCurrentSignIn.xur",
+  "controls": 13,
+  "objects": 121,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_ChangeLiveIDFinish.xur",
+  "controls": 13,
+  "objects": 88,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_ChangeLiveIDNewSignIn.xur",
+  "controls": 13,
+  "objects": 121,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_ChangeLiveIDParentSignIn.xur",
+  "controls": 12,
+  "objects": 120,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_PassportSignIn.xur",
+  "controls": 12,
+  "objects": 120,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_PostalDataListScene.xur",
+  "controls": 8,
+  "objects": 29,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_StateListScene.xur",
+  "controls": 8,
+  "objects": 29,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15XX_WindowsLiveIdMenu.xur",
+  "controls": 11,
+  "objects": 76,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/15xx_ChangeLiveIDMenu.xur",
+  "controls": 13,
+  "objects": 88,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2620_LiveParentalControlsHome.xur",
+  "controls": 11,
+  "objects": 76,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2620_metaPane.xur",
+  "controls": 16,
+  "objects": 47,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2622_GameplaySettings.xur",
+  "controls": 9,
+  "objects": 47,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2622_metaPane.xur",
+  "controls": 4,
+  "objects": 10,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2624_PrivacySettings.xur",
+  "controls": 14,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2626_ContentSettings.xur",
+  "controls": 9,
+  "objects": 47,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2628_OptionScreen.xur",
+  "controls": 8,
+  "objects": 46,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2629_MoreInfo.xur",
+  "controls": 11,
+  "objects": 101,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/26XX_ContentMetaPane.xur",
+  "controls": 6,
+  "objects": 17,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/26XX_GameplayMetaPane.xur",
+  "controls": 6,
+  "objects": 17,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2700_PrivacySettings.xur",
+  "controls": 10,
+  "objects": 77,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2700_metaPane.xur",
+  "controls": 4,
+  "objects": 9,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2702_ThreeOptionList.xur",
+  "controls": 11,
+  "objects": 76,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2710_TwoOptionList.xur",
+  "controls": 10,
+  "objects": 75,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/27XX_MarketingTwoOptionList.xur",
+  "controls": 10,
+  "objects": 75,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2800_PolicyDocuments.xur",
+  "controls": 10,
+  "objects": 48,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "accountm/2802_PolicyText.xur",
+  "controls": 20,
+  "objects": 218,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_LiveArcadeHome.xur",
+  "controls": 20,
+  "objects": 189,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   2
+  ],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaBanner.xur",
+  "controls": 3,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaDownload.xur",
+  "controls": 3,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaEZPass.xur",
+  "controls": 3,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaFriends.xur",
+  "controls": 3,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaMyArcade.xur",
+  "controls": 3,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2500_metaRecentGame.xur",
+  "controls": 4,
+  "objects": 34,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2502_TitleSelectorScene.xur",
+  "controls": 22,
+  "objects": 163,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2502_TwistSelectorScene.xur",
+  "controls": 57,
+  "objects": 522,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   2
+  ],
+  "sizeModesSeen": [
+   16,
+   0,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   11,
+   10,
+   9,
+   8,
+   7,
+   6,
+   5,
+   4,
+   3,
+   2,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/2504_TitleOptionsScene.xur",
+  "controls": 32,
+  "objects": 210,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_CompareAchievementsScene.xur",
+  "controls": 21,
+  "objects": 158,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4,
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   3,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_EZPassScene.xur",
+  "controls": 14,
+  "objects": 73,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_FriendsPlayingNowScene.xur",
+  "controls": 14,
+  "objects": 111,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   3,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_TellAFriendScene.xur",
+  "controls": 12,
+  "objects": 90,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_TitleAchievementsScene.xur",
+  "controls": 17,
+  "objects": 118,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_TitleLeaderboardScene.xur",
+  "controls": 15,
+  "objects": 113,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   2,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_metaAchievements.xur",
+  "controls": 3,
+  "objects": 24,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_metaGame.xur",
+  "controls": 8,
+  "objects": 20,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_metaLeaderboards.xur",
+  "controls": 11,
+  "objects": 35,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "arcade/250x_metaPresence.xur",
+  "controls": 10,
+  "objects": 34,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "blademp/marketplaceSignedIn.xur",
+  "controls": 5,
+  "objects": 22,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "blademp/marketplaceSignedInNL.xur",
+  "controls": 5,
+  "objects": 22,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "blademp/marketplaceSignedOut.xur",
+  "controls": 7,
+  "objects": 50,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner0.xur",
+  "controls": 3,
+  "objects": 8,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner1.xur",
+  "controls": 1,
+  "objects": 24,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner_featured.xur",
+  "controls": 2,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiFall07BOTDScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner_games.xur",
+  "controls": 3,
+  "objects": 8,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner_media_728x90.xur",
+  "controls": 1,
+  "objects": 23,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner_media_large.xur",
+  "controls": 2,
+  "objects": 14,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "botd/defaultbanner_media_small.xur",
+  "controls": 1,
+  "objects": 24,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineScene"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSet.xur",
+  "controls": 9,
+  "objects": 49,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetAudio.xur",
+  "controls": 12,
+  "objects": 54,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetAudioDigital.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetAudioSoundEffects.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetAutoOff.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetBackgroundDownloads.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetClock.xur",
+  "controls": 14,
+  "objects": 56,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetClockDaylightSavings.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetClockFormat.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetClockTime.xur",
+  "controls": 42,
+  "objects": 332,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem",
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetClockTimeZone.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetCountry.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetDisplay.xur",
+  "controls": 14,
+  "objects": 60,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetDisplayFormat.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetDisplayHiDef.xur",
+  "controls": 13,
+  "objects": 58,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetDisplayPal.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetLanguage.xur",
+  "controls": 12,
+  "objects": 72,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetOutputLevels.xur",
+  "controls": 13,
+  "objects": 54,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControl.xur",
+  "controls": 22,
+  "objects": 73,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlContent.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlFamilyTimer.xur",
+  "controls": 18,
+  "objects": 125,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem",
+   "ScriptData"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlGame.xur",
+  "controls": 13,
+  "objects": 97,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   3,
+   2,
+   1,
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlLiveA.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlLiveC.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlPasscode.xur",
+  "controls": 12,
+  "objects": 106,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlPasscodeHint.xur",
+  "controls": 9,
+  "objects": 46,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlSelect.xur",
+  "controls": 10,
+  "objects": 75,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlVideo.xur",
+  "controls": 22,
+  "objects": 83,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlVideoExplicit.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlVideoMovie.xur",
+  "controls": 10,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlVideoTV.xur",
+  "controls": 10,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPControlVideoUnrated.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetPolicyInfo_System.xur",
+  "controls": 11,
+  "objects": 101,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetRemoteC.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetScreensaver.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetShutdown.xur",
+  "controls": 13,
+  "objects": 55,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysCslSetStartUp.xur",
+  "controls": 14,
+  "objects": 55,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/dashSysLiveVision.xur",
+  "controls": 23,
+  "objects": 202,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem",
+   "LiveVisionControl"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "consoles/metaPane_DisplayNormal.xur",
+  "controls": 1,
+  "objects": 12,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "consoles/metaPane_DisplayWidescreen.xur",
+  "controls": 1,
+  "objects": 12,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/742_SelectNetworkDevice.xur",
+  "controls": 8,
+  "objects": 46,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/742_metaByDevice.xur",
+  "controls": 5,
+  "objects": 9,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/744_ManageAffiliation.xur",
+  "controls": 8,
+  "objects": 45,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/GenericWaitingScene.xur",
+  "controls": 2,
+  "objects": 30,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/MediaPackage.xur",
+  "controls": 8,
+  "objects": 56,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/MediaPackageEmbedded.xur",
+  "controls": 3,
+  "objects": 33,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/MediaSourceSelection.xur",
+  "controls": 25,
+  "objects": 192,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/TitleMetadata.xur",
+  "controls": 13,
+  "objects": 83,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashcomm/TrayScene.xur",
+  "controls": 9,
+  "objects": 85,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashmain/dashmain.xur",
+  "controls": 97,
+  "objects": 818,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   4,
+   3,
+   5,
+   2
+  ],
+  "sizeModesSeen": [
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dashskn1/BladeSkin.xur",
+  "controls": 0,
+  "objects": 215,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   3,
+   4,
+   2
+  ],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dashskn2/BladeSkin.xur",
+  "controls": 0,
+  "objects": 197,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   3,
+   4,
+   2,
+   5
+  ],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dashuisk/skin.xur",
+  "controls": 169,
+  "objects": 4769,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiListItem",
+   "XuiCaret",
+   "XuiProgressBar",
+   "XuiHtmlPresenter",
+   "XuiScrollBar"
+  ],
+  "unresolvedVisuals": [
+   "XuiScrollEnd",
+   "XuiScrollEndUp"
+  ],
+  "missingImages": [
+   "..\\..\\Common\\Star.png",
+   "..\\..\\..\\dash\\main\\media\\ico_32x_camera.PNG",
+   "..\\..\\..\\dash\\apps\\ConsoleSettings\\media\\ico_32x_camera.PNG"
+  ],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   4,
+   2,
+   5,
+   3
+  ],
+  "sizeModesSeen": [
+   16,
+   2,
+   8,
+   0,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   3,
+   2,
+   1,
+   4,
+   5,
+   6
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2400_WindowsMediaCenter.xur",
+  "controls": 10,
+  "objects": 43,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2403_SlowWiredConnection.xur",
+  "controls": 8,
+  "objects": 39,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2404_802bgWirelessNetwork.xur",
+  "controls": 8,
+  "objects": 39,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2405_PCSoftwarePack.xur",
+  "controls": 9,
+  "objects": 33,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2406_WelcomeSetupKey.xur",
+  "controls": 9,
+  "objects": 42,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2407_WaitingScreen.xur",
+  "controls": 8,
+  "objects": 57,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2410_AttemptingOldSoftware.xur",
+  "controls": 9,
+  "objects": 51,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/2413_UnableToConnect.xur",
+  "controls": 9,
+  "objects": 51,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/AcquiringNetworkSettings.xur",
+  "controls": 8,
+  "objects": 57,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/HomeNetworkConnectivityRequired.xur",
+  "controls": 8,
+  "objects": 28,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/IptvConnecting.xur",
+  "controls": 8,
+  "objects": 56,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/LimitedNetworkConnectivity.xur",
+  "controls": 9,
+  "objects": 29,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/PcSoftwareError.xur",
+  "controls": 8,
+  "objects": 39,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "download/ReconfigureWireless.xur",
+  "controls": 9,
+  "objects": 29,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdAction.xur",
+  "controls": 2,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdAlert.xur",
+  "controls": 2,
+  "objects": 7,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdInfo.xur",
+  "controls": 5,
+  "objects": 15,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdPadDisplay.xur",
+  "controls": 15,
+  "objects": 169,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdPadPlayback.xur",
+  "controls": 15,
+  "objects": 168,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdRcDisplay.xur",
+  "controls": 10,
+  "objects": 112,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdSplash169.xur",
+  "controls": 1,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dvd/DvdSplash43.xur",
+  "controls": 1,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "dvd/XmfInfo.xur",
+  "controls": 5,
+  "objects": 26,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/XmfPadPlayback.xur",
+  "controls": 16,
+  "objects": 184,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/XmfPrebufferingScene.xur",
+  "controls": 5,
+  "objects": 100,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "dvd/XmfSubtitleOverlay.xur",
+  "controls": 2,
+  "objects": 5,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiHtmlElement"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamercar/GamerCard.xur",
+  "controls": 28,
+  "objects": 173,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   5
+  ],
+  "sizeModesSeen": [
+   4,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "games/401_GameDetails.xur",
+  "controls": 22,
+  "objects": 120,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "games/402_Achievements.xur",
+  "controls": 23,
+  "objects": 205,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "games/408_GamesList.xur",
+  "controls": 12,
+  "objects": 103,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   1,
+   0,
+   3,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaAchievements.xur",
+  "controls": 2,
+  "objects": 9,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaArcade.xur",
+  "controls": 2,
+  "objects": 9,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaDemos.xur",
+  "controls": 3,
+  "objects": 4,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaGames.xur",
+  "controls": 2,
+  "objects": 9,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaMOTD.xur",
+  "controls": 5,
+  "objects": 8,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesMetaNewProfile.xur",
+  "controls": 2,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesSignedIn.xur",
+  "controls": 9,
+  "objects": 105,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "gamesbla/gamesSignedOut.xur",
+  "controls": 10,
+  "objects": 117,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "iptv/dashSysIPTVSet.xur",
+  "controls": 15,
+  "objects": 57,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "iptv/dvrStorage.xur",
+  "controls": 19,
+  "objects": 140,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiSlider"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "iptv/uninstallIPTV.xur",
+  "controls": 15,
+  "objects": 98,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "live/liveSignedInNLUI.xur",
+  "controls": 7,
+  "objects": 34,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard",
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "live/liveSignedInUI.xur",
+  "controls": 9,
+  "objects": 62,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard",
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "live/liveSignedOutUI.xur",
+  "controls": 10,
+  "objects": 74,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaIPTV.xur",
+  "controls": 3,
+  "objects": 5,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaMCX.xur",
+  "controls": 2,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaMOTD.xur",
+  "controls": 5,
+  "objects": 8,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiBOTDOfflineContainer"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaMediaMP.xur",
+  "controls": 2,
+  "objects": 3,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaMusic.xur",
+  "controls": 3,
+  "objects": 5,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaPictures.xur",
+  "controls": 3,
+  "objects": 5,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaMetaVideo.xur",
+  "controls": 3,
+  "objects": 5,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaSignedIn.xur",
+  "controls": 11,
+  "objects": 133,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaSignedInIPTV.xur",
+  "controls": 11,
+  "objects": 133,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaSignedOut.xur",
+  "controls": 12,
+  "objects": 145,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "mediabla/mediaSignedOutIPTV.xur",
+  "controls": 13,
+  "objects": 159,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/Categories.xur",
+  "controls": 12,
+  "objects": 90,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/DeleteMusic.xur",
+  "controls": 11,
+  "objects": 41,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/DeviceDetails.xur",
+  "controls": 20,
+  "objects": 91,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/DeviceSelector.xur",
+  "controls": 15,
+  "objects": 118,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem",
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4,
+   8
+  ],
+  "dataAssociationsSeen": [
+   2,
+   1,
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/EnumeratingContent.xur",
+  "controls": 9,
+  "objects": 58,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/FormatHD.xur",
+  "controls": 8,
+  "objects": 42,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/HDDVDContentDetails.xur",
+  "controls": 16,
+  "objects": 88,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/HDDVDContents.xur",
+  "controls": 15,
+  "objects": 114,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   2,
+   4,
+   5,
+   3,
+   6
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/HDDVDDevice.xur",
+  "controls": 15,
+  "objects": 82,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/ItemDetails.xur",
+  "controls": 20,
+  "objects": 112,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/ItemsGrid.xur",
+  "controls": 15,
+  "objects": 128,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   2,
+   4,
+   5,
+   3,
+   6
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/ItemsGrid2.xur",
+  "controls": 17,
+  "objects": 153,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   2,
+   4,
+   5,
+   3,
+   6
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/ItemsIcons.xur",
+  "controls": 15,
+  "objects": 124,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "memory/MUA.xur",
+  "controls": 0,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "memory/MUB.xur",
+  "controls": 0,
+  "objects": 6,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "memory/OperationProgress.xur",
+  "controls": 10,
+  "objects": 61,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/FriendRequestIntro.xur",
+  "controls": 10,
+  "objects": 87,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/FriendRequestMain.xur",
+  "controls": 20,
+  "objects": 131,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem",
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   5
+  ],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/FriendRequestProgress.xur",
+  "controls": 12,
+  "objects": 105,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/MessengerWelcome.xur",
+  "controls": 10,
+  "objects": 72,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/SelectWLID.xur",
+  "controls": 11,
+  "objects": 98,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "messenge/SignupComplete.xur",
+  "controls": 14,
+  "objects": 108,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   5
+  ],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1003_IndividualDevice.xur",
+  "controls": 19,
+  "objects": 247,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1003_MediaContainerList.xur",
+  "controls": 9,
+  "objects": 88,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1003_SongList.xur",
+  "controls": 9,
+  "objects": 88,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1004_DeviceNotBrowseable.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1005_MediaContainerOptions.xur",
+  "controls": 10,
+  "objects": 58,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1006_IndividualArtistMain.xur",
+  "controls": 8,
+  "objects": 27,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1016_IndividualSongMain.xur",
+  "controls": 10,
+  "objects": 58,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1020_ripCDlist.xur",
+  "controls": 13,
+  "objects": 84,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1021_RipProgress.xur",
+  "controls": 17,
+  "objects": 118,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1023_TroubleshootConnectionAlert.xur",
+  "controls": 4,
+  "objects": 7,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1024_DownloadInfoAlert.xur",
+  "controls": 4,
+  "objects": 7,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1025_EditAlbumInfo.xur",
+  "controls": 18,
+  "objects": 125,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   1,
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1026_EditSongInfo.xur",
+  "controls": 19,
+  "objects": 131,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   1,
+   0,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1028_NowPlaying.xur",
+  "controls": 34,
+  "objects": 352,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem",
+   "XuiSlider",
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   16,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1030_EditPlaylist.xur",
+  "controls": 19,
+  "objects": 136,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1031_SaveChangesAlert.xur",
+  "controls": 4,
+  "objects": 7,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/1048_IndividualDeviceMain.xur",
+  "controls": 17,
+  "objects": 112,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/Equalizer.xur",
+  "controls": 1,
+  "objects": 7,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [],
+  "errors": []
+ },
+ {
+  "scene": "music/FullscreenVisualizer.xur",
+  "controls": 9,
+  "objects": 22,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "music/Meta_Songs.xur",
+  "controls": 8,
+  "objects": 43,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2000_NetworkConfigList.xur",
+  "controls": 12,
+  "objects": 95,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   3,
+   2,
+   4,
+   1,
+   5
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2002_NetworkConfigAction.xur",
+  "controls": 9,
+  "objects": 48,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2004_NetworkDetails.xur",
+  "controls": 28,
+  "objects": 183,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   7,
+   3,
+   6,
+   2,
+   5,
+   1,
+   4,
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2008_ActivateConfiguration.xur",
+  "controls": 9,
+  "objects": 30,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2010_TestingNetwork.xur",
+  "controls": 56,
+  "objects": 354,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2011_TestingLAN.xur",
+  "controls": 37,
+  "objects": 232,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2012_TestInformation.xur",
+  "controls": 12,
+  "objects": 129,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2013_WindowsConnectNow.xur",
+  "controls": 13,
+  "objects": 130,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2015_WirelessInformation.xur",
+  "controls": 11,
+  "objects": 101,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2016_EditIPSettings.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2018_IPSettings.xur",
+  "controls": 15,
+  "objects": 113,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2020_AvailableWirelessNetworks.xur",
+  "controls": 11,
+  "objects": 101,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   3,
+   2,
+   4,
+   1,
+   5
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2022_WirelessSecuritySettings.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2024_EnterSettings.xur",
+  "controls": 12,
+  "objects": 72,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2026_ChannelList.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2028_WirelessModes.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2030_ConfirmAction.xur",
+  "controls": 10,
+  "objects": 29,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2032_connecNow.xur",
+  "controls": 10,
+  "objects": 31,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2033_DNSConfig.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2034_DNSSettings.xur",
+  "controls": 12,
+  "objects": 72,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2036_PPoESettings.xur",
+  "controls": 12,
+  "objects": 72,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2038_ConsoleInformation.xur",
+  "controls": 14,
+  "objects": 73,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/2040_Ad-HocWirelessSecurity.xur",
+  "controls": 11,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/ConnStatus.xur",
+  "controls": 15,
+  "objects": 114,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiCommonList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/ConnStatus_2010.xur",
+  "controls": 62,
+  "objects": 420,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/ConnStatus_2011.xur",
+  "controls": 43,
+  "objects": 298,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "network/Status.xur",
+  "controls": 6,
+  "objects": 27,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [
+   "txt_Starting"
+  ],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeCountry.xur",
+  "controls": 8,
+  "objects": 48,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   16
+  ],
+  "dataAssociationsSeen": [
+   3,
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeGamertile.xur",
+  "controls": 17,
+  "objects": 123,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeLanguage.xur",
+  "controls": 8,
+  "objects": 48,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   16
+  ],
+  "dataAssociationsSeen": [
+   3,
+   0,
+   1,
+   2,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobePALChoice.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeProfileChoice.xur",
+  "controls": 17,
+  "objects": 122,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeProfileCreation.xur",
+  "controls": 7,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeResolutionChoice.xur",
+  "controls": 12,
+  "objects": 53,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeStorageDevice.xur",
+  "controls": 11,
+  "objects": 52,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeVideo.xur",
+  "controls": 6,
+  "objects": 26,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "DashVideo"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeWelcome.xur",
+  "controls": 18,
+  "objects": 117,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "oobe/oobeWelcome2.xur",
+  "controls": 19,
+  "objects": 118,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [
+   "common://TitleMetadata.xur"
+  ],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   2,
+   0,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "pictures/905_IndividualDeviceMain.xur",
+  "controls": 15,
+  "objects": 121,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "pictures/slideshowControls.xur",
+  "controls": 26,
+  "objects": 174,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiProgressBar"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   8
+  ],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "signupbo/1123_Congratulations.xur",
+  "controls": 17,
+  "objects": 54,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "signupbo/DownloadLiveSignup.xur",
+  "controls": 4,
+  "objects": 34,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videocha/VideoChatMain.xur",
+  "controls": 27,
+  "objects": 345,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "LiveVisionControl",
+   "XuiGamerCard"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   16,
+   4
+  ],
+  "dataAssociationsSeen": [
+   0,
+   3,
+   2,
+   1,
+   6,
+   7,
+   5,
+   4
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/HD.xur",
+  "controls": 1,
+  "objects": 13,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/Video.xur",
+  "controls": 3,
+  "objects": 34,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/VideoCategories.xur",
+  "controls": 18,
+  "objects": 155,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "VideoData",
+   "ScriptImage",
+   "ScriptList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   2
+  ],
+  "sizeModesSeen": [
+   8,
+   16,
+   0
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1,
+   11,
+   10,
+   9,
+   8,
+   7,
+   6,
+   5,
+   4,
+   3,
+   2
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/VideoContent.xur",
+  "controls": 19,
+  "objects": 160,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "VideoData",
+   "ScriptImage",
+   "XuiEdit",
+   "ScriptList",
+   "XuiListItem"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [
+   8,
+   16
+  ],
+  "dataAssociationsSeen": [
+   0,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/VideoDetails.xur",
+  "controls": 29,
+  "objects": 135,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "ScriptImage",
+   "XuiEdit",
+   "VideoData"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [
+   2
+  ],
+  "sizeModesSeen": [
+   8
+  ],
+  "dataAssociationsSeen": [
+   0,
+   11,
+   10,
+   9,
+   8,
+   7,
+   6,
+   5,
+   4,
+   3,
+   2,
+   1
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/VideoStart.xur",
+  "controls": 8,
+  "objects": 28,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "VideoData"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ },
+ {
+  "scene": "videos/VideoUsageRights.xur",
+  "controls": 11,
+  "objects": 101,
+  "unknownClasses": [],
+  "runtimeDrivenClasses": [
+   "XuiEdit"
+  ],
+  "unresolvedVisuals": [],
+  "missingImages": [],
+  "deviceFiles": [],
+  "sceneTextures": [],
+  "unknownTextStyleBits": [],
+  "unverifiedBlendModes": [],
+  "sizeModesSeen": [],
+  "dataAssociationsSeen": [
+   0
+  ],
+  "errors": []
+ }
+]

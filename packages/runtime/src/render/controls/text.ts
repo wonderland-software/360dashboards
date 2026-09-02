@@ -1,13 +1,33 @@
 // XuiText / XuiTextPresenter / the text half of a labelled control.
 //
-// PointSize is in design-space pixels, not points: the canvas IS the coordinate
-// system, so a PointSize of 22 is a 22px line in the 1120x770 space.
+// PointSize is a point size, not a pixel height: one design pixel is smaller
+// than one point, and the measured conversion is POINT_SIZE_TO_DESIGN_PX
+// (see xuiEnums.ts for the two-axis derivation off the reference frame).
 // XuiTextPresenter has no text of its own - it shows the OWNING control's Text,
 // which is how one Label_Head visual serves 179 different labels.
 import * as E from '../../xuiEnums';
 import { PropBag, cssColour } from '../props';
 import type { RenderCtx } from '../DomRenderer';
 import { noteNum } from '../../telemetry';
+
+/**
+ * The line box XUI uses is the FONT's own ascent+descent, not the em box.
+ * MEASURED: in f0060 the "Console Settings" baseline sits 30.7 design px below
+ * the top of its 47px box; ConvectionUI's ascent is 1.015 em and its em there
+ * is 30.56 design px, so baseline = box top + ascent to within 1%. Reading the
+ * numbers off the face itself rather than hard-coding 1.215 keeps this true
+ * when the JK face or a later build's font is used.
+ */
+let metrics: { ascent: number; descent: number } | null = null;
+function lineBox(): { ascent: number; descent: number } {
+  if (metrics) return metrics;
+  const c = document.createElement('canvas').getContext('2d');
+  if (!c) return (metrics = { ascent: 1, descent: 0.25 });
+  c.font = `1000px ${E.FONT_FALLBACK}`;
+  const m = c.measureText('Hg');
+  metrics = { ascent: m.fontBoundingBoxAscent / 1000, descent: m.fontBoundingBoxDescent / 1000 };
+  return metrics;
+}
 
 export interface TextOwner {
   text: string;
@@ -30,9 +50,13 @@ export function renderText(
   const text = ownText ? p.str('Text') : (owner?.text ?? '');
   // XuiControl.PointSize wins over the visual's when the control sets it.
   const ownerSize = owner && owner.pointSize !== E.POINT_SIZE_INHERIT ? owner.pointSize : null;
-  const size = ownerSize ?? p.num('PointSize', E.DEFAULT_POINT_SIZE);
+  const points = ownerSize ?? p.num('PointSize', E.DEFAULT_POINT_SIZE);
+  const size = points * E.POINT_SIZE_TO_DESIGN_PX;
   const colour = p.colour('TextColor', E.DEFAULT_TEXT_COLOR);
   const lineAdjust = p.num('LineSpacingAdjust', 0);
+
+  const lb = lineBox();
+  const lh = size * (lb.ascent + lb.descent) + lineAdjust;
 
   const box = document.createElement('div');
   box.style.cssText = [
@@ -42,8 +66,10 @@ export function renderText(
     `justify-content:${E.textVAlign(style)}`,
     `font-family:${E.FONT_FALLBACK}`,
     `font-size:${size}px`,
-    // XUI's line box is the em box; a browser adds leading, so pin it.
-    `line-height:${size + lineAdjust}px`,
+    // Pinned to the face's own ascent+descent (see lineBox above) so the first
+    // baseline lands where the console puts it; LineSpacingAdjust is in the
+    // same design pixels.
+    `line-height:${lh}px`,
     `color:${cssColour(colour)}`,
     `text-align:${E.textAlign(style)}`,
     style & E.TextStyle.SINGLE_LINE ? 'white-space:pre' : 'white-space:pre-wrap',

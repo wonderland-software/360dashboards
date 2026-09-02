@@ -13,6 +13,10 @@ export interface SceneReport {
   missingImages: string[];
   /** file:// paths the console read off a disc or memory unit. */
   deviceFiles: string[];
+  /** ImagePaths that name a SCENE (.xur), not a bitmap: XUI can render a scene
+   *  to a texture and use it as an image. Not implemented in M1, and not a
+   *  missing file - the scene is in the manifest. */
+  sceneTextures: string[];
   unknownTextStyleBits: number[];
   unverifiedBlendModes: number[];
   sizeModesSeen: number[];
@@ -35,7 +39,7 @@ export function emptyReport(scene = ''): SceneReport {
   return {
     scene, controls: 0, objects: 0,
     unknownClasses: [], runtimeDrivenClasses: [], unresolvedVisuals: [],
-    missingImages: [], deviceFiles: [], unknownTextStyleBits: [],
+    missingImages: [], deviceFiles: [], sceneTextures: [], unknownTextStyleBits: [],
     unverifiedBlendModes: [], sizeModesSeen: [], dataAssociationsSeen: [], errors: [],
   };
 }

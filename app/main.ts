@@ -58,7 +58,8 @@ async function single(assets: AssetIndex, skin: Skin, t: ReturnType<typeof creat
   const viewportHost = document.createElement('div');
   viewportHost.className = 'xui-viewport';
   host.appendChild(viewportHost);
-  const viewport = new Viewport(viewportHost, { consoleView: params.has('console') });
+  const zoom = Number(params.get('zoom') ?? '1') || 1;
+  const viewport = new Viewport(viewportHost, { consoleView: params.has('console'), zoom });
 
   const scene = await loadScene(assets, id);
   const report = emptyReport(id);

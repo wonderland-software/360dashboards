@@ -1,0 +1,13 @@
+{
+  "_comment": "Everything the smoke suites are allowed to report. One entry per fact, each with the reason it cannot be fixed by rendering harder. Anything not listed here fails the suite.",
+  "unresolvedVisuals": {
+    "XuiScrollEnd": "Named by a XuiControl inside dashuisk/skin.xur itself and by nothing else in the build. No skin in Blades 6770 defines a XuiVisual with this Id, so the console had nothing to draw either.",
+    "XuiScrollEndUp": "Same: referenced only from within dashuisk/skin.xur, defined nowhere in the build.",
+    "txt_Starting": "network/Status.xur asks for it and no skin in the build defines it. The only unresolved visual named by a real scene; recorded, never substituted."
+  },
+  "missingImages": {
+    "..\\..\\Common\\Star.png": "An XuiTool source-tree path that escapes the pack, inside skin.xur's btn_4high_ratings visual. That visual is referenced by nothing outside skin.xur. A file of the same basename exists in shrdres and gamercar but nothing proves the console resolved it that way, so we do not guess.",
+    "..\\..\\..\\dash\\main\\media\\ico_32x_camera.PNG": "Same, in skin.xur's Finding_Camera_Large visual, which no scene references.",
+    "..\\..\\..\\dash\\apps\\ConsoleSettings\\media\\ico_32x_camera.PNG": "Same visual, second slot."
+  }
+}
