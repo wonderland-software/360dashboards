@@ -1786,7 +1786,7 @@
      "origin": "xuitool-xml"
     }
    ],
-   "source": "dash.xex 9199 .text @0x9218719c; definitions 17-26 from XuiTool (XUIHelper 9199 XML), required by the 4 mask bytes every scene writes"
+   "source": "dash.xex 9199 .text @0x9218719c; definitions 17-26 from XuiTool's list (XUIHelper 9199 XML): every scene writes 4 mask bytes, so XuiTool declared 25-32 definitions, and the runtime registers only 17; the exact names of the tail rest on XuiTool's transcription, not the binary"
   },
   {
    "name": "XuiControl",

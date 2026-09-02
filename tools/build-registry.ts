@@ -166,7 +166,7 @@ function rootMaskBytes(bytes: Buffer): number | null {
     if (Math.ceil(xmlEl.props.length / 8) !== fileBytes) throw new Error(`XuiTool XML lists ${xmlEl.props.length} XuiElement definitions (${Math.ceil(xmlEl.props.length / 8)} bytes) but the scenes write ${fileBytes}`);
     const first = el.props.length, last = xmlEl.props.length - 1;
     el.props.push(...tail.map((p, i) => ({ ...p, id: first + i, owner: 'XuiElement', origin: 'xuitool-xml' })));
-    el.source += `; definitions ${first}-${last} from XuiTool (XUIHelper 9199 XML), required by the ${fileBytes} mask bytes every scene writes`;
+    el.source += `; definitions ${first}-${last} from XuiTool's list (XUIHelper 9199 XML): every scene writes ${fileBytes} mask bytes, so XuiTool declared ${fileBytes * 8 - 7}-${fileBytes * 8} definitions, and the runtime registers only ${first}; the exact names of the tail rest on XuiTool's transcription, not the binary`;
   }
 }
 
