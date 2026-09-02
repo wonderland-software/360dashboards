@@ -61,8 +61,13 @@ each is closed with what changed.
   detector counts text controls as invisible (false positives on 39
   scenes); PLACEHOLDERS.md had not actually been rewritten; two stale
   README sentences. New: row label ink sits 2.4-3.1 design px low with
-  identical heights, a baseline rule inside the row visual. Fixes in
-  progress.
+  identical heights, a baseline rule inside the row visual.
+- **Round 3 @ 39c88f4: PASS (honesty row closed; Phase C certified).**
+  Detector, PLACEHOLDERS and README verified. The list offset was list
+  geometry (row origin = list y + 45k, no inset), confirmed by two
+  independent landmarks: separator strip cross-correlation +0.06 design px,
+  row-label ink within 0.6. Residual nit: `invisibleGroups` is snapshotted
+  at render time, before lists populate.
 
 ## Phase D, timelines (M2) — Judge D
 
