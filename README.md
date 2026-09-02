@@ -90,7 +90,9 @@ definitions) while the runtime registers 17; definitions 17-26 are taken
 from XuiTool's own list (XUIHelper's 9199 XML) and tagged `origin:
 xuitool-xml`, and one banner class registered outside dash.xex is marked
 `inferred`. The parser checks every class's mask-byte count against the
-registry, so a registry that is too short or too long fails the sweep. All
+registry, so a registry that is too short or too long fails the sweep
+(the check proves the definition count to within its group of eight, and
+only for classes that set at least one property somewhere in the corpus). All
 263 scenes parse to the last byte of their data section with every
 declared count matching.
 

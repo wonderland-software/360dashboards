@@ -31,4 +31,10 @@ each is closed with what changed.
   swapped; five non-class registrations; XuiFall07BOTDScene undersized;
   compound packed byte ignored; XUIHelper diff blind to high bytes; broken
   `xur2json <file>`; dead `transparent` code; overstated LEARNINGS claims.
-- Round 2 pending.
+- **Round 2 @ ccd4e51: PASS.** All fourteen closed; the mask-byte and
+  packed-count assertions were proven to fire with deliberately wrong
+  registries, the XuiEffect binding was re-derived from the binary's call
+  graph, and the independent STRN walk covers all 263 scenes. Non-blocking
+  notes recorded in README: the mask-byte check proves ceil(N/8), not N,
+  and skips classes that never set a property; XuiElement 17-26 are
+  XuiTool's 9199 list, unexercised here.
