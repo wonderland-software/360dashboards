@@ -38,3 +38,19 @@ each is closed with what changed.
   notes recorded in README: the mask-byte check proves ceil(N/8), not N,
   and skips classes that never set a property; XuiElement 17-26 are
   XuiTool's 9199 list, unexercised here.
+
+## Phase C, static render (M0/M1) — Judge C
+
+- **2026-09-02, round 1 @ dabf0b6: FAIL** (geometry PASS, honesty FAIL).
+  Verified clean: legend discs within 0.6 px on two frames, horizontal text
+  advances within 1%, figure point scaling adjudicated (bbox -> WxH),
+  anchor arithmetic, 263 scenes with zero unknown classes or TextStyle
+  bits. Findings: (1) text 6.1% too tall with an unsupported em derivation;
+  (2) canvas hardcoded 1120x770 but 61 scenes use other sizes; (3)
+  BlendMode 2-5 paint content scenes, unverified; (4) metapane resting
+  state hides all chrome, undisclosed; (5) default route shows only the
+  blade background (tabs at Opacity 0), undisclosed; (6) StrokeWidth not
+  scaled with the geometry; (7) PLACEHOLDERS' file:// claim fires nowhere;
+  (8) data-xui-state records the requested, not resolved, state; (9) 27
+  overflowing figures mis-scale gradient space; (10) defaults hardcoded
+  outside xuiEnums. Fixes in progress.
