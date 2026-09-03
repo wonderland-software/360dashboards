@@ -175,6 +175,11 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   `metaPanelScene` exist in dozens of scenes at once, so `setState(id, state)`
   over the whole tree plays the range on every copy - which fires one cue per
   copy. Scope a state change to the subtree of the scene that owns it.
+- **The devkit twin 6719's 29 resources are byte-identical to 6770's**
+  (dumped and hashed 2026-09-02 night), so the reference footage's 6717
+  skin cannot plausibly differ from ours: the 4-5% light chrome is a
+  rendering rule, not authoring. Candidate: FillColor stored beside a
+  texture/gradient fill modulating it.
 - **Rendered screenshots are Microsoft artwork too:** tests/smoke/out is
   gitignored like the assets.
 
