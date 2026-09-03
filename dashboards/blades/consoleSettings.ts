@@ -58,7 +58,12 @@ export const METAPANE_TEXT_COMES_FROM_TABLE = true;
 
 /**
  * The "Current Setting" block above the description - the console's own state,
- * not scene data and not a string table.
+ * not scene data and not a string table. SINCE M3e the value of rows 0-9 is
+ * derived from the console state in settingsModel.ts by the table's own
+ * provider rules (the third field of each 0x920143d0 record), so a selection
+ * on an option page changes it; this table's entries for rows 0 and 5 stand
+ * as the frame citations the model's reference state was read from, and row
+ * 10 (the version string) is still taken from here.
  *
  * The metapane's visual metaScene_1line carries TWO text presenters: Pane_txt
  * (DataAssociation 0), which draws the description above, and

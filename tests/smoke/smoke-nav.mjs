@@ -378,10 +378,274 @@ try {
     console.log(`  ${tag}digital rows: ${JSON.stringify(digital)}  localePatches ${sh.localePatches}`);
     await page.close();
   }
+
+  /* -------------------- 8. M3e: the option pages, and every page reached */
+
+  // The console's settings pages are driven by console state (settingsModel.ts):
+  // each option page ARRIVES on the row of its current value, A writes the
+  // value and pops the page (XuiSceneNavigateBack, 0x921b5428), and the parent's
+  // "Current Setting" follows. The reference console's values are read off the
+  // 6717 stills f0053-f0066, so every Console Settings row is gated against its
+  // own frame here, and every page the shell reaches is gated on painted DOM.
+  await m3e(browser);
 } catch (err) {
   fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
   if (browser) await browser.close();
+}
+
+async function m3e(browser) {
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+  await page.goto(`${BASE}/?blade=5&zoom=1.5&mute&manual`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  const tag = '[m3e] ';
+  const ev = (f, ...a) => page.evaluate(f, ...a);
+  const shell = () => ev(() => JSON.parse(JSON.stringify(window.__dash.shell)));
+  const at = () => ev(() => window.__dash.shell.stack.at(-1));
+  const cues = () => ev(() => window.__dashApi.audio.log.map((c) => `${c.cue}@${c.tick}`));
+  const A = async () => { await ev(() => window.__dashApi.shell.press()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(60)); };
+  const B = async () => { await ev(() => window.__dashApi.shell.back()); await ev(() => window.__dashApi.stepFrames(60)); await ev(() => window.__dashApi.shell.idle()); };
+  const Down = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Down')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
+  const Up = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Up')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
+  const Right = async () => { await ev(() => window.__dashApi.shell.navRight()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(21)); };
+  const home = async () => { for (let i = 0; i < 6; i++) { if ((await shell()).level === 0) break; await B(); } await ev(() => window.__dashApi.shell.seekRest(5)); await ev(() => window.__dashApi.stepFrames(5)); await Up(8); };
+  // What the TOP scene paints: its lists' rows (with their resolved state), a
+  // control's text, and every angle-bracket token visible anywhere on screen.
+  const dom = () => ev(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const id = window.__dash.shell.stack.at(-1);
+    const scenes = [...document.querySelectorAll(`[data-xui-scene="${id}"]`)];
+    const host = scenes[scenes.length - 1] ?? document;
+    const text = (cid) => { const e = host.querySelector(`[data-xui-id="${cid}"]`); return e && vis(e) ? (e.textContent ?? '').replace(/\s+/g, ' ').trim() : null; };
+    const items = [...host.querySelectorAll('[data-xui-class="XuiListItem"]')].filter(vis).map((e) => ({ t: e.textContent.trim(), st: e.querySelector('[data-xui-state]')?.dataset.xuiState ?? '' }));
+    const tokens = [...document.querySelectorAll('[data-xui-paint="text"]')].filter(vis).map((e) => e.textContent.trim()).filter((t) => /^<[^<>]{1,40}>$/.test(t));
+    const shown = (cid) => { const e = host.querySelector(`[data-xui-id="${cid}"]`); return e ? vis(e) : null; };
+    return { items, tokens, labS: text('labCurrentSettings'), lab: text('labCurrentSetting'), meta: text('metaPanelScene'), pane: host.querySelector('[data-xui-id="scnCurrentFormat"]')?.children.length ?? 0, shown: { no: shown('NoComputersScene'), wait: shown('WmcConnectingScene'), info: shown('MediaSourceInfoScene'), empty: shown('txt_EmptyList'), iptv: shown('btnIPTV'), noCamera: shown('NoCameraTextField') } };
+  });
+  const noTokens = async (where) => { const d = await dom(); check(d.tokens.length === 0, `${tag}${where} paints an authoring token: ${JSON.stringify(d.tokens)}`); return d; };
+
+  // ---- 8a. Console Settings: every row's Current Setting, against its still.
+  // Value block window on the 1080p frames (design 579..999 x 186..316 through
+  // the console view): the two to three lines under "Current Setting".
+  await A();
+  check(await at() === 'consoles/dashSysCslSet.xur', `${tag}A opens Console Settings`);
+  const EXPECT = [
+    [0, 'f0053', ['1080p', 'Widescreen', 'Standard']],
+    [1, 'f0055', ['Dolby Digital', 'Sound Effects Enabled']],
+    [2, 'f0056', ['Xbox 360 (Default)']],
+    [3, 'f0057', ['English']],
+    [4, null, [null, 'GMT+00 London']],           // the first line is the console clock = the host clock
+    [5, 'f0060', ['United Kingdom']],
+    [6, 'f0061', ['Xbox Dashboard']],
+    [7, 'f0062', ['Auto-Off Disabled', 'Background Downloads Enabled']],
+    [8, 'f0063', ['Screen Saver Enabled']],
+    [9, 'f0064', ['All Channels']],
+    [10, null, ['Dashboard: 2.0.6770.0']],
+  ];
+  const W = { x: 1020, y: 222, w: 480, h: 130 };
+  const stage = await page.$('.xui-stage');
+  console.log('  [m3e] Console Settings value block vs the 6717 stills (dy in px, ncc of the block):');
+  for (const [row, still, lines] of EXPECT) {
+    if (row > 0) await Down();
+    const sh = await shell();
+    check(sh.focusId === `lstSettings_item${row}`, `${tag}row ${row} focused, got ${sh.focusId}`);
+    const painted = (await dom()).meta;
+    for (const l of lines) if (l) check(painted.includes(l), `${tag}row ${row} paints ${JSON.stringify(l)}; got ${JSON.stringify(painted.slice(0, 120))}`);
+    const beforeCues = (await cues()).length;
+    if (!still) continue;
+    await ev(() => window.__dashApi.stepFrames(40));
+    const shot = `${OUT}/m3e-cs-row${row}.png`;
+    await stage.screenshot({ path: shot });
+    const ref = readPng(`${FRAMES}/${still}.png`), ours = readPng(shot);
+    const fy = profileFit(grad(colProfile(ref, W.x, W.x + W.w, W.y, W.y + W.h)), grad(colProfile(ours, W.x, W.x + W.w, W.y, W.y + W.h)), 24);
+    const fx = profileFit(grad(rowProfile(ref, W.x, W.x + W.w, W.y, W.y + W.h)), grad(rowProfile(ours, W.x, W.x + W.w, W.y, W.y + W.h)), 24);
+    const c = compare(ref, ours, W);
+    console.log(`  [m3e]   row ${row} ${still}: dx ${fx.shift} dy ${fy.shift} ncc ${c.ncc.toFixed(3)} mad ${c.mad.toFixed(1)}`);
+    // MEASURED at the commit that added this: dx -1..1, dy -3..-6 (the metapane
+    // text sits a few px high on every row, Locale included - the pre-existing
+    // offset smoke-nav's f0060 fit already carries), ncc 0.47..0.56. The gate
+    // holds each block to that band; a missing or extra line moves dy and ncc.
+    check(Math.abs(fx.shift) <= 3 && fy.shift >= -8 && fy.shift <= 2, `${tag}row ${row} value block is ${fx.shift},${fy.shift} px off ${still}`);
+    check(c.ncc >= 0.42, `${tag}row ${row} value block ncc ${c.ncc.toFixed(3)} against ${still}`);
+    void beforeCues;
+  }
+  // One btn_Focus per move, never two (COVERAGE B12).
+  await Up(); const c0 = (await cues()).length; await Down();
+  const oneDown = (await cues()).slice(c0);
+  check(String(oneDown) === String(['btn_Focus@15']), `${tag}one Down fires exactly one btn_Focus, got ${JSON.stringify(oneDown)}`);
+
+  // ---- 8b. Startup: arrival on the current row, A writes and pops, no btn_Back.
+  await Up(4);   // row 6
+  check((await shell()).focusId === 'lstSettings_item6', `${tag}on the Startup row`);
+  await A();
+  check(await at() === 'consoles/dashSysCslSetStartUp.xur', `${tag}Startup opens`);
+  let d = await noTokens('Startup');
+  check((await shell()).focusId === 'btnDashboard', `${tag}Startup arrives on btnDashboard (f0061 "Xbox Dashboard"), got ${(await shell()).focusId}`);
+  check(d.labS === 'Xbox Dashboard', `${tag}Startup's labCurrentSettings is "Xbox Dashboard", got ${JSON.stringify(d.labS)}`);
+  check(d.shown.iptv === false, `${tag}btnIPTV is hidden without an IPTV provider`);
+  await Up();
+  const c1 = (await cues()).length;
+  await A();
+  const selectCues = (await cues()).slice(c1);
+  check(String(selectCues) === String(['btn_Select@268']), `${tag}selecting Disc fires btn_Select and NO btn_Back (the pop is XuiSceneNavigateBack, not the B button); got ${JSON.stringify(selectCues)}`);
+  check(await at() === 'consoles/dashSysCslSet.xur', `${tag}the option page pops on A`);
+  let sh = await shell();
+  check(sh.settings.startup === 'disc' && sh.selections.includes('consoles/dashSysCslSetStartUp.xur:btnDefault -> 0'), `${tag}the setting was written: ${JSON.stringify(sh.selections)}`);
+  check((await dom()).meta.includes('Disc'), `${tag}Console Settings' Startup line now reads Disc`);
+  check(sh.focusId === 'lstSettings_item6', `${tag}focus returns to the Startup row`);
+  await A();
+  check((await shell()).focusId === 'btnDefault' && (await dom()).labS === 'Disc', `${tag}reopened, Startup arrives on Disc`);
+  await B();
+
+  // ---- 8c. Shutdown: the parent's label follows focus; Auto-Off and Background Downloads.
+  await Down(); await A();
+  check(await at() === 'consoles/dashSysCslSetShutdown.xur', `${tag}Shutdown opens`);
+  d = await noTokens('Shutdown');
+  check(d.lab === 'Auto-Off Disabled', `${tag}Shutdown's label on btnAutoOff is "Auto-Off Disabled" (f0062), got ${JSON.stringify(d.lab)}`);
+  await Down();
+  check((await dom()).lab === 'Background Downloads Enabled', `${tag}...and follows focus to btnBackgroundDownloads`);
+  await A();
+  d = await noTokens('Background Downloads');
+  check((await shell()).focusId === 'btnOn' && d.labS === 'Background Downloads Enabled', `${tag}Background Downloads arrives on Enable [FRAME 8498 f2170: arrival on the current row]`);
+  await Down(); await A();
+  check((await dom()).lab === 'Background Downloads Disabled', `${tag}Disable pops and the parent reads Disabled`);
+  await A(); await Up();
+  const c2 = (await cues()).length; await A();
+  sh = await shell();
+  check(sh.dialogs.some((x) => x.includes('0x921a63f0') && x.includes('Background Downloads')), `${tag}Enable raises the xam message box (title 42, body 41) and is recorded: ${JSON.stringify(sh.dialogs)}`);
+  check(sh.settings.backgroundDownloads === false, `${tag}...and without its answer the code writes nothing`);
+  check(await at() === 'consoles/dashSysCslSetShutdown.xur', `${tag}...and still pops`);
+  void c2;
+  await Up(); await A();
+  check((await shell()).focusId === 'btnOff' && (await dom()).labS === 'Auto-Off Disabled', `${tag}Auto-Off arrives on btnOff`);
+  await Up(); await A();
+  check((await dom()).lab === 'Auto-Off Enabled', `${tag}Enable pops and the parent reads Auto-Off Enabled`);
+  await B();
+  check((await dom()).meta.includes('Auto-Off Enabled') && (await dom()).meta.includes('Background Downloads Disabled'), `${tag}Console Settings' Shutdown line carries both`);
+
+  // ---- 8d. Audio: a list option page arrives on the current row (XuiListSetCurSel).
+  await Up(6); await A();
+  d = await noTokens('Audio');
+  check(d.labS === 'Dolby Digital', `${tag}Audio's label on btnDigital is "Dolby Digital" (f0055)`);
+  await A();
+  d = await noTokens('Digital Output');
+  check((await shell()).focusId === 'listOptions_item1', `${tag}Digital Output arrives on Dolby Digital 5.1 [FRAME 8498 f2084]`);
+  check(String(d.items.map((i) => i.t)) === String(['Digital Stereo', 'Dolby Digital 5.1', 'Dolby Digital with WMA Pro']), `${tag}its rows are its own ItemsText`);
+  await Down(); await A();
+  check((await dom()).labS === 'Dolby Digital with WMA Pro', `${tag}selecting WMA Pro pops and the Audio page reads it`);
+  await B();
+  check((await dom()).meta.includes('Dolby Digital with WMA Pro'), `${tag}...and so does Console Settings`);
+
+  // ---- 8e. Display: the disabled row, its PressDisable cue, the pane, the four-provider label.
+  await Up(); await A();
+  d = await noTokens('Display');
+  check(d.items[1]?.t === 'Screen Format' && d.items[1]?.st === 'NormalDisable', `${tag}Screen Format is drawn disabled while the console runs widescreen: ${JSON.stringify(d.items)}`);
+  check(d.pane > 0, `${tag}scnCurrentFormat holds the Widescreen metapane scene`);
+  check(d.lab === '1080p Widescreen Standard', `${tag}Display's labCurrentSetting is the four providers' join (f0053), got ${JSON.stringify(d.lab)}`);
+  sh = await shell();
+  check(sh.containersFilled.some((x) => x.startsWith('scnCurrentFormat -> consoles/metaPane_DisplayWidescreen.xur')), `${tag}the pane is metaPane_DisplayWidescreen.xur`);
+  await Down();
+  const c3 = (await cues()).length; await A();
+  const disabledCues = (await cues()).slice(c3);
+  check(String(disabledCues) === String(['btn_InactiveSelect@281']), `${tag}A on the disabled row plays PressDisable: btn_InactiveSelect, got ${JSON.stringify(disabledCues)}`);
+  check(await at() === 'consoles/dashSysCslSetDisplay.xur', `${tag}...and opens nothing`);
+  await Down(); await A();
+  check((await shell()).focusId === 'btnStandard' && (await dom()).lab === 'Standard', `${tag}Reference Levels arrives on btnStandard`);
+  await B(); await B();
+
+  // ---- 8f. Clock: the spinners are parked on the clock and Right crosses date -> time.
+  await Down(4); await A();
+  d = await noTokens('Clock');
+  check(/\d\d\/\d\d\/\d{4} +\d\d:\d\d/.test(d.labS ?? ''), `${tag}Clock's label is the date and time, got ${JSON.stringify(d.labS)}`);
+  await A();
+  d = await noTokens('Date and Time');
+  check(d.items.length === 6, `${tag}the five spinners and AM/PM each show one row: ${JSON.stringify(d.items)}`);
+  const now = new Date();
+  check(d.items[3]?.t === String(now.getDate()).padStart(2, '0') && d.items[4]?.t === String(now.getMonth() + 1).padStart(2, '0'), `${tag}day and month are parked on the clock: ${JSON.stringify(d.items)}`);
+  check((await shell()).focusId === `lstDay_item${now.getDate() - 1}`, `${tag}focus arrives on the day spinner's parked row, got ${(await shell()).focusId}`);
+  await Right(); await Right();
+  check((await shell()).focusId?.startsWith('lstYear_item'), `${tag}Right walks lstDay -> lstMonth -> lstYear`);
+  await Right();
+  check((await shell()).focusId === `lstHour_item${now.getHours()}`, `${tag}Right from the last date spinner crosses scDate.NavRight into scTime's hour, parked on the clock: ${(await shell()).focusId}`);
+  await B(); await Down(2); await A();
+  check((await shell()).focusId === 'lstTimezone_item' + String(24) && (await dom()).labS === 'GMT+00 London', `${tag}Time Zone arrives on GMT+00 London (f0059)`);
+  await B(); await B();
+
+  // ---- 8g. Family Settings: the ratings from the locale, yes/no pages, the timer.
+  await home(); await Down(); await A(); await A();
+  d = await noTokens('Family Settings');
+  check(await at() === 'consoles/dashSysCslSetPControl.xur', `${tag}Console Controls opens`);
+  await A();
+  d = await noTokens('Game Ratings');
+  check(d.items[0]?.t === 'Allow All Games' && d.items[1]?.t === 'PEGI 18+ / BBFC 18' && d.items[3]?.t === 'BBFC 15', `${tag}the UK game table (PEGI + BBFC): ${JSON.stringify(d.items.map((i) => i.t))}`);
+  check((await shell()).codeFilled.some((x) => x.startsWith('lstRating x9 from 0x920159a0')), `${tag}nine rows from the system-4 table at 0x920159a0: ${JSON.stringify((await shell()).codeFilled.slice(-2))}`);
+  await Down(2); await A();
+  check((await dom()).lab === 'PEGI 16+', `${tag}selecting a rating pops and the menu shows it`);
+  await Down(); await A(); await Down(); await A();
+  d = await noTokens('TV Ratings');
+  check(d.items.length === 0 && (await shell()).codeUnfilled.some((x) => x.includes('VideoTV.xur#lstRating')), `${tag}the UK has no TV system: the list stays empty and says why`);
+  await B();
+  check((await dom()).lab === '<None>', `${tag}the Video menu labels the TV row "<None>" (string 427) - a value, not a token`);
+  await Down(); await A();
+  check((await shell()).focusId === 'btnNo', `${tag}Explicit Video keeps DefaultFocus with the block unknown`);
+  await Down(); await A();
+  check((await dom()).lab === 'Blocked', `${tag}Blocked pops and labels the row`);
+  await B(); await Down(4); await A();
+  d = await noTokens('Family Timer');
+  check(d.items.some((i) => i.t === 'Family Timer is off'), `${tag}lstTime is the single "off" row (string 383): ${JSON.stringify(d.items)}`);
+  await home();
+
+  // ---- 8h. Memory, Network, Computers, Xbox LIVE Vision, Initial Setup.
+  await Down(2); await A();
+  d = await noTokens('Storage Devices');
+  check(d.items.length === 0 && d.shown.empty === true, `${tag}no storage device: no rows, txt_EmptyList shown`);
+  const c4 = (await cues()).length;
+  await ev(() => window.__dashApi.shell.pressKey('Y')); await ev(() => window.__dashApi.shell.idle());
+  sh = await shell();
+  check(sh.codePaths.some((x) => x.includes('DeviceSelector.xur:legend_y (Y')), `${tag}Y on Storage Devices reaches legend_y "Device Options" and is a code path`);
+  check((await cues()).slice(c4).some((x) => x.startsWith('btn_Select')), `${tag}...and plays legend_Y's Press`);
+  await B(); await Down(); await A();
+  d = await noTokens('Network Settings');
+  check((await shell()).focusId === 'list_items_item0' && d.items.length === 5, `${tag}Network Settings arrives inside scene_main on its five rows`);
+  await B(); await Down(); await A();
+  d = await noTokens('Computers');
+  check(await at() === 'dashcomm/742_SelectNetworkDevice.xur', `${tag}Computers`);
+  await B(); await Down(); await A();
+  d = await noTokens('Xbox LIVE Vision');
+  check((await shell()).focusId === null && d.items.length === 6 && d.shown.noCamera === true, `${tag}no camera: choosers disabled, no focus, NoCameraTextField shown`);
+  await B(); await Down();
+  const c5 = (await shell()).stack.length; await A();
+  sh = await shell();
+  check(sh.stack.length === c5 && sh.dialogs.some((x) => x.includes('0x92114a98') && x.includes('Initial Setup')), `${tag}Initial Setup raises the xam message box and opens nothing: ${JSON.stringify(sh.dialogs)}`);
+
+  // ---- 8i. Games and Media code paths.
+  await home(); await ev(() => window.__dashApi.shell.seekRest(3)); await ev(() => window.__dashApi.stepFrames(5));
+  await Down(); await A();
+  check(await at() === 'oobe/oobeProfileCreation.xur', `${tag}Create Gamer Profile opens the OOBE wait page`);
+  await noTokens('oobeProfileCreation');
+  await B(); await Down(); await A();
+  await noTokens('Games Library');
+  await B();
+  await ev(() => window.__dashApi.shell.seekRest(4)); await ev(() => window.__dashApi.stepFrames(5));
+  await Down(); await A();
+  d = await noTokens('Select Source');
+  check(await at() === 'dashcomm/MediaSourceSelection.xur', `${tag}Music opens the source picker`);
+  check(d.shown.no === true && d.shown.wait === false && d.shown.info === false, `${tag}no computers: only NoComputersScene shows: ${JSON.stringify(d.shown)}`);
+  await Right();
+  check((await shell()).focusId === 'btnTestConnection', `${tag}NavRight="metaPanelScene\\NoComputersScene" lands on its DefaultFocus`);
+  await B();
+
+  sh = await shell();
+  const errs2 = await ev(() => window.__dash.errors);
+  check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);
+  check(errs.length === 0, `${tag}page errors: ${errs.join(' | ')}`);
+  check(sh.missingStrings.length === 0, `${tag}missing strings: ${JSON.stringify(sh.missingStrings)}`);
+  check(sh.unresolvedPresses.length === 0, `${tag}unresolved presses: ${JSON.stringify(sh.unresolvedPresses)}`);
+  console.log(`  [m3e] selections: ${sh.selections.length}, dialogs: ${sh.dialogs.length}, code paths: ${sh.codePaths.length}, hardware-state lines: ${sh.hardwareState.length}`);
+  await page.close();
 }
 
 if (fails.length) { for (const f of fails) console.error('  FAIL ' + f); console.log('SMOKE_FAIL'); process.exit(1); }

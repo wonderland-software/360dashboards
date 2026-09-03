@@ -12,7 +12,7 @@
 import { walk, ListView, authoredItems, xuiRegistry, type ListItem, type Strings, type RenderCtx, type NodeIndex, type TimelineEngine } from '@runtime/index';
 import { idOf, type XuObject } from '@xur/index';
 import { CODE_TABLE_LISTS } from './consoleSettings';
-import { CODE_LISTS, CODE_LISTS_NOT_FILLED, type CodeList } from './codeLists';
+import { CODE_LISTS, CODE_LISTS_NOT_FILLED, DYNAMIC_LISTS, LISTS_DISABLED_OFFLINE, type CodeList, type DynamicListCtx } from './codeLists';
 
 export interface PopulatedLists {
   lists: ListView[];
@@ -46,6 +46,11 @@ export interface PopulatedLists {
   /** Lists this scene declares empty that stay empty, with the reason. A page
    *  that comes up blank has to SAY it is blank. */
   codeUnfilled: string[];
+  /** Per list, the row the code parks it on (the clock spinners on the
+   *  console clock); absent means row 0. */
+  listFocus: Map<string, number>;
+  /** Lists the console disables on this hardware (LISTS_DISABLED_OFFLINE). */
+  disabledLists: string[];
 }
 
 export async function populateLists(
@@ -56,10 +61,13 @@ export async function populateLists(
   // this the code-filled rows stayed English while every authored row around
   // them was translated.
   locale = 'en',
+  // What the runtime-computed lists are computed from (the rating tables by
+  // locale, the clock spinners by the clock). Absent on the ?scene= route.
+  dyn?: DynamicListCtx,
 ): Promise<PopulatedLists> {
   const out: PopulatedLists = {
     lists: [], initialFocus: 0, stillFocus: 0, descriptions: [], navPaths: [],
-    missingStrings: [], codeFilled: [], codeUnfilled: [],
+    missingStrings: [], codeFilled: [], codeUnfilled: [], listFocus: new Map(), disabledLists: [],
   };
   // Lists the executable fills that are NOT the Console Settings table: the
   // Display page's four-row table, the language / country / time-zone tables,
@@ -67,6 +75,8 @@ export async function populateLists(
   // OWN Id, because dashSysCslSetClockTime.xur has five empty lists.
   const byList = new Map<string, CodeList>();
   for (const spec of CODE_LISTS[scene.id] ?? []) byList.set(spec.list, spec);
+  if (dyn) for (const spec of DYNAMIC_LISTS[scene.id]?.(dyn) ?? []) byList.set(spec.list, spec);
+  const disabled = LISTS_DISABLED_OFFLINE[scene.id];
   const codeTables = new Map<string, string[]>();
   const tableFor = async (spec: CodeList): Promise<string[]> => {
     const key = `${spec.pack}/${spec.table}`;
@@ -102,25 +112,42 @@ export async function populateLists(
     if (spec) {
       const t = await tableFor(spec);
       for (const r of spec.rows) {
-        if (t[r.label] === undefined) out.missingStrings.push(`${spec.table}[${r.label}] (${listId} row)`);
+        if (r.label >= 0 && t[r.label] === undefined) out.missingStrings.push(`${spec.table}[${r.label}] (${listId} row)`);
       }
-      items = spec.rows.map((r) => ({ text: t[r.label] ?? `#${r.label}` }));
+      // A row the console drew but would not let you pick keeps `enabled:
+      // false`: the Display page's Screen Format while the console runs a
+      // widescreen mode [FRAME 6717/f0053 "Widescreen"] is drawn with the
+      // disabled artwork and answers A with PressDisable (btn_InactiveSelect).
+      items = spec.rows.map((r) => ({
+        text: r.text ?? t[r.label] ?? `#${r.label}`,
+        ...(r.image ? { image: r.image } : {}),
+        ...(r.enabled === false ? { enabled: false } : {}),
+      }));
       out.navPaths = spec.rows.map((r) => r.scene ?? null);
       out.codeFilled.push(`${listId} x${items.length} from ${spec.va}`);
-      // A row the console drew but would not let you pick. The Display page has
-      // one: Screen Format is present and DISABLED while the console runs a
-      // widescreen mode, which "Widescreen" in f01580's metapane confirms. We
-      // draw it selectable, so it is reported rather than left silent.
-      for (const [k, r] of spec.rows.entries()) {
-        if (r.enabled === false) out.codeUnfilled.push(`${scene.id}#${listId} row ${k}: the code table marks it disabled on this hardware; drawn selectable`);
-      }
+      if (spec.initialIndex !== undefined) out.listFocus.set(listId, spec.initialIndex);
     }
+    if (disabled?.lists.includes(listId)) {
+      items = items.map((it) => ({ ...it, enabled: false }));
+      out.disabledLists.push(listId);
+      out.codeUnfilled.push(`${scene.id}#${listId}: disabled - ${disabled.why}`);
+    }
+    // An authored list the code only PARKS (lstAMPM on the clock): the spec
+    // carries no rows, just the row to select.
+    const parkOnly = items.length > 0 ? byList.get(listId) : undefined;
+    if (parkOnly && parkOnly.rows.length === 0 && parkOnly.initialIndex !== undefined) out.listFocus.set(listId, parkOnly.initialIndex);
     if (items.length === 0) {
       // An empty list is only acceptable when we can say why.
       const why = CODE_LISTS_NOT_FILLED[`${scene.id}#${listId}`]
         ?? Object.entries(CODE_LISTS_NOT_FILLED)
           .find(([k]) => k.startsWith(`${scene.id}#`) && k.includes(listId))?.[1];
       out.codeUnfilled.push(`${scene.id}#${listId}: ${why ?? 'no code table recovered'}`);
+      // Still a live list with no rows: XuiList draws nothing for an empty
+      // list, and consuming the visual here is what keeps its
+      // control_ListItem TEMPLATE from being painted as a blank row.
+      const empty = new ListView(list, node, ctx, nodes, engine, xuiRegistry());
+      empty.setItems([]);
+      out.lists.push(empty);
       continue;
     }
     const view = new ListView(list, node, ctx, nodes, engine, xuiRegistry());

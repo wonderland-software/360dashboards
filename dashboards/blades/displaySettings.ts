@@ -198,8 +198,12 @@
 // * dashSysCslSetDisplayPal.xur: the scene authors ItemsText "PAL-60\nPAL-50".
 //   dashVideoSettings_60 (init at 0x921c6130) binds listOptions and writes
 //   labCurrentSettings only. DISPLAY_PAL_CODE_ROWS is empty for the same reason.
-// * dashSysCslSetOutputLevels.xur is NOT in this archive, so its own rows are
-//   out of scope here (strings 371-374 and 377 are the obvious feed - INFER).
+// * dashSysCslSetOutputLevels.xur IS in this archive (consoles/, 35 manifest
+//   entries counting its locale tables) and the Display row pushes it; an
+//   earlier draft here said it was not. Its three buttons and the level they
+//   write are decoded in settingsModel.ts (dashOutputLevels, 0x921cd880 /
+//   0x921cd660): btnExpanded 1, btnIntermediate 2, btnStandard 3, labels
+//   371-374; 376/377 are its Black Level retitling on an SD pack.
 // * The "Optimal Resolution" HiDef row (string 352): comes from the connected
 //   display's reported native mode. No mode values exist in the image.
 // * The meaning of the u16 behind .rdata slot 0x92000af8 (the 0x101 test that
@@ -274,7 +278,7 @@ export const DISPLAY_SETTINGS_ROWS: readonly DisplayRow[] = [
     slot: 2,
     label: 375, // "Reference Levels"
     altLabel: { index: 376, when: 'sdAndNotNtscM' }, // "Black Level"
-    scene: 'dashSysCslSetOutputLevels.xur',
+    scene: 'dashSysCslSetOutputLevels.xur', // in consoles/; pushed by the row
     present: 'sdAndNotNtscM',
     enabled: 'sdAndNtscM',
   },

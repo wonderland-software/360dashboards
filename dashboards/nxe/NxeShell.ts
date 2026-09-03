@@ -34,7 +34,7 @@ import {
   loadScene, renderElement, indexVisuals, VisualScope, Skin,
   bindTimelines, refreshVisibility, updateNode, setOwnerText, setOwnerSlot, walk,
   NO_DELTA, PropBag, NO_OVERRIDES, authoredRect, xuiRegistry, pathOf,
-  isNativeLocale, DEFAULT_LOCALE, ListView, FRAMES_PER_SECOND,
+  isNativeLocale, DEFAULT_LOCALE, ListView, FRAMES_PER_SECOND, authoredItems,
   setOwnerImageSlot, note,
   type AssetIndex, type RenderCtx, type NodeIndex, type NodeRecord, type Strings,
   type TimelineEngine, type SceneReport, type LoadedScene,
@@ -58,15 +58,20 @@ import { Axis, ChannelSwap, FoldCascade, passingOpacity, stepDuration, CHANNEL_S
 import { mountAura, type AuraReport } from './aura';
 import {
   EPIX_COMMANDS, TRANSITION_CUES, curvesFor, resolveScenePath,
-  type LegacyCurves, type NavCommand,
+  ROOT_STRIPS, SIGNIN_SCENE, SIGNIN_PROFILE_PANEL, SIGNIN_LEGEND,
+  type LegacyCurves, type NavCommand, type RootStrip,
 } from './navigation';
+import { FocusModel } from '@dash/blades/focus';
+import { collectPageRows, findPressKey, PRESS_KEYS, isAuthoringToken, type PageRow } from './pageFocus';
+import { CODE_LISTS_9199, CODE_LISTS_NOT_FILLED_9199 } from './codeLists9199';
+import { PushedStrip, type StripReport } from './strip';
 import {
   SceneTransitions, foldOpacity, hingeTransform, queueRowTheta, yQuaternion, foldHinge,
   type TransitionReport,
 } from './transitions';
 import { IPTV_ROW } from '@dash/blades/nav';
 import { CURRENT_SETTING_ASSOC } from '@dash/blades/consoleSettings';
-import { panelEntries, metaRange } from '@dash/blades/panels';
+import { panelEntries, metaRange, metaPressRange } from '@dash/blades/panels';
 import { SOUND_CUES } from './variables';
 import { playTransition } from '@dash/blades/transitions';
 
@@ -256,6 +261,17 @@ export interface NxeReport {
    *  page stack. `pages` is the whole stack, deepest first. */
   legacy: LegacyReport | null;
   pages: { scene: string; curve: string; form: string; rows: number; focusId: string | null }[];
+  /**
+   * Work the fold's own timeline still owes: a page waiting for
+   * `PAGE_PUSH_FRAME`, the cascade waiting for `UNFOLD_BEHIND_FRAME`, the
+   * legend waiting for `LEGEND_HIDE_FRAME` / `LEGEND_SHOW_FRAME`, and any
+   * scene fetch still in
+   * flight. A harness that steps the shell frame by frame has to treat this as
+   * BUSY: none of it shows in `motion` or `transitions`, so a settle loop that
+   * watched only those could stop between the press and the page and read a
+   * shell that is neither at home nor on a page (M4e).
+   */
+  pending: { page: string | null; unfold: boolean; legendShow: boolean; legendHide: boolean; fetches: number };
   legend: LegendReport | null;
   /** The live state of the two servoed cursors and the fold cascade. */
   motion: {
@@ -293,14 +309,19 @@ export interface NxeReport {
   rigs: { mounted: number; mounts: number; unmounts: number };
   /** Hardware state the metapane shows and this build cannot query. */
   hardwareState: string[];
+  /** Presses that took a code path on the console and nothing here: "<scene>:<control> (<why>)" (M4e). */
+  codePaths: string[];
+  /** Every empty code-driven list on every mounted page, with the reason (M4e). */
+  codeUnfilled: string[];
   errors: string[];
 }
 
 export interface LegacyReport {
   scene: string;
   /** `legacy` = an 880x480 Blades-era DashScene in a LegacyControl frame;
-   *  `rome` = a 460x495 NXE-native Rome panel on the Rome strip. */
-  kind: 'legacy' | 'rome';
+   *  `rome` = a 460x495 NXE-native Rome panel on the Rome strip;
+   *  `root` = a pushed 1280x720 RomeRootScene / MobyRootScene carrying a strip (M4e). */
+  kind: 'legacy' | 'rome' | 'root';
   /** The DashScene's own size and where it was placed. */
   size: { w: number; h: number };
   centreX: number;
@@ -317,6 +338,17 @@ export interface LegacyReport {
   meta: { text: string; index: number; current: string; scope: string | null } | null;
   /** Controls the page authors that console state hides (`navIPTVSettings`). */
   hidden: string[];
+  /** How the arrival focus was chosen: DefaultFocus, the chain head, the first row, a list (M4e). */
+  arrivalBy: string;
+  /** The focused control's class (XuiNavButton, XuiButton, XuiRadioButton, XuiListItem). */
+  focusClass: string | null;
+  /** Lists filled from a 9199 code table ("lstLanguages x12 from ..."), and lists left EMPTY with the reason. */
+  codeFilled: string[];
+  codeUnfilled: string[];
+  /** Authoring tokens ("<setting>") cleared off this page, control by control. */
+  tokens: string[];
+  /** The strip a pushed root scene carries (Sign In, What's Hot ...), or null. */
+  strip: StripReport | null;
 }
 
 export interface NxeState extends ConsoleState {
@@ -364,13 +396,17 @@ interface LegacyPage {
   wrapper: HTMLElement;
   curves: LegacyCurves;
   report: LegacyReport;
-  /** The focusable rows: a filled list, or the scene's own nav buttons. */
+  /** The focused list (a code-filled or authored XuiList), if focus sits in one. */
   list: ListView | null;
-  navIds: string[];
-  navFocus: number;
+  lists: ListView[];
+  /** The authored NavUp/NavDown/NavLeft/NavRight chain over the page's rows. */
+  focus: FocusModel | null;
+  rows: PageRow[];
   meta: NodeRecord | null;
   metaIndex: number;
   descriptions: string[];
+  /** The strip a pushed root scene carries. */
+  strip: PushedStrip | null;
 }
 
 /** A cue the glue fired, with the engine tick it fired on. */
@@ -406,6 +442,24 @@ export const UNFOLD_BEHIND_FRAME = 200;
 /** `BackTo`'s `TransitionSubElements` returns 0 -> 1 over 205..225; the
  *  legend is shown with it. */
 export const LEGEND_SHOW_FRAME = 205;
+/**
+ * Where the legend LEAVES on A.
+ *
+ * `TransitionSubElements`'s whole keyframe list is
+ * `0:1 1:0 55:0 75:1 | 76:1 95:0 150:0 | 151:0 205:0 225:1 | 226:1 250:0 300:0`
+ * [SCENE controlp/Variables.xur, timeline `SceneTransitions/
+ * TransitionSubElements`], so the variable holds a ZERO PLATEAU across the
+ * middle of each range and the sub-elements are absent exactly while it is 0.
+ * `LEGEND_SHOW_FRAME` is already that plateau's far edge on `BackTo` (205);
+ * this is the near edge on `From` (95), which is the same rule read at the
+ * other end and not a second one.
+ *
+ * The footage agrees and M4d's "play it on the press" did not: the legend
+ * band is FLAT for ten 30 fps samples after A and only then moves [FRAME Kpa
+ * f05576-05586], which is frame 95 = tick 19, where this fires. Playing it on
+ * the press put our legend out 0.267 s early - Judge G's residual R4.
+ */
+export const LEGEND_HIDE_FRAME = 95;
 
 export class NxeShell {
   private variables!: Variables;
@@ -449,6 +503,7 @@ export class NxeShell {
   private aura: AuraReport | null = null;
   private transitions: SceneTransitions | null = null;
   private readonly unboundCommands: string[] = [];
+  private readonly codePaths: string[] = [];
   private counterFormat: string | null = null;
   private counterNode: NodeRecord | null = null;
   private queueNode: NodeRecord | null = null;
@@ -459,6 +514,7 @@ export class NxeShell {
   private pendingPage: string | null = null;
   private pendingUnfold = false;
   private pendingLegendShow = false;
+  private pendingLegendHide = false;
   private prevOnCue: TimelineEngine['onCue'] = null;
 
   private constructor(
@@ -609,7 +665,7 @@ export class NxeShell {
     this.legend = await hoistLegend({
       assets: this.assets, skin: this.skin, ctx: this.ctx, nodes: this.nodes,
       engine: this.engine, host: this.rootScene(), strings: this.strings,
-      locale: this.locale, source: this.legacySource(),
+      locale: this.locale, source: this.legacySource(), titleSource: this.titleSource(),
       pending: this.legendPending,
       supplied: this.suppliedCaptions(),
       mounted: (root) => { this.legendRoot = root; },
@@ -643,6 +699,18 @@ export class NxeShell {
    * build's own string.
    */
   private suppliedCaptions(): { group: string; from: string; text: string }[] {
+    const top = this.pages[this.pages.length - 1];
+    if (top?.scene === SIGNIN_SCENE) {
+      // The Sign In page: "(A) Select (B) Back" on every capture, from
+      // dashStrings [97] / [2] - the build's own words, the indices INFERRED
+      // (navigation.ts, SIGNIN_LEGEND).
+      const t = this.tables.get(`${SIGNIN_LEGEND.pack}/${SIGNIN_LEGEND.table}`) ?? [];
+      const out: { group: string; from: string; text: string }[] = [];
+      const sel = t[SIGNIN_LEGEND.select], back = t[SIGNIN_LEGEND.back];
+      if (sel) out.push({ group: 'AButton', from: `${SIGNIN_LEGEND.table}[${SIGNIN_LEGEND.select}] (index INFERRED; the word is the footage's)`, text: sel });
+      if (back) out.push({ group: 'BButton', from: `${SIGNIN_LEGEND.table}[${SIGNIN_LEGEND.back}] (index INFERRED; the word is the footage's)`, text: back });
+      return out;
+    }
     if (this.pages.length) return [];
     const slot = this.panels[Math.round(this.panelAxis?.cursor ?? 0)]?.slot;
     const help = slot?.onclick?.helptext ?? '';
@@ -659,15 +727,23 @@ export class NxeShell {
    *  the panel cursor is on. */
   private legacySource(): NodeRecord | null {
     const top = this.pages[this.pages.length - 1];
-    if (top) return top.node;
+    if (top) return top.strip ? (top.strip.frontSceneNode() ?? top.node) : top.node;
     return this.frontSlotRoot();
+  }
+
+  /** Where the page TITLE comes from: a pushed root parks its own `labHeader`
+   *  ("What's Hot", "Xbox Essentials") while its captions come from the front
+   *  panel, so the two are read from different scenes (legend.ts). */
+  private titleSource(): NodeRecord | null {
+    const top = this.pages[this.pages.length - 1];
+    return top ? top.node : null;
   }
 
   /** Re-read the legend from whatever is on screen now, and park the groups it
    *  brought back on the end of their Show range. */
   private refreshLegend(): void {
     if (!this.legendRoot) return;
-    this.legend = bindLegend(this.legendRoot, this.legacySource(), this.legendPending, this.suppliedCaptions());
+    this.legend = bindLegend(this.legendRoot, this.legacySource(), this.legendPending, this.suppliedCaptions(), this.titleSource());
     this.settle();
   }
 
@@ -1144,6 +1220,10 @@ export class NxeShell {
       this.foldCascade.unfold(Math.round(this.panelAxis.cursor));
       this.cue('SoundPanelUnfold');
     }
+    if (this.pendingLegendHide && frame !== null && frame >= LEGEND_HIDE_FRAME) {
+      this.pendingLegendHide = false;
+      playLegendRange(this.engine, this.legendPending, 'Hide');
+    }
     if (this.pendingLegendShow && frame !== null && frame >= LEGEND_SHOW_FRAME) {
       this.pendingLegendShow = false;
       this.refreshLegend();
@@ -1184,7 +1264,20 @@ export class NxeShell {
   /** D-pad left/right: the panel cursor. A refused move is silent, exactly as
    *  a held d-pad at the end of a Blades list is. */
   movePanel(dir: -1 | 1): boolean {
-    if (this.pages.length || this.pendingPage || this.transitions?.running) return false;   // the strip is folded away
+    const top = this.pages[this.pages.length - 1];
+    if (top) {
+      // A pushed root's own strip takes Left/Right on its integrator; a hosted
+      // page walks its authored NavLeft/NavRight chain (35 scenes in 9199
+      // author one: dashSysCslSetAudio, ClockTime, WelcomeChannel ...) [M4e].
+      if (top.strip) {
+        if (!top.strip.movePanel(dir)) return false;
+        this.cue(dir > 0 ? 'SoundPanelRight' : 'SoundPanelLeft');
+        this.refreshLegend();
+        return true;
+      }
+      return this.movePageFocus(dir > 0 ? 'Right' : 'Left');
+    }
+    if (this.pendingPage || this.transitions?.running) return false;   // the strip is folded away
     // While the old strip fades there is nothing to move; once the new one is
     // fading in it is the strip and moves like any other.
     if (this.swap.phase === 'out' || this.swap.phase === 'hold') return false;
@@ -1211,7 +1304,8 @@ export class NxeShell {
    * carry, so no fold cue is played here and the observation is recorded.
    */
   moveChannel(dir: -1 | 1): boolean {
-    if (this.pages.length) return this.movePageFocus(dir === 1 ? -1 : 1);
+    const top = this.pages[this.pages.length - 1];
+    if (top) return top.strip ? false : this.movePageFocus(dir === 1 ? 'Up' : 'Down');
     if (this.pendingPage || this.transitions?.running) return false;
     const n = this.channels.filter((c) => c.passed).length;
     if (n <= 1) return false;
@@ -1249,22 +1343,36 @@ export class NxeShell {
     if (!slot) return false;
     const click = slot.onclick;
     if (!click || click.button !== 'A') return false;
-    if (click.action !== 'EpixCmd') {
+    let target: string | null = null;
+    if (click.action === 'KeyDown') {
+      // A is delivered to the slot scene. The gamer card's handler opens the
+      // Sign In page with no profile [CODE 0x922df3b8; FRAME Kpa 48-56 s, Yrt
+      // f0264]; a signed-in profile opens its profile page (profile state) and
+      // the disc tray ejects (hardware) - both refused and named.
+      const path = this.channels.filter((c) => c.passed)[this.stripChannel]?.channel.epix.get(slot.epixid) ?? '';
+      if (path === 'EsGamerCard' && this.state.profiles === 0) target = SIGNIN_SCENE;
+      else if (path === 'EsGamerCard') { this.noteUnbound(`${slot.name || slot.epixid}: KeyDown A with a profile opens the profile page (gamer/GamerRootScene.xur) - profile state`); return false; }
+      else { this.noteUnbound(`${slot.name || slot.epixid}: KeyDown A ${path === 'EsDvdTray' ? 'ejects the tray (hardware)' : 'is delivered to the slot scene, which has no handler in this archive'}`); return false; }
+    } else if (click.action !== 'EpixCmd') {
       this.noteUnbound(`${slot.name || slot.epixid}: <action>${click.action}</action> is delivered to the slot scene, which has no handler in this archive`);
       return false;
-    }
-    const cmd = EPIX_COMMANDS[click.cmd] as NavCommand | undefined;
-    if (!cmd || !cmd.scene) {
-      this.noteUnbound(`${click.cmd}${cmd ? ` (id ${cmd.id})` : ''}: ${cmd?.evidence ?? 'not in the command table at 0x920288a0'}`);
-      return false;
+    } else {
+      const cmd = EPIX_COMMANDS[click.cmd] as NavCommand | undefined;
+      if (!cmd || !cmd.scene) {
+        this.noteUnbound(`${click.cmd}${cmd ? ` (id ${cmd.id})` : ''}: ${cmd?.evidence ?? 'not in the command table at 0x920288a0'}`);
+        return false;
+      }
+      target = cmd.scene;
     }
     this.cue('SoundButtonSelect');
     if (this.legendRoot) pressLegend(this.engine, this.legendRoot, 'AButton');
     // The page is fetched BEFORE the fold starts, so the gap between the fold
     // and the page is counted in frames and never in fetch time.
-    const loaded = await this.load(cmd.scene);
+    const loaded = await this.load(target);
     if (!loaded) return false;
-    this.beginFold(cmd.scene);
+    const strip = ROOT_STRIPS[target];
+    if (strip) await Promise.all(strip.panels.map((id) => this.load(id)));
+    this.beginFold(target);
     return true;
   }
 
@@ -1273,18 +1381,79 @@ export class NxeShell {
     this.transitions?.play('from');
     this.foldCascade.fold(Math.round(this.panelAxis.cursor));
     this.cue('SoundPanelFold');
-    playLegendRange(this.engine, this.legendPending, 'Hide');
+    // NOT on the press: the legend goes out at LEGEND_HIDE_FRAME, the near
+    // edge of TransitionSubElements' zero plateau on `From` (Judge G R4).
+    this.pendingLegendHide = true;
     this.pendingPage = scene;
     this.place();
     this.refreshQueue();
   }
 
-  /** B. Pop the page stack; on the home page it does nothing. */
+  /**
+   * B. Pop the page stack; on the home page it does nothing.
+   *
+   * On a hosted LEGACY page the cue is the page's own: `legend_b` is an
+   * XuiBackButton bound to B (`PressKey` 0x5841) whose `legend_B` visual
+   * carries `btn_Back.xma` on frame 2 of its Press range [SCENE dashuisk/
+   * skin.xur], the Blades rule (app/main.ts's Blades route sets the same
+   * state). M4d played the strip's table cue instead and the skin's was
+   * silent on every page [COVERAGE]. A pushed ROOT (a Moby/Rome shell) has no
+   * back button of its own and the glue plays `SoundButtonBack`, as on the
+   * strip (M4e).
+   */
   back(): boolean {
-    if (!this.pages.length) return false;
-    this.cue('SoundButtonBack');
+    const top = this.pages[this.pages.length - 1];
+    if (!top) return false;
+    const sceneRoot = top.loaded.root.children[0] ?? top.loaded.root;
+    const btn = top.strip ? null : findPressKey(sceneRoot, PRESS_KEYS.B);
+    if (btn && this.setPageState(top.node, idOf(btn), 'Press')) { /* btn_Back from the skin */ }
+    else this.cue('SoundButtonBack');
+    if (this.legendRoot) pressLegend(this.engine, this.legendRoot, 'BButton');
     void this.track(this.popPage());
     return true;
+  }
+
+  /**
+   * X / Y: the hosted page's control bound by `PressKey` 0x5802 / 0x5803 -
+   * `memory/DeviceSelector`'s `legend_y` "Device Options",
+   * `PControlFamilyTimer`'s `btnY` -> `2629_MoreInfo.xur`, `music/
+   * 1003_IndividualDevice`'s `legend_y` -> `1028_NowPlaying.xur` [SCENE]. A
+   * disabled carrier (`Enabled=false`, the settings pages' legend_x/legend_y)
+   * takes nothing; an enabled one plays its Press range and follows its
+   * PressPath, or takes a code path that is recorded (M4e, COVERAGE N8).
+   */
+  async pressKey(button: 'X' | 'Y'): Promise<boolean> {
+    const top = this.pages[this.pages.length - 1];
+    if (!top) return false;
+    const source = top.strip ? (top.strip.frontSceneNode()?.obj ?? null) : (top.loaded.root.children[0] ?? top.loaded.root);
+    if (!source) return false;
+    const ctl = findPressKey(source, PRESS_KEYS[button]);
+    if (!ctl) return false;
+    const id = idOf(ctl);
+    const enabled = propByName(ctl, 'Enabled')?.value !== false && propByName(ctl, 'Show')?.value !== false;
+    if (!enabled) { this.notePath(`${top.scene}:${id} (${button}) is Enabled=false or hidden: nothing to do`); return false; }
+    const node = top.strip ? (top.strip.frontSceneNode() ?? top.node) : top.node;
+    this.setPageState(node, id, 'Press');
+    if (this.legendRoot) pressLegend(this.engine, this.legendRoot, `${button}Button`);
+    const raw = propByName(ctl, 'PressPath')?.value;
+    const target = typeof raw === 'string' && raw ? resolveScenePath(this.assets, raw, top.scene.split('/')[0]) : null;
+    if (!target) {
+      this.notePath(`${top.scene}:${id} (${button}) ${typeof raw === 'string' && raw ? `names ${raw}, which does not resolve` : 'takes a code path'}`);
+      return false;
+    }
+    await this.pushPage(target);
+    return true;
+  }
+
+  private notePath(msg: string): void {
+    if (!this.codePaths.includes(msg)) this.codePaths.push(msg);
+  }
+
+  /** Put a control of THIS page into a state, scoped to the page's own copy. */
+  private setPageState(node: NodeRecord, id: string, state: string): boolean {
+    const n = this.findIn(node, id);
+    if (!n) return false;
+    return this.engine.setState(id, state, pathOf(n));
   }
 
   private noteUnbound(msg: string): void {
@@ -1553,10 +1722,14 @@ export class NxeShell {
    * channel scene carries, and the code fetches it by the same name from both
    * [CODE 0x9248b9a4 / 0x92490f2c].
    *
-   * It is mounted and left EMPTY. A Rome counter counts panels in a Rome
-   * CHANNEL, and this route pushes one panel with no channel behind it, so
-   * there is no count to write: writing "1 of 1" would be an invention. The
-   * element is mounted, marked, and reported.
+   * It is mounted and left EMPTY *here*. A Rome counter counts panels in a
+   * Rome CHANNEL, and THIS path pushes a bare 460x495 panel with no channel
+   * behind it (the `?page=consoles/...` route on a Rome-sized scene), so there
+   * is no count to write and "1 of 1" would be an invention. The element is
+   * mounted, marked, and reported. A Rome ROOT pushed by input - the four
+   * `EcNavTo*` roots - DOES have a channel and writes its count through its own
+   * overlay (`strip.ts`); that is where the "2 of 2" the frames show comes
+   * from.
    */
   private async mountRomeOverlay(): Promise<void> {
     if (this.romeOverlay) return;
@@ -1572,7 +1745,7 @@ export class NxeShell {
     if (!node) { wrapper.remove(); return; }
     this.romeOverlay = node;
     const desc = this.findIn(node, 'Description');
-    if (desc) desc.el.dataset['xuiPlaceholder'] = 'rome-counter (no Rome channel on this route)';
+    if (desc) desc.el.dataset['xuiPlaceholder'] = 'rome-counter (a bare Rome panel on the ?page= route has no channel to count; a pushed Rome ROOT writes its own)';
   }
 
   /**
@@ -1585,6 +1758,8 @@ export class NxeShell {
    * written and then the ordinary Trans machinery plays it.
    */
   private async pushPage(sceneId: string, opts: { silent?: boolean } = {}): Promise<LegacyPage | null> {
+    const rootStrip = ROOT_STRIPS[sceneId];
+    if (rootStrip) return this.pushRoot(sceneId, rootStrip, opts);
     const anchor = this.layer('AnchorLayer') ?? this.rootScene();
     const loaded = await this.load(sceneId);
     if (!loaded) { this.errors.push(`${sceneId}: not in the manifest`); return null; }
@@ -1638,12 +1813,23 @@ export class NxeShell {
       filledFrom: filled.filledFrom,
       meta: null,
       hidden: filled.hidden,
+      arrivalBy: filled.arrivalBy,
+      focusClass: filled.list ? 'XuiListItem' : (filled.pageRows.find((r) => r.id === filled.focusId)?.className ?? null),
+      codeFilled: filled.codeFilled,
+      codeUnfilled: filled.codeUnfilled,
+      tokens: [],
+      strip: null,
     };
     const page: LegacyPage = {
       scene: sceneId, loaded, node, wrapper, curves, report,
-      list: filled.list, navIds: filled.navIds, navFocus: filled.navFocus,
+      list: filled.list, lists: filled.lists, focus: filled.focus, rows: filled.pageRows,
       meta: this.findIn(node, 'metaPanelScene'), metaIndex: -1, descriptions: filled.descriptions,
+      strip: null,
     };
+    // Every angle-bracket token the authoring tool left is cleared BEFORE the
+    // page shows, on every page, whatever loaded it (Judge G R5 counted one
+    // page; the audit counted seven) (M4e).
+    this.discloseTokens(page);
     this.pages.push(page);
     this.legacy = report;
     this.syncMeta(page);
@@ -1678,6 +1864,33 @@ export class NxeShell {
     this.legacy = this.pages[this.pages.length - 1]?.report ?? null;
     const under = this.pages[this.pages.length - 1] ?? null;
 
+    if (page.strip) {
+      // A pushed root goes out on its own `BackFrom` (strip.ts) while the
+      // scene under it comes back - the home's `BackTo`, as for a page.
+      const frames = page.strip.leave();
+      if (under) {
+        under.node.overrides.set('TransBackTo', page.curves.backTo);
+        playTransition(this.engine, this.ctx.visuals, page.curves.backTo, under.node, 'in');
+      } else {
+        this.transitions?.play('backTo');
+        this.pendingUnfold = true;
+        this.pendingLegendShow = true;
+        playLegendRange(this.engine, this.legendPending, 'Hide');
+      }
+      const t0 = this.engine.frames;
+      let stop: (() => void) | null = null;
+      const destroy = (): void => {
+        stop?.();
+        page.strip?.dispose();
+        for (const id of this.nodes.removeSubtree(page.node)) this.engine.remove(id);
+        page.wrapper.remove();
+        if (this.pages.length) this.refreshLegend();
+        refreshVisibility(this.host, this.ctx.report);
+      };
+      stop = this.engine.addStepper(() => { if (this.engine.frames - t0 >= frames) destroy(); });
+      return;
+    }
+
     page.node.overrides.set('TransBackFrom', page.curves.backFrom);
     const out = playTransition(this.engine, this.ctx.visuals, page.curves.backFrom, page.node, 'out');
     if (under) {
@@ -1709,23 +1922,32 @@ export class NxeShell {
     else destroy();
   }
 
-  /** Up/Down inside a hosted page: the list's rows, or the nav-button chain. */
-  private movePageFocus(dir: -1 | 1): boolean {
+  /**
+   * A d-pad direction inside a hosted page: the list's rows, or the page's
+   * authored NavUp/NavDown/NavLeft/NavRight chain (pageFocus.ts, the Blades
+   * FocusModel). A real move plays `KillFocus` on the row being left and
+   * `Focus` on the new one, both scoped to this page's copy - the rule
+   * `BladeShell.focusTo` applies and M4d's `movePageFocus` did not (it set
+   * `Focus` on the new row and never released the old one) [COVERAGE N10].
+   */
+  private movePageFocus(dir: 'Up' | 'Down' | 'Left' | 'Right'): boolean {
     const page = this.pages[this.pages.length - 1];
     if (!page) return false;
-    if (page.list) {
-      const moved = page.list.move(dir);
+    if (page.list && (dir === 'Up' || dir === 'Down')) {
+      const moved = page.list.move(dir === 'Down' ? 1 : -1);
       if (moved === null) return false;
       page.report.focusId = moved;
       this.syncMeta(page);
       return true;
     }
-    const next = page.navFocus + dir;
-    if (next < 0 || next >= page.navIds.length) return false;
-    page.navFocus = next;
-    const id = page.navIds[next]!;
-    this.engine.setState(id, 'Focus');
-    page.report.focusId = id;
+    if (!page.focus) return false;
+    const before = page.focus.current;
+    const next = page.focus.move(dir);
+    if (next === null) return false;
+    if (before) this.setPageState(page.node, before, 'KillFocus');
+    this.setPageState(page.node, next, 'Focus');
+    page.report.focusId = next;
+    page.report.focusClass = page.rows.find((r) => r.id === next)?.className ?? null;
     this.syncMeta(page);
     return true;
   }
@@ -1751,8 +1973,8 @@ export class NxeShell {
     if (page.list) {
       index = page.list.visibleIndex;
       text = page.descriptions[page.list.focusIndex] ?? '';
-    } else if (page.navIds.length) {
-      const id = page.navIds[page.navFocus] ?? '';
+    } else if (page.focus?.current) {
+      const id = page.focus.current;
       const entries = panelEntries(page.loaded.root.children[0] ?? page.loaded.root);
       const entry = entries.find((e) => e.id === id) ?? null;
       index = entry ? entry.index : -1;
@@ -1797,110 +2019,301 @@ export class NxeShell {
     return best;
   }
 
-  /** A inside a hosted page: the row's code-table destination, or the focused
-   *  nav button's own `PressPath`. Silent when it goes nowhere. */
+  /**
+   * A inside a hosted page.
+   *
+   * The press flourish and its cue are the row's own: the focused control's
+   * `Press` range (a list row's `XuiButton` visual, a nav button's) carries
+   * `btn_Select.xma` [SCENE dashuisk/skin.xur, 59 visuals] - the Blades rule,
+   * silent under M4d because `pressPage` never set the state [COVERAGE]. The
+   * metapane plays its `%dPress` flourish beside it (panels.ts). Then the
+   * destination: a code-table row's scene, or the control's `PressPath`
+   * resolved in the page's own pack first (navigation.ts). A row with neither
+   * takes a code path on the console (an option button writes the setting)
+   * and is recorded in `__dash.nxe.codePaths`, never faked (M4e).
+   */
   private async pressPage(): Promise<boolean> {
     const page = this.pages[this.pages.length - 1];
     if (!page) return false;
-    const spec = LEGACY_CODE_TABLES[page.scene];
+    if (page.strip) return this.pressStripPanel(page);
+    const pack = page.scene.split('/')[0]!;
     let target: string | null = null;
-    if (page.list && spec) {
-      target = spec.rows[page.list.focusIndex]?.scene ?? null;
-      if (target) target = `${spec.pack}/${target}`;
-    } else if (page.navIds.length) {
-      const id = page.navIds[page.navFocus]!;
-      let obj: XuObject | null = null;
-      walk(page.loaded.root, (o) => { if (!obj && idOf(o) === id) obj = o; });
-      const raw = obj ? propByName(obj, 'PressPath')?.value : undefined;
-      if (typeof raw === 'string' && raw) target = resolveScenePath(this.assets, raw);
-      if (!target) this.noteUnbound(`${page.scene}: ${id} takes a code path, not a PressPath`);
+    let pressed: string | null = null;
+    let why = 'takes a code path';
+    if (page.list) {
+      const row = page.list.focusIndex;
+      pressed = page.list.focusId;
+      const spec = LEGACY_CODE_TABLES[page.scene];
+      if (spec) {
+        const sc = spec.rows[row]?.scene ?? null;
+        if (sc) target = `${spec.pack}/${sc}`;
+      } else {
+        const cl = CODE_LISTS_9199[page.scene]?.find((c) => c.list === page.list!.id);
+        const sc = cl?.rows[row]?.scene ?? null;
+        if (sc) { target = resolveScenePath(this.assets, sc, pack); if (!target) why = `names ${sc}, which resolves to no scene`; }
+        else why = 'selects an option: the console writes the setting through XConfig (device state) and this build has no store to write';
+      }
+    } else if (page.focus?.current) {
+      pressed = page.focus.current;
+      const row = page.rows.find((r) => r.id === pressed);
+      if (row?.pressPath) {
+        target = resolveScenePath(this.assets, row.pressPath, pack);
+        if (!target) why = `names ${row.pressPath}, which resolves to no scene (${this.assets.collisions.includes(row.pressPath.toLowerCase()) ? 'a basename collision' : 'not in the manifest'})`;
+      } else if (row?.className === 'XuiButton' || row?.className === 'XuiRadioButton') {
+        why = 'selects an option: the console writes the setting through XConfig (device state) and this build has no store to write';
+      }
     }
-    if (!target) return false;
-    this.cue('SoundButtonSelect');
+    if (!pressed) return false;
+    this.setPageState(page.node, pressed, 'Press');
+    if (this.legendRoot) pressLegend(this.engine, this.legendRoot, 'AButton');
+    const scope = page.meta ? this.metaScope(page.meta) : null;
+    if (scope && page.metaIndex >= 0) {
+      const r = metaPressRange(page.metaIndex);
+      this.engine.playRange(scope, r.start, r.end);
+    }
+    if (!target) { this.notePath(`${page.scene}:${pressed} ${why}`); return false; }
     await this.pushPage(target);
     return true;
   }
 
+  /** A on a pushed root's front panel: no panel offline has a PressPath; a
+   *  Rome panel's list rows and the sign-in panels are code paths (the
+   *  profile creator, the title list) and are recorded. */
+  private pressStripPanel(page: LegacyPage): boolean {
+    const scene = page.strip?.frontScene() ?? page.scene;
+    const node = page.strip?.frontSceneNode() ?? null;
+    const root = node?.obj ?? null;
+    const focus = root ? String(propByName(root, 'DefaultFocus')?.value ?? '') : '';
+    if (node && focus) this.setPageState(node, focus, 'Press');
+    this.cue('SoundButtonSelect');
+    if (this.legendRoot) pressLegend(this.engine, this.legendRoot, 'AButton');
+    this.notePath(`${scene}: A ${scene.startsWith('signin/') ? 'starts xam\'s profile creation / recovery UI (system software, not in the archive)' : 'acts on the panel\'s own list, which is empty here (see codeUnfilled)'}`);
+    return false;
+  }
+
   /**
-   * Reuse the Blades list machinery, because the behaviour IS Blades': the row
-   * pitch comes from the list visual's own `control_ListItem` (46.38 px here
-   * against 6770's 45), the window is `floor(height / pitch)`, focus is a
-   * state range on the row's visual, and the scroll ends are the skin's.
+   * Fill a hosted page: its lists from the 9199 code tables, its rows from the
+   * scene's own button controls, and its arrival focus from `DefaultFocus`.
    *
-   * WHERE IT IS NOT THE SAME: the 9199 table is 16 bytes an entry, not 20 (no
-   * `altHandler`), and it has eight rows, not eleven
-   * (dashboards/nxe/consoleSettings9199.ts). And `dashSysCslSet.xur` declares
-   * its `control_ListItem` templates in the SCENE, not only in the skin visual.
+   * The list machinery IS Blades': the row pitch comes from the list visual's
+   * own `control_ListItem` (46.38 px here against 6770's 45), the window is
+   * `floor(height / pitch)`, focus is a state range on the row's visual. What
+   * differs is the DATA - every table is 9199's own (codeLists9199.ts) - and
+   * the rows: M4d took only `XuiNavButton`s whose Id starts with `nav`, which
+   * left seven Console Settings sub-pages, `2004_NetworkDetails` and
+   * `PControlSelect` with nothing to focus [COVERAGE N1]. The rows are now the
+   * scene's button controls that are on the plate and enabled, in authored
+   * order, and the arrival focus is the scene's `DefaultFocus` / chain head /
+   * first row (pageFocus.ts) - the XUI rule, not a name filter (M4e).
    */
   private async fillLegacyPage(sceneId: string, node: NodeRecord): Promise<{
     rows: string[]; focusId: string | null; filledFrom: string | null;
-    list: ListView | null; navIds: string[]; navFocus: number; descriptions: string[]; hidden: string[];
+    list: ListView | null; lists: ListView[]; focus: FocusModel | null; pageRows: PageRow[];
+    descriptions: string[]; hidden: string[]; arrivalBy: string; codeFilled: string[]; codeUnfilled: string[];
   }> {
-    const spec = LEGACY_CODE_TABLES[sceneId];
     const hidden: string[] = [];
+    const codeFilled: string[] = [];
+    const codeUnfilled: string[] = [];
+    const sceneRoot = node.obj.children[0] ?? node.obj;
+    const pack = sceneId.split('/')[0]!;
+
+    // navIPTVSettings is hidden on a console with no IPTV provider [FRAME Kpa
+    // f0391]; hidden means HIDDEN (Show=false), so its `<servicename>` token is
+    // never painted [Judge G finding 4].
+    if (!this.state.iptv) {
+      walk(node.obj, (o) => {
+        if (idOf(o) !== IPTV_ROW) return;
+        const n = this.findIn(node, IPTV_ROW);
+        if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
+        hidden.push(`${IPTV_ROW} (Text is the authoring token ${JSON.stringify(String(propByName(o, 'Text')?.value ?? ''))}; no IPTV provider)`);
+      });
+    }
+
+    // 1. The lists: the Console Settings table, the 9199 code lists, or the
+    //    scene's own ItemsText; an empty list says why.
+    const spec = LEGACY_CODE_TABLES[sceneId];
+    const descriptions: string[] = [];
+    let filledFrom: string | null = null;
+    let table: string[] = [];
     if (spec) {
-      const table = await this.table(spec.pack, spec.table);
-      const rows: string[] = [];
-      const descriptions: string[] = [];
+      table = await this.table(spec.pack, spec.table);
       for (const r of spec.rows) {
-        const v = table[r.label];
-        if (v === undefined) this.errors.push(`${spec.table}[${r.label}] (row label) is missing`);
-        rows.push(v ?? '');
+        if (table[r.label] === undefined) this.errors.push(`${spec.table}[${r.label}] (row label) is missing`);
         const d = r.description >= 0 ? table[r.description] : undefined;
         if (r.description >= 0 && d === undefined) this.errors.push(`${spec.table}[${r.description}] (row description) is missing`);
         descriptions.push(d ?? '');
       }
-      let list: XuObject | null = null;
-      walk(node.obj, (o) => { if (!list && (o.className === 'XuiList' || o.className === 'XuiCommonList')) list = o; });
-      if (!list) { this.errors.push(`${sceneId}: no list to fill`); return { rows, focusId: null, filledFrom: spec.va, list: null, navIds: [], navFocus: 0, descriptions, hidden }; }
+    }
+    const codeLists = new Map((CODE_LISTS_9199[sceneId] ?? []).map((c) => [c.list, c] as const));
+    const listObjects: XuObject[] = [];
+    walk(node.obj, (o) => { if (o.className === 'XuiList' || o.className === 'XuiCommonList') listObjects.push(o); });
+    const lists: ListView[] = [];
+    for (const list of listObjects) {
       const listNode = this.nodes.all.find((n) => n.obj === list);
-      if (!listNode) return { rows, focusId: null, filledFrom: spec.va, list: null, navIds: [], navFocus: 0, descriptions, hidden };
-      const view = new ListView(list, listNode, { ...this.ctx, pack: sceneId.split('/')[0]! }, this.nodes, this.engine, xuiRegistry());
-      view.setItems(rows.map((text) => ({ text })));
-      // A page ARRIVES with focus already somewhere, which is the silent case:
-      // XuiButton carries btn_Focus.xma on Focus and an EMPTY File on InitFocus.
-      const focusId = view.focus(0, 'InitFocus');
-      return { rows, focusId, filledFrom: spec.va, list: view, navIds: [], navFocus: 0, descriptions, hidden };
+      if (!listNode) continue;
+      const listId = idOf(list);
+      let items = authoredItems(list);
+      if (!items.length && spec) {
+        items = spec.rows.map((r) => ({ text: table[r.label] ?? `#${r.label}` }));
+        filledFrom = spec.va;
+      } else if (!items.length) {
+        const cl = codeLists.get(listId);
+        if (cl) {
+          const t = await this.table(cl.pack, cl.table);
+          for (const r of cl.rows) if (t[r.label] === undefined) this.errors.push(`${cl.table}[${r.label}] (${listId} row) is missing`);
+          items = cl.rows.map((r) => ({ text: t[r.label] ?? `#${r.label}` }));
+          codeFilled.push(`${listId} x${items.length} from ${cl.va}`);
+          filledFrom ??= cl.va;
+        }
+      }
+      if (!items.length) {
+        const why = CODE_LISTS_NOT_FILLED_9199[`${sceneId}#${listId}`]
+          ?? Object.entries(CODE_LISTS_NOT_FILLED_9199).find(([k]) => k === sceneId || (k.startsWith(`${sceneId}#`) && k.includes(listId)))?.[1];
+        codeUnfilled.push(`${sceneId}#${listId}: ${why ?? 'no code table recovered'}`);
+        continue;
+      }
+      const view = new ListView(list, listNode, { ...this.ctx, pack }, this.nodes, this.engine, xuiRegistry());
+      view.setItems(items);
+      lists.push(view);
     }
 
-    // No code table: the page's rows are hand-placed XuiNavButtons authored in
-    // the scene, each with its own PressPath and NavUp/NavDown chain - the
-    // Blades shape, unchanged in 9199 [SPEC §4]. `consoles/SystemScene.xur` is
-    // the one this milestone reaches, and the footage shows SEVEN rows, with
-    // navIPTVSettings hidden on a console with no IPTV provider [FRAME Kpa
-    // f0391] - the same rule dashboards/blades/nav.ts already applies, and the
-    // same reason its Text is nothing but the `<servicename>` token. Hidden
-    // means HIDDEN: the control's Show is cleared, so the token is never
-    // painted [Judge G finding 4].
-    const navIds: string[] = [];
-    const rows: string[] = [];
-    walk(node.obj, (o) => {
-      const id = idOf(o);
-      if (!id || !id.startsWith('nav') || o.className !== 'XuiNavButton') return;
-      const text = String(propByName(o, 'Text')?.value ?? '');
-      if (!this.state.iptv && id === IPTV_ROW) {
-        const n = this.findIn(node, id);
-        if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
-        hidden.push(`${id} (Text is the authoring token ${JSON.stringify(text)}; no IPTV provider)`);
-        return;
-      }
-      navIds.push(id);
-      rows.push(text);
+    // 2. The rows and the arrival focus, from the scene's own authoring.
+    const pr = collectPageRows(sceneRoot, hidden.map((h) => h.split(' ')[0]!));
+    const rowIds = new Set(pr.rows.map((r) => r.id));
+    const focus = new FocusModel(sceneRoot, {
+      object: (fid) => { let f: XuObject | undefined; walk(sceneRoot, (o) => { if (!f && idOf(o) === fid) f = o; }); return f; },
+      focusable: (fid) => rowIds.has(fid),
+      override: (fid, prop) => { const v = this.findIn(node, fid)?.overrides.get(prop); return typeof v === 'string' ? v : null; },
     });
-    // Document order is not screen order here - the scene lists navLiveVision,
-    // navIPTVSettings and navNetwork last - so sort by authored y.
-    const yOf = (id: string): number => {
-      let y = 0;
-      walk(node.obj, (o) => { if (idOf(o) === id) y = authoredRect(PropBag.of(o, NO_OVERRIDES)).y; });
-      return y;
+    let list: ListView | null = null;
+    let focusId: string | null = null;
+    let arrivalBy: string = pr.arrivalBy;
+    if (pr.arrivalList) {
+      list = lists.find((l) => l.id === pr.arrivalList) ?? null;
+      if (!list) arrivalBy = `list ${pr.arrivalList} (empty: ${codeUnfilled.find((c) => c.includes(`#${pr.arrivalList}`)) ? 'see codeUnfilled' : 'no rows'})`;
+    }
+    if (!list && !pr.arrivalList && !pr.rows.length && lists.length) { list = lists[0]!; arrivalBy = 'list (the only focusable thing on the page)'; }
+    if (list) {
+      // A page ARRIVES with focus already somewhere, which is the silent case:
+      // XuiButton carries btn_Focus.xma on Focus and an EMPTY File on InitFocus.
+      focusId = list.focus(0, 'InitFocus');
+    } else if (pr.arrival && rowIds.has(pr.arrival)) {
+      focus.set(pr.arrival);
+      this.setPageState(node, pr.arrival, 'InitFocus');
+      focusId = pr.arrival;
+    }
+    const rows = list ? (spec ? spec.rows.map((r) => table[r.label] ?? '') : (codeLists.get(list.id)?.rows.map((r) => table[r.label] ?? '') ?? [])) : pr.rows.map((r) => r.text || `${r.id} (caption is code-filled)`);
+    if (list && !spec) {
+      const cl = codeLists.get(list.id);
+      if (cl) { const t = await this.table(cl.pack, cl.table); rows.splice(0, rows.length, ...cl.rows.map((r) => t[r.label] ?? '')); }
+      else rows.splice(0, rows.length, ...authoredItems(list.list).map((i) => i.text));
+    }
+    return { rows, focusId, filledFrom, list, lists, focus: pr.rows.length ? focus : null, pageRows: pr.rows, descriptions, hidden, arrivalBy, codeFilled, codeUnfilled };
+  }
+
+  /**
+   * Clear every authoring token on a page - "<setting>", "<#> of <Total #>",
+   * "<current settings>" - and record each in `__dash.nxe.hardwareState`.
+   *
+   * Each is a slot the console filled from device or Live state before the
+   * control was shown (Blades' AUTHORING_PLACEHOLDER rule; the 9199 form of
+   * the token is pageFocus.ts's). M4d ran no clear on the NXE route and the
+   * gate covered two scenes; seven pages painted `<setting>` [COVERAGE N2,
+   * Judge G R5]. Nothing is painted in its place: the VALUES are console state
+   * (PLACEHOLDERS).
+   */
+  private discloseTokens(page: LegacyPage): void {
+    const go = (n: NodeRecord): void => {
+      if (n.obj.className !== 'XuiHtmlElement') {
+        const text = propByName(n.obj, 'Text')?.value;
+        if (typeof text === 'string' && isAuthoringToken(text)) {
+          setOwnerText(n, '');
+          const entry = `${page.scene}:${idOf(n.obj) || n.obj.className} ${text.replace(/\s+/g, ' ').trim()}`;
+          page.report.tokens.push(entry);
+          if (!this.hardwareState.includes(entry)) this.hardwareState.push(entry);
+        }
+      }
+      n.children.forEach(go);
     };
-    const order = navIds.map((id, i) => ({ id, text: rows[i]!, y: yOf(id) })).sort((a, b) => a.y - b.y);
-    const focusId = order[0]?.id ?? null;
-    if (focusId) this.engine.setState(focusId, 'InitFocus');
-    return {
-      rows: order.map((o) => o.text), focusId, filledFrom: null,
-      list: null, navIds: order.map((o) => o.id), navFocus: 0, descriptions: [], hidden,
+    go(page.node);
+  }
+
+  /**
+   * Push a ROOT scene - a `RomeRootScene` / `MobyRootScene` host with a strip
+   * in it (strip.ts): What's Hot, Xbox Essentials, the Live upsell, the Game
+   * Library and Sign In (navigation.ts ROOT_STRIPS). It is 1280x720 over the
+   * home scene at (0,0); the legend hoists its captions from the FRONT panel
+   * and its title from the root's parked `labHeader` (M4e).
+   */
+  private async pushRoot(sceneId: string, strip: RootStrip, opts: { silent?: boolean } = {}): Promise<LegacyPage | null> {
+    const host = this.rootScene();
+    const loaded = await this.load(sceneId);
+    if (!loaded) { this.errors.push(`${sceneId}: not in the manifest`); return null; }
+    const under = this.pages[this.pages.length - 1] ?? null;
+    const curves = curvesFor(under !== null);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'nxe-root';
+    wrapper.dataset['xuiRoot'] = sceneId;
+    wrapper.style.cssText = 'position:absolute;left:0;top:0;width:1280px;height:720px';
+    host.el.appendChild(wrapper);
+    const node = this.renderInto(host, loaded, wrapper);
+    if (!node) { wrapper.remove(); return null; }
+    bindTimelines(this.nodes, this.engine);
+    const rootNode = node.children[0] ?? node;
+    // Sign In: one ProfilePanelScene per local profile, then the two authored
+    // panels [CODE 0x922e409c-0x922e415c]; none offline.
+    const panels = sceneId === SIGNIN_SCENE
+      ? [...new Array<string>(this.state.profiles).fill(SIGNIN_PROFILE_PANEL), ...strip.panels]
+      : [...strip.panels];
+    const constants = strip.kind === 'rome' ? (this.romeStrip ?? this.strip) : this.strip;
+    const channelRow = strip.channel ? ((await this.table(strip.channel.pack, strip.channel.table))[strip.channel.index] ?? '') : null;
+    if (strip.channel && !channelRow) this.errors.push(`${strip.channel.table}[${strip.channel.index}] (the ${sceneId} queue row) is missing`);
+    const pushed = await PushedStrip.mount({
+      kind: strip.kind, scene: sceneId, panels, constants, projection: this.projection,
+      assets: this.assets, skin: this.skin, ctx: this.ctx, nodes: this.nodes, engine: this.engine,
+      root: rootNode,
+      renderInto: (h, sc, into) => this.renderInto(h, sc, into),
+      buildRig: (w, sc) => this.buildRig(w, sc),
+      load: (id) => this.load(id),
+      counterFormat: this.counterFormat,
+      channelRow,
+      errors: this.errors,
+    });
+    // A panel's own empty list is disclosed, as a page's is.
+    const codeUnfilled: string[] = [];
+    for (const id of panels) {
+      const sc = this.cache.get(id);
+      if (!sc) continue;
+      walk(sc.root, (o) => {
+        if ((o.className === 'XuiList' || o.className === 'XuiCommonList') && !authoredItems(o).length) {
+          const key = `${id}#${idOf(o)}`;
+          const why = CODE_LISTS_NOT_FILLED_9199[key] ?? 'no code table recovered';
+          if (!codeUnfilled.includes(`${key}: ${why}`)) codeUnfilled.push(`${key}: ${why}`);
+        }
+      });
+    }
+    const report: LegacyReport = {
+      scene: sceneId, size: { w: 1280, h: 720 }, centreX: 640, left: 0, top: 0, kind: 'root',
+      parked: [], rows: panels.map((id) => id.replace(/^.*\//, '')), focusId: null, filledFrom: strip.evidence,
+      meta: null, hidden: [], arrivalBy: 'the strip\'s front panel', focusClass: null, codeFilled: [], codeUnfilled, tokens: [],
+      strip: pushed.report(),
     };
+    const page: LegacyPage = {
+      scene: sceneId, loaded, node, wrapper, curves, report,
+      list: null, lists: [], focus: null, rows: [], meta: null, metaIndex: -1, descriptions: [], strip: pushed,
+    };
+    this.pages.push(page);
+    this.legacy = report;
+    this.discloseTokens(page);
+    if (opts.silent) pushed.settle(); else pushed.arrive();
+    if (!opts.silent && under) {
+      under.node.overrides.set('TransFrom', curves.from);
+      playTransition(this.engine, this.ctx.visuals, curves.from, under.node, 'out');
+    }
+    this.refreshLegend();
+    if (!opts.silent && !under) playLegendRange(this.engine, this.legendPending, 'Show');
+    refreshVisibility(this.host, this.ctx.report);
+    return page;
   }
 
   /** The front slot's rendered scene, which is what the legend hoists from on
@@ -2034,11 +2447,12 @@ export class NxeShell {
       projection: this.projection,
       strip: this.strip,
       variablesMissing: this.variables?.missing ?? [],
-      legacy: this.legacy,
+      legacy: this.legacy ? { ...this.legacy, strip: this.pages[this.pages.length - 1]?.strip?.report() ?? null } : null,
       pages: this.pages.map((p) => ({
         scene: p.scene, curve: p.curves.to, form: p.curves.form,
         rows: p.report.rows.length, focusId: p.report.focusId,
       })),
+      pending: { page: this.pendingPage, unfold: this.pendingUnfold, legendShow: this.pendingLegendShow, legendHide: this.pendingLegendHide, fetches: this.pending.size },
       legend: this.legend,
       motion: {
         channel: this.channelAxis.sample(),
@@ -2066,6 +2480,8 @@ export class NxeShell {
       avatars: this.avatars,
       rigs: { mounted: this.panels.filter((p) => p.rig).length, mounts: this.rigMounts, unmounts: this.rigUnmounts },
       hardwareState: this.hardwareState,
+      codePaths: this.codePaths,
+      codeUnfilled: this.pages.flatMap((p) => p.report.codeUnfilled),
       errors: this.errors,
     };
   }
@@ -2149,13 +2565,13 @@ export const PHYSICS_NOT_IMPLEMENTED: readonly string[] = [
   'the four SceneTransitions/* variables are ANIMATED by controlp/Variables.xur\'s own To/From/BackTo/BackFrom ranges (75 frames each), not switches; the shell plays From on A and BackTo on B and reads them back. That the home page plays THOSE two of the four is the ordinary XuiScene pairing and is INFERRED; the page comes in at the frame TransitionScene starts to drop (PAGE_PUSH_FRAME) and the panels behind the front slot emerge once TransitionPanel is back to 0 (UNFOLD_BEHIND_FRAME), both inferred points on the file\'s timeline.',
   'MEASURED against the footage and NOT closed: with From started on the press the front slot\'s rotation lands where the footage has it (its ramp opens at frame 29, 14.5 frames at 30 fps; Kpa f05590) but the queue rows and the legend fade 2-4 30 fps frames earlier than the footage\'s f05585; on B the panels behind the front slot emerge about 0.4 s earlier than Yrt f07208. Stated in the runtime README, not tuned.',
   'the eight navigation cues are XuiSoundXAudio elements in controlp/Variables.xur with a Sound..SoundEnd range each; the shell plays the same file on the same tick through the bank. snd_transitioninto/from are keyframes of the SceneTransitions group\'s TransitionSound and fire from the range (tagged timeline in __dash.nxe.cues); a channel change plays only its channel cue - the footage carries one audible onset per change, plus a second 26 dB down matching snd_panelfold/unfold that this archive has no mix level for.',
-  'EcNavTo* -> scene is materialised in code, not in a pointer array: only EcNavToSettings is bound, and that INFERRED from the literal cluster and the footage. Every other command is refused and listed in __dash.nxe.unboundCommands; a refused press is silent.',
+  'EcNavTo* -> scene is a JUMP TABLE: .rdata 0x92028ad0 indexed by the command id, from the dispatcher at .text 0x922d312c (navigation.ts). EcNavToSettings, EcNavToGamesLibrary, EcNavToXboxBasics, EcNavToWhatsNew and EcNavToLiveUpsell name a pack and a scene there and are bound [CODE]; the library commands call a function that builds the page from device state and are refused and listed in __dash.nxe.unboundCommands with the case address; a refused press is silent.',
   'the Aura background is a scene used as an ImagePath and there is no offscreen render target, so it is a live DOM subtree; themeripple.uxfx animates nothing because both of its ImagePresenters are theme data this archive does not carry.',
   "the signed-out avatar's ARTWORK is the build's own dashcomm/AvatarSilhouette.png [CODE 0x921421ec] and its SIZE is the XuiAvatar's authored 776x776 box, but the avatar viewport's CAMERA is not in the archive: the two centring offsets are MEASURED off [FRAME Kpa f0048] and are in __dash.nxe.avatars. AvatarShadow.png is loaded by the same code and is NOT drawn.",
   'a signed-IN XuiAvatar draws nothing: the model, its textures and its animations are xam/Live.',
   'a legacy page over a legacy page takes the plain LegacyFrom + LegacyTo pair, MEASURED at twenty ticks on Kpa f05630-05639; where the console uses the ...Ex pair is not observed.',
   'the queue WRAPS past the end of the channel list (queueRowChannel): the rows are laid out as if an Up on the last channel is not refused, and nothing in the archive says it is. INFERRED from the rows.',
-  'ONE Rome panel mounts from RomeFrontPosition and its own size; a Rome CHANNEL (the ColumnLayer strip and the counter that goes with it) needs a Rome channel, and the offline archive has none. A Rome page pops with LegacyBackFrom here; its own BackFrom range (TransitionPanel 0 -> -1, the hinge behind it) is decoded and not wired to a Rome strip.',
+  'a pushed ROOT (What\'s Hot 8 panels, Xbox Essentials 8, the Live upsell 5, the Game Library 2, Sign In 2 + profiles) carries a strip on the Rome or Moby constants (strip.ts); its panel ORDER is the code\'s table or emission order (navigation.ts ROOT_STRIPS, each row marked CODE or INFER); that it plays To on arrival and BackFrom on B, and that the panels behind emerge on To\'s frame 70, are INFERRED (the home page\'s pairing and rule).',
   "the Aura floor under the front panel is 70-95 luma dark and it is SolidBack's own authored stops (rgb 90,90,90 -> 60,70,80 -> alpha 0), not a missing layer: the ablation is in the runtime README.",
   'TransitionSubElements (1 -> 0 over From\'s first 19 frames) is read by the strip through 0x9248ad48 and is not bound to anything here: what it dims is not identified.',
   'everything Xbox LIVE serves is absent: PLACEHOLDERS.md.',

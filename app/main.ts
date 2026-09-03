@@ -70,6 +70,12 @@ interface DashApi {
     /** B: pop the top scene. */
     back(): boolean;
     move(dir: NavDirection): string | null;
+    /** X or Y: the top scene's control carrying that PressKey. */
+    pressKey(key: 'X' | 'Y'): Promise<boolean>;
+    /** Left / Right: a NavLeft/NavRight move when the focused control authors
+     *  one, the blade switch otherwise. */
+    navLeft(): boolean;
+    navRight(): boolean;
     boot(range?: string): boolean;
     /** Resolve once every load the shell started has finished. */
     idle(): Promise<void>;
@@ -97,6 +103,9 @@ interface DashApi {
     press(): Promise<boolean>;
     /** B: pop the page stack. */
     back(): boolean;
+    /** X / Y: the hosted page's control bound by PressKey 0x5802 / 0x5803. */
+    x(): Promise<boolean>;
+    y(): Promise<boolean>;
     idle(): Promise<void>;
     report(): NxeReport;
   };
@@ -325,6 +334,9 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
     press: async () => { const ok = await shell.press(); await shell.idle(); syncShell(t, shell, audio); return ok; },
     back: () => { const ok = shell.back(); syncShell(t, shell, audio); return ok; },
     move: (dir) => { const id = shell.moveFocus(dir); syncShell(t, shell, audio); void shell.idle().then(() => syncShell(t, shell, audio)); return id; },
+    pressKey: async (key) => { const ok = await shell.pressKey(key); await shell.idle(); syncShell(t, shell, audio); return ok; },
+    navLeft: () => { const ok = shell.navLeft(); syncShell(t, shell, audio); void shell.idle().then(() => syncShell(t, shell, audio)); return ok; },
+    navRight: () => { const ok = shell.navRight(); syncShell(t, shell, audio); void shell.idle().then(() => syncShell(t, shell, audio)); return ok; },
     boot: (range) => { const ok = shell.boot(range); syncShell(t, shell, audio); return ok; },
     idle: async () => { await shell.idle(); syncShell(t, shell, audio); },
     report: () => shell.report(),
@@ -340,23 +352,31 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
 }
 
 /**
- * Left/right and the shoulder buttons switch the blade; up/down walk the
- * scene's own NavUp/NavDown chain; A presses the focused control and B goes
- * back. Left/right are the blade switch because no control in the build sets
- * NavLeft or NavRight - XuiTabScene owns that axis - and both LB/RB and the
- * d-pad reach it. A locked tab (a page is open) simply refuses.
+ * The shoulder buttons switch the blade. Left/right on the d-pad walk the
+ * focused control's NavLeft/NavRight when it authors one (35 scenes in the
+ * build do: the arcade pages, the clock spinners, MediaSourceSelection) and
+ * fall through to the blade switch when it does not - none of the five blade
+ * pages authors either, so at home that axis is XuiTabScene's. Up/down walk
+ * NavUp/NavDown; A presses the focused control, B goes back, X and Y go to
+ * the control carrying that PressKey. A locked tab (a page is open) refuses
+ * the switch. Start and Back are bound to nothing in this build: no scene
+ * carries a PressKey for them and DashMainScene's key handler names only the
+ * ones above.
  */
 function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
   const router = new InputRouter();
   router.push({
     id: 'blades',
     onButton: (b) => {
-      if (b === Button.Left || b === Button.LB) shell.left();
-      else if (b === Button.Right || b === Button.RB) shell.right();
+      if (b === Button.LB) shell.left();
+      else if (b === Button.RB) shell.right();
+      else if (b === Button.Left) { shell.navLeft(); void shell.idle().then(() => syncShell(t, shell, audio)); }
+      else if (b === Button.Right) { shell.navRight(); void shell.idle().then(() => syncShell(t, shell, audio)); }
       else if (b === Button.Up) { shell.moveFocus('Up'); void shell.idle().then(() => syncShell(t, shell, audio)); }
       else if (b === Button.Down) { shell.moveFocus('Down'); void shell.idle().then(() => syncShell(t, shell, audio)); }
       else if (b === Button.A) void shell.press().then(() => shell.idle()).then(() => syncShell(t, shell, audio));
       else if (b === Button.B) shell.back();
+      else if (b === Button.X || b === Button.Y) void shell.pressKey(b).then(() => shell.idle()).then(() => syncShell(t, shell, audio));
       else if (b === Button.Guide) noteGuide(t);
       else return;
       syncShell(t, shell, audio);
@@ -571,6 +591,8 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
     down: () => nxeStep(shell, t, audio, () => shell.moveChannel(-1)),
     press: async () => { const ok = await shell.press(); await shell.idle(); syncNxe(t, shell, audio); return ok; },
     back: () => nxeStep(shell, t, audio, () => shell.back()),
+    x: async () => { const ok = await shell.pressKey('X'); await shell.idle(); syncNxe(t, shell, audio); return ok; },
+    y: async () => { const ok = await shell.pressKey('Y'); await shell.idle(); syncNxe(t, shell, audio); return ok; },
     idle: async () => { await shell.idle(); syncNxe(t, shell, audio); },
     report: () => shell.report(),
   };
@@ -600,6 +622,9 @@ function installNxeInput(shell: NxeShell, t: DashTelemetry, audio: AudioBank): I
       else if (b === Button.Down) shell.moveChannel(-1);
       else if (b === Button.A) { void shell.press().then(() => shell.idle()).then(() => syncNxe(t, shell, audio)); }
       else if (b === Button.B) shell.back();
+      // X and Y go to the hosted page's control bound by `PressKey` (0x5802 /
+      // 0x5803: memory/DeviceSelector's legend_y "Device Options") (M4e).
+      else if (b === Button.X || b === Button.Y) { void shell.pressKey(b === Button.X ? 'X' : 'Y').then(() => shell.idle()).then(() => syncNxe(t, shell, audio)); }
       else if (b === Button.Guide) noteGuide(t);
       else return;
       syncNxe(t, shell, audio);

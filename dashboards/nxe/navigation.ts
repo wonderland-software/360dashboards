@@ -1,37 +1,54 @@
 // Where A goes on the NXE home page, and which curve covers the swap.
 //
 // ---------------------------------------------------------------------------
-// 1. THE COMMAND TABLE
+// 1. THE COMMAND TABLE, AND THE DISPATCHER THAT BINDS IT (M4e)
 //
 // A Moby slot's `<onclick>` is either `KeyDown` (deliver A to the hosted slot
 // scene) or `EpixCmd` with a `<cmd>` naming one of the console's navigation
 // commands [SCENE, homepage/xbox360channel.xml]. Those command NAMES are a real
 // table in the image: 35 `{ char* name, u32 id }` pairs at `.rdata`
 // 0x920288a0-0x920289c4, running `EcCreateGamerProfile` = 0 through
-// `EcLaunchLocalTitle` = 0x24, immediately followed by the 27-entry Epix id
-// table at 0x920289d8 that `epix.ts` already reads [CODE, re-read here].
-// `EcNavToSettings` is command **4**.
+// `EcNavToLocalEpixManifest` = 0x22 [CODE, re-read here].
 //
-// WHAT IS NOT IN A TABLE is the other half: which `.xur` a command opens. There
-// is no pointer array from command id to scene name - a sweep for a reference
-// to the `SystemScene.xur` literal at 0x920291a4 finds NONE, so the binding is
-// materialised in code (lis/addi) exactly as the slot artwork's is
-// (LEARNINGS, "A slot's picture is code, its caption is data").
+// M4d wrote that the other half - which `.xur` a command opens - was
+// "materialised in code, not in a pointer array" and bound ONE row by
+// inference. That was half right: there is no pointer array from id to scene,
+// but there IS a jump table. The dispatcher at `.text` 0x922d312c (true VA;
+// tools/ppc-dis.ts prints it 0x200 higher) does `lhzx` into a u16 offset table
+// at `.rdata` 0x92028ad0 indexed by the command id and `bcctr`s to the case.
+// Read off that table, the cases that name a scene do it through ONE helper,
+// 0x922c5780(scene, L"<pack>.xzp", L"<file>.xur", 0, 1) [CODE]:
 //
-// So this table carries the ONE row that can be evidenced, and every other
-// command is REFUSED and reported rather than pointed somewhere plausible:
+//   id 0x03 EcNavToGamesLibrary -> 0x922d31b4  arcade.xzp / ArcadeFilterScene.xur
+//   id 0x04 EcNavToSettings     -> 0x922d31d8  consolesettings.xzp / SystemScene.xur
+//   id 0x06 EcNavToStorageUpsell-> 0x922d3244  FirstRun.xzp / StorageUpsellScene.xur
+//   id 0x07 EcNavToXboxBasics   -> 0x922d325c  FirstRun.xzp / XboxBasicsRootScene.xur
+//   id 0x08 EcNavToWhatsNew     -> 0x922d326c  FirstRun.xzp / WhatsNewRootScene.xur
+//   id 0x16 EcNavToLiveUpsell   -> 0x922d349c  homepage.xzp / LiveUpsellRootScene.xur
+//   id 0x21 EcNavToSolutions    -> 0x922d31ec  solutions.xml (an epix manifest, Live)
 //
-//   EcNavToSettings -> consoles/SystemScene.xur   [INFERRED]
-//     * `SystemScene.xur` (0x920291a4) is the only settings destination in the
-//       epix-glue literal cluster, which otherwise holds the eleven slot
-//       scenes, the four Rome root scenes, `advert.xur`, `blank.xur` and the
-//       `%s.xur` format string - and `EcNavToSettings` is the only settings
-//       command;
-//     * `consoles/SystemScene.xur` is an 880x480 `DashScene` whose
-//       `txt_Header` reads "System Settings" and whose seven visible nav rows
-//       are exactly what the footage shows after the Settings slot is pressed
-//       [FRAME Kpa f0391].
+// so `EcNavToSettings -> consoles/SystemScene.xur` is no longer an inference,
+// and the three Rome roots the M4d audit flagged are bound by the same bytes.
+// The library commands go to FUNCTIONS, not literals - `EcNavToVideoLibrary`
+// (5) `bl 0x92242118`, `EcNavToMusicLibrary` (0x17) `bl 0x9222d9a0`,
+// `EcNavToPictureLibrary` (0x18) `bl 0x922227f8`, `EcNavToMediaCenter` (0x10)
+// `bl 0x92306510` - which build their page from device state (the videos,
+// music and pictures on the attached storage; the Media Center PCs on the
+// network). Those are refused and reported, with the case address, because
+// the archive has the scenes but not the device list that picks among them.
+// `EcHideWelcomeChannel` (0x1a, case 0x922d34c0) raises a message box with
+// dashcomm/dashStrings.xus [26] "Welcome Channel" / [25] "Do you want to remove
+// this channel? ..." / [174] "Yes" / [81] "No" before it acts; the box is xam's
+// and is not built here (PLACEHOLDERS). `EcPlayMigrationVideo` (0x0b) plays
+// `homepage/VideoScene.xur`, whose XuiVideo has no file in the archive.
 //
+// The Gamer Card slot is `KeyDown`, not a command: `CGamerCardSlotScene`'s
+// key handler opens `signin/SigninScene.xur` (the `CSigninScene` registration
+// at 0x922e2f34 and the literal materialised at 0x922df3b8 / 0x922e91d0), and
+// that scene's `MobyRootScene` strip is built from `ProfilePanelScene.xur` x
+// profiles, `CreateProfilePanelScene.xur`, `RecoverProfilePanelScene.xur` in
+// that order [CODE 0x922e409c, 0x922e411c, 0x922e415c; FRAME Yrt f0264,
+// f0268, Kpa f0090 show exactly that strip under a "Sign In" queue row].
 // ---------------------------------------------------------------------------
 // 2. THE CURVES
 //
@@ -78,18 +95,147 @@ export const EPIX_COMMANDS: Readonly<Record<string, NavCommand>> = {
   EcNavToSettings: {
     id: 4,
     scene: 'consoles/SystemScene.xur',
-    evidence: 'INFERRED: the only settings destination in the epix literal cluster (0x920291a4) and the only settings command; the page the footage opens [FRAME Kpa f0391]',
+    evidence: 'CODE: jump table 0x92028ad0[4] -> 0x922d31d8, consolesettings.xzp / SystemScene.xur; the page the footage opens [FRAME Kpa f0391]',
   },
-  // Named in the same table and reachable from a My Xbox slot, with no
-  // destination this archive binds. A press on one is refused and reported.
-  EcNavToGamesLibrary: { id: 3, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToVideoLibrary: { id: 5, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToMusicLibrary: { id: 0x17, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToPictureLibrary: { id: 0x18, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToMediaCenter: { id: 0x10, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToMediaRoom: { id: 0x11, scene: null, evidence: 'no scene literal binds to this command id' },
-  EcNavToSolutions: { id: 0x21, scene: null, evidence: 'SolutionsSlotScene.xur is not in the archive either [SPEC §10.7]' },
+  EcNavToGamesLibrary: {
+    id: 3,
+    scene: 'arcade/ArcadeFilterScene.xur',
+    evidence: 'CODE: jump table 0x92028ad0[3] -> 0x922d31b4, arcade.xzp / ArcadeFilterScene.xur; the Rome strip the footage shows ("Collections 2 of 2" [FRAME Yrt f0396], "6 of 53" [FRAME Kpa f0300])',
+  },
+  EcNavToXboxBasics: {
+    id: 7,
+    scene: 'firstrun/XboxBasicsRootScene.xur',
+    evidence: 'CODE: jump table 0x92028ad0[7] -> 0x922d325c, FirstRun.xzp / XboxBasicsRootScene.xur',
+  },
+  EcNavToWhatsNew: {
+    id: 8,
+    scene: 'firstrun/WhatsNewRootScene.xur',
+    evidence: 'CODE: jump table 0x92028ad0[8] -> 0x922d326c, FirstRun.xzp / WhatsNewRootScene.xur',
+  },
+  EcNavToLiveUpsell: {
+    id: 0x16,
+    scene: 'homepage/LiveUpsellRootScene.xur',
+    evidence: 'CODE: jump table 0x92028ad0[0x16] -> 0x922d349c, homepage.xzp / LiveUpsellRootScene.xur',
+  },
+  EcNavToStorageUpsell: {
+    id: 6,
+    scene: null,
+    evidence: 'CODE: jump table [6] -> 0x922d3244 names FirstRun.xzp / StorageUpsellScene.xur, which is not in the archive',
+  },
+  // The library commands call a function that builds the page from device
+  // state; no scene literal is bound in the dispatcher.
+  EcNavToVideoLibrary: { id: 5, scene: null, evidence: 'CODE: jump table [5] -> 0x922d3204 calls 0x92242118, which builds the page from the videos on the attached storage (device state)' },
+  EcNavToMusicLibrary: { id: 0x17, scene: null, evidence: 'CODE: jump table [0x17] -> 0x922d3218 calls 0x9222d9a0, which builds the page from the music on the attached storage (device state)' },
+  EcNavToPictureLibrary: { id: 0x18, scene: null, evidence: 'CODE: jump table [0x18] -> 0x922d3230 calls 0x922227f8, which builds the page from the pictures on the attached storage (device state)' },
+  EcNavToMediaCenter: { id: 0x10, scene: null, evidence: 'CODE: jump table [0x10] -> 0x922d3330 calls 0x92306510 with the Media Center extender state (device and network state)' },
+  EcNavToMediaRoom: { id: 0x11, scene: null, evidence: 'CODE: jump table [0x11] -> 0x922d3350 calls 0x922c0be8 (Mediaroom, not installed offline)' },
+  EcNavToSolutions: { id: 0x21, scene: null, evidence: 'CODE: jump table [0x21] -> 0x922d31ec opens solutions.xml, a Live epix manifest; SolutionsSlotScene.xur is not in the archive either [SPEC §10.7]' },
+  EcHideWelcomeChannel: { id: 0x1a, scene: null, evidence: 'CODE: jump table [0x1a] -> 0x922d34c0 raises a message box (dashStrings [26] "Welcome Channel", [25] body, [174] "Yes", [81] "No") before flipping the setting; the box is xam\'s and is not built here' },
+  EcPlayMigrationVideo: { id: 0x0b, scene: null, evidence: 'CODE: jump table [0x0b] -> 0x922d32a8 plays homepage/VideoScene.xur, whose XuiVideo names no file in the archive' },
 };
+
+/**
+ * The strip each pushed ROOT scene carries, from the image.
+ *
+ * A root scene (`RomeRootScene` / `MobyRootScene` subclass) is an empty
+ * 1280x720 host; the code puts a strip of panels in it. Which panels, and in
+ * what order, is read off the image three ways and each row says which:
+ *
+ *  * What's New: a table of 8 x (u32 flag, u32 id, ptr wide scene) at .rdata
+ *    0x9202b63c, walked in table order [CODE]. The flags (2 on USB storage, 4
+ *    on avatar gear) are not decoded and are recorded. A second, four-row table
+ *    at 0x9202b608 (USB storage, content transfer, avatars, Xbox Basics'
+ *    "getting around") is a different set - its consumer was not traced - and
+ *    is NOT what `WhatsNewRootScene` walks [INFER: the eight-row table sits
+ *    at the address the root's 0x92028ad0 case leads to].
+ *  * Xbox Basics: the eight panel literals are materialised one after another
+ *    at .text 0x922ed03c-0x922ed0e4 (Getting Around, Join LIVE, Family, Create
+ *    Profile, Play Games, Media, Friends, Privacy) [CODE]; that emission order
+ *    is taken as the strip order [INFER].
+ *  * Live upsell: the five literals at .text 0x922d9908-0x922d9970 (Games,
+ *    Video, Friends, Inside Xbox, Promotions) - the channel order of
+ *    emb_homepage.xml, which the same reading gives [CODE + INFER].
+ *  * Game Library: `arcade/ArcadeFilterScene.xur` hosts `RecentGamesFilterPanel`
+ *    and `CollectionFilterPanel`; "Collections" is "2 of 2" [FRAME Yrt f0396]
+ *    and Kparblu6r14 144-168 s shows Recent Games in front of Collections.
+ *  * Sign In: `signin/SigninScene.xur` is a MobyRootScene with ONE channel
+ *    (the footage draws "Sign In" where Queue\Current sits and no other row)
+ *    whose panels are one `ProfilePanelScene` per local profile, then
+ *    `CreateProfilePanelScene`, then `RecoverProfilePanelScene`
+ *    [CODE 0x922e409c-0x922e415c; FRAME Yrt f0268 "1 of 3", Kpa f0090 "3 of 5"].
+ */
+export interface RootStrip {
+  /** 'rome' = 460x495 panels on the Rome constants; 'moby' = 420x320 slots on the Moby constants. */
+  kind: 'rome' | 'moby';
+  panels: readonly string[];
+  /** The queue row a Moby root draws (Sign In has one), by string table index. */
+  channel: { pack: string; table: string; index: number; evidence: string } | null;
+  evidence: string;
+}
+
+export const ROOT_STRIPS: Readonly<Record<string, RootStrip>> = {
+  'firstrun/WhatsNewRootScene.xur': {
+    kind: 'rome',
+    panels: [
+      'firstrun/WhatsNewJoinXboxLIVEScene.xur', 'firstrun/WhatsNewFacebookTwitterScene.xur',
+      'firstrun/WhatsNewLastFMScene.xur', 'firstrun/WhatsNewUSBStorageScene.xur',
+      'firstrun/WhatsNewContentTransferScene.xur', 'firstrun/WhatsNewZuneVideoMarketplaceScene.xur',
+      'firstrun/WhatsNewAvatarGearScene.xur', 'firstrun/WhatsNewGamesOnDemandScene.xur',
+    ],
+    channel: null,
+    evidence: 'CODE: the 8-row table at .rdata 0x9202b63c (flag, id, scene), in table order; WhatsNewAvatarsScene.xur is only in the 4-row table at 0x9202b608 and is not mounted',
+  },
+  'firstrun/XboxBasicsRootScene.xur': {
+    kind: 'rome',
+    panels: [
+      'firstrun/XboxBasicsGettingAroundScene.xur', 'firstrun/XboxBasicsJoinLiveScene.xur',
+      'firstrun/XboxBasicsFamilyScene.xur', 'firstrun/XboxBasicsCreateProfileScene.xur',
+      'firstrun/XboxBasicsPlayGamesScene.xur', 'firstrun/XboxBasicsMediaScene.xur',
+      'firstrun/XboxBasicsFriendsScene.xur', 'firstrun/XboxBasicsPrivacyScene.xur',
+    ],
+    channel: null,
+    evidence: 'CODE: eight literals materialised in this order at .text 0x922ed03c-0x922ed0e4; INFER that the emission order is the strip order',
+  },
+  'homepage/LiveUpsellRootScene.xur': {
+    kind: 'rome',
+    panels: [
+      'homepage/GamesUpsellScene.xur', 'homepage/VideoUpsellScene.xur', 'homepage/FriendsUpsellScene.xur',
+      'homepage/InsideXboxUpsellScene.xur', 'homepage/PromotionsUpsellScene.xur',
+    ],
+    channel: null,
+    evidence: 'CODE: five literals materialised in this order at .text 0x922d9908-0x922d9970, the channel order of emb_homepage.xml; INFER that the strip starts on the first panel whichever upsell slot was pressed',
+  },
+  'arcade/ArcadeFilterScene.xur': {
+    kind: 'rome',
+    panels: ['arcade/RecentGamesFilterPanel.xur', 'arcade/CollectionFilterPanel.xur'],
+    channel: null,
+    evidence: 'FRAME: "Collections" is "2 of 2" [Yrt f0396] and Recent Games fronts it [Kpa 144-168 s]; the two panels are the pack\'s two filter panels',
+  },
+  'signin/SigninScene.xur': {
+    kind: 'moby',
+    panels: ['signin/CreateProfilePanelScene.xur', 'signin/RecoverProfilePanelScene.xur'],
+    channel: {
+      pack: 'dashcomm', table: 'dashStrings.xus', index: 91,
+      evidence: 'the queue row reads "Sign In" [FRAME Yrt f0268, Kpa f0090]; dashStrings [91] and [98] are both "Sign In", so the index is INFERRED and cannot change the pixel',
+    },
+    evidence: 'CODE 0x922e409c-0x922e415c: ProfilePanelScene x profiles (none offline), CreateProfilePanelScene, RecoverProfilePanelScene',
+  },
+};
+
+/** One local profile's panel, prepended once per profile [CODE 0x922e409c]. */
+export const SIGNIN_PROFILE_PANEL = 'signin/ProfilePanelScene.xur';
+export const SIGNIN_SCENE = 'signin/SigninScene.xur';
+
+/**
+ * The legend the Sign In page shows: "(A) Select  (B) Back" on every capture
+ * [FRAME Yrt f0264, f0268; Kpa f0090]. The root's own parked `legend_a` reads
+ * "Continue" and is Show=false / Enabled=false, and the panel scenes carry no
+ * legend controls, so the two captions come from the code. dashcomm/
+ * dashStrings.xus [97] "Select" and [2] "Back" are the build's own words; that
+ * the code reads THOSE indices is INFERRED (no other "Select" / "Back" entry
+ * exists in that table, so the choice cannot change the pixel).
+ */
+export const SIGNIN_LEGEND = { pack: 'dashcomm', table: 'dashStrings.xus', select: 97, back: 2 } as const;
 
 /** The eight skin curves the code writes into a scene's Trans* properties. */
 export interface LegacyCurves {
@@ -145,8 +291,21 @@ export const TRANSITION_CUES = {
   from: 'snd_transitionfrom',
 } as const;
 
-/** Resolve a bare `PressPath` the way `dashboards/blades/nav.ts` does: every
- *  `.xur` basename in the build is unique across all packs. */
-export function resolveScenePath(assets: AssetIndex, pressPath: string): string | null {
+/**
+ * Resolve a bare `PressPath` to "<pack>/<file>".
+ *
+ * Blades' rule - every `.xur` basename is unique across all packs - is 6770's
+ * only. 9199 carries `dashSysCslSetCountry.xur` in BOTH `consoles/` and
+ * `network/`, and `AssetIndex.findByBasename` refuses a collision, so
+ * `dashSysCslSetLangLocale.btnLocale` could never open. The console's
+ * DashSystemScene names the pack in code and a settings page's children live
+ * in its own pack (`consolesettings.xzp` is the literal beside the Console
+ * Settings table, 0x920166a4), so the pressing scene's OWN pack is tried first
+ * and the global index second. A collision with no own-pack copy is refused
+ * with the reason, never guessed.
+ */
+export function resolveScenePath(assets: AssetIndex, pressPath: string, fromPack?: string): string | null {
+  const base = pressPath.replace(/^.*[\\/]/, '');
+  if (fromPack && assets.entry(fromPack, base)) return `${fromPack}/${base}`;
   return assets.findByBasename(pressPath) ?? null;
 }

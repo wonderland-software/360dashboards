@@ -37,6 +37,11 @@ const FOOTAGE = {
 const REGIONS = {
   front: [110, 262, 390, 300], panel2: [530, 290, 290, 225], qCur: [96, 202, 350, 34], qNext2: [96, 132, 350, 30],
   counter: [96, 574, 160, 26], legend: [96, 632, 220, 32], page: [220, 130, 840, 450], exit: [0, 262, 96, 300],
+  // The legend WITHOUT the A button's glyph: `pressLegend` blooms that icon's
+  // highlight and scales it 1.2x over its own 20-frame Press range, which is a
+  // bigger swing than the caption's departure and swamps a region mean. This
+  // band starts after it, so what it measures is the legend LEAVING.
+  legendR: [126, 632, 190, 32],
 };
 
 const sec = (frames) => frames === null ? null : frames / 30;
@@ -161,9 +166,16 @@ function edgeNear(im, kind, at, band, win = 8) {
 
 /* ------------------------------------------------------------------ driver */
 
+// SMOKE_NXE_ONLY=completeness runs the M4e walker alone (it is the long
+// section) and =footage the frame-by-frame comparisons; the board always runs
+// everything.
+const ONLY = process.env.SMOKE_NXE_ONLY ?? null;
+
 let browser;
 try {
   browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new' });
+  if (ONLY === 'completeness') { await completeness(); throw new Error('__only_done__'); }
+  if (ONLY === 'footage') { await measuredAgainstFootage(); throw new Error('__only_done__'); }
 
   /* ------------------------------------------------------------ 1. the home */
 
@@ -416,7 +428,8 @@ try {
       // swap, the transition ranges and the cascade are all frame-counted.
       for (let i = 0; i < 400; i++) {
         const r = api.nxe();
-        const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving;
+        const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving
+          || !!r.pending.page || r.pending.unfold || r.pending.legendShow || r.pending.legendHide || r.pending.fetches > 0;
         if (!busy) break;
         await new Promise((res) => setTimeout(res, 0));
         api.stepFrames(1);
@@ -426,6 +439,7 @@ try {
     const run = async (label, act, frames) => {
       const before = api.nxe();
       const cues0 = before.cues.length;
+      const audio0 = api.audio.log.length;
       const t0 = before.motion.frames;
       await act();
       const ticks = [snap()];
@@ -446,6 +460,7 @@ try {
       steps.push({
         label, t0, ticks,
         cues: r.cues.slice(cues0).map((c) => ({ name: c.name, tick: c.tick - t0, evidence: c.evidence })),
+        audio: api.audio.log.slice(audio0).map((c) => ({ cue: c.cue, tick: c.tick })),
         panel: +r.motion.panel.cursor.toFixed(3), channel: +r.motion.channel.cursor.toFixed(3),
         fold: r.motion.fold.phase, page: r.legacy?.scene ?? null,
         pages: r.pages.map((q) => `${q.scene} (${q.form}/${q.curve})`),
@@ -594,7 +609,11 @@ try {
   ok(cs.page === 'consoles/dashSysCslSet.xur', `A on Console Settings opened ${cs.page}`);
   ok(cs.rows.length === 8 && cs.rows[0] === 'Display' && cs.rows[7] === 'System Info', `Console Settings rows: ${cs.rows.join(' | ')}`);
   ok(cs.pages[1]?.includes('plain/LegacyTo'), `a legacy page over a legacy page takes the plain pair: ${cs.pages.join(', ')}`);
-  ok(cs.cues.length === 1 && cs.cues[0].name === 'SoundButtonSelect', `Console Settings press cues: ${cs.cues.map((c) => c.name).join(',')}`);
+  // M4e: A on a hosted LEGACY page is the row's own Press range - btn_Select.xma
+  // from the skin's XuiButton visual - and not the strip glue's table cue
+  // (COVERAGE: "btn_Select and btn_Back NEVER fire on NXE").
+  ok(cs.cues.length === 0, `Console Settings press played a table cue: ${cs.cues.map((c) => c.name).join(',')}`);
+  ok(cs.audio.some((a) => a.cue === 'btn_Select'), `A on System Settings did not fire the row's btn_Select: ${cs.audio.map((a) => a.cue).join(',')}`);
   ok(cs.meta && cs.meta.text.includes('Change your display output settings') && cs.meta.current.startsWith('1920 x 1080'), `Console Settings metapane on Display: ${JSON.stringify(cs.meta)}`);
   ok(step('Console down').meta?.text.includes('audio output and sound effect') && step('Console down').meta?.current.startsWith('Dolby Digital'), `metapane after Down: ${JSON.stringify(step('Console down').meta)}`);
   ok(step('Console down 2').meta?.current === 'English\r\nCanada', `metapane after two Downs: ${JSON.stringify(step('Console down 2').meta)}`);
@@ -608,7 +627,8 @@ try {
   // panels behind emerge once the front slot is back, the legend returns.
   const back1 = step('B');
   ok(back1.page === 'consoles/SystemScene.xur', `B did not pop back to System Settings (${back1.page})`);
-  ok(back1.cues.length === 1 && back1.cues[0].name === 'SoundButtonBack', 'B played more or less than SoundButtonBack');
+  ok(back1.cues.length === 0, `B on a legacy page played a table cue: ${back1.cues.map((c) => c.name).join(',')}`);
+  ok(back1.audio.some((a) => a.cue === 'btn_Back'), `B on Console Settings did not fire legend_b's btn_Back: ${back1.audio.map((a) => a.cue).join(',')}`);
   const back2 = step('B (home)');
   ok(back2.page === null, 'the second B did not return to the home strip');
   {
@@ -656,7 +676,9 @@ try {
 
   /* ----------------------------------- 3h. a refused press is silent */
 
-  const welcome = await load(`${BASE}/?build=9199&mute&manual&channel=WELCOME`);
+  // The Welcome slot is BOUND now (EcNavToWhatsNew, jump table 0x92028ad0[8]);
+  // the press the archive cannot follow is the disc tray's KeyDown (eject).
+  const welcome = await load(`${BASE}/?build=9199&mute&manual`);
   const refused = await welcome.page.evaluate(async () => {
     const api = window.__dashApi, s = api.nxeShell;
     const before = api.nxe().cues.length;
@@ -665,8 +687,9 @@ try {
     const r = api.nxe();
     return { ok, cues: r.cues.slice(before).map((c) => c.name), unbound: r.unboundCommands, page: r.legacy?.scene ?? null };
   });
-  console.log(`  A on the Welcome slot: ${refused.ok} cues ${JSON.stringify(refused.cues)} unbound ${refused.unbound.join(' | ')}`);
+  console.log(`  A on the tray slot: ${refused.ok} cues ${JSON.stringify(refused.cues)} unbound ${refused.unbound.join(' | ')}`);
   ok(refused.ok === false && refused.cues.length === 0 && refused.page === null, 'a refused press played a cue or opened a page');
+  ok(refused.unbound.some((u) => u.includes('ejects the tray')), `the tray refusal does not say why: ${refused.unbound.join(' | ')}`);
   await welcome.page.close();
 
   /* ------------------------------------- 3i. ?page= agrees with A */
@@ -685,6 +708,10 @@ try {
   /* ------------------- 3j. the footage, measured the way Judge G measured it */
 
   await measuredAgainstFootage();
+
+  /* ------------------------------ 3k. M4e: every page the code can reach */
+
+  await completeness();
 
   /* --------------------------------------------- 4. the mount is disposable */
 
@@ -743,7 +770,7 @@ try {
   await blades.page.close();
   console.log('  the default route still serves Blades 6770 on its own canvas');
 } catch (err) {
-  fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
+  if (!(err instanceof Error && err.message === '__only_done__')) fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
   if (browser) await browser.close();
 }
@@ -1006,6 +1033,30 @@ function footageTrace(dir, first, count) {
   return rows;
 }
 
+/**
+ * The sample at which a region LEAVES its rest value and stays away.
+ *
+ * `events().onset` uses a tenth of the series' own span, which compares two
+ * ramps of different shape by different absolute amounts: the console's legend
+ * drops 5 luma in one sample where ours takes four to do the same, so a
+ * relative threshold reads them three samples apart although both start on the
+ * same one. This asks the only question that is the same question on both
+ * images - when does the band stop being at rest - with a floor of half a luma
+ * so a flat band's rounding is not an onset.
+ */
+function departs(series, hold = 3) {
+  const rest = series[0];
+  const span = Math.max(...series) - Math.min(...series);
+  if (span < 3) return null;
+  const thr = Math.max(0.5, 0.03 * span);
+  for (let i = 1; i + hold <= series.length; i++) {
+    let away = true;
+    for (let j = i; j < i + hold; j++) if (Math.abs(series[j] - rest) <= thr) { away = false; break; }
+    if (away) return i;
+  }
+  return null;
+}
+
 /** Onset and settle of one region's series, in samples from index 0. */
 function events(series, from = 0) {
   const s = series.slice(from);
@@ -1026,7 +1077,8 @@ async function traceOurs(url, act, ticks, label) {
     const api = window.__dashApi;
     for (let i = 0; i < 400; i++) {
       const r = api.nxe();
-      const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving;
+      const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving
+          || !!r.pending.page || r.pending.unfold || r.pending.legendShow || r.pending.legendHide || r.pending.fetches > 0;
       if (!busy) break;
       await new Promise((res) => setTimeout(res, 0));
       api.stepFrames(1);
@@ -1113,6 +1165,13 @@ async function measuredAgainstFootage() {
     line('second panel starts', sec(o.starts), sec(f.starts), 0.1);
     const fCounter = events(foot.map((x) => x.counter), 0), oCounter = events(ours.map((x) => x.counter), 0);
     line('counter region starts to change', sec(oCounter.onset), sec(fCounter.onset), 0.1, false);
+    // Judge G R1, MEASURED here rather than quoted: the channel NAME rows ride
+    // the channel axis, and the axis is the file's own (MobyChannelInput*
+    // through physics.ts), so a shorter settle would mean a constant that is
+    // not in Variables.xur. Reported, never gated - see the Judge G round 3
+    // entry for why the code read did not close it.
+    const fName = events(foot.map((x) => x.qCur), 0), oName = events(ours.map((x) => x.qCur), 0);
+    line('R1 the name rows settle', sec(oName.settle), sec(fName.settle), 0.1);
   }
 
   /* --- A on the Settings slot: Kpa f05574.., the press at f05576 (i = 2) --- */
@@ -1122,7 +1181,12 @@ async function measuredAgainstFootage() {
     const F = (r) => foot.map((x) => x[r]).slice(2), O = (r) => ours.map((x) => x[r]);
     const ev = (r, S) => events(S(r), 0);
     console.log('  A on "8 of 8" [Kpa f05576-05622] against ours (seconds after the press):');
-    const dLegend = line('legend leaves', sec(ev('legend', O).onset), sec(ev('legend', F).onset), 0.35, false);
+    // Judge G R4, CLOSED. The legend does not go out on the press: it goes out
+    // at LEGEND_HIDE_FRAME, the near edge of TransitionSubElements' zero
+    // plateau on `From` (NxeShell). Measured on `legendR`, the caption band
+    // WITHOUT the A glyph the press flourish blooms - on `legend` the bloom is
+    // a bigger swing than the departure and the detector locks onto it.
+    const dLegend = line('legend leaves', sec(departs(O('legendR'))), sec(departs(F('legendR'))), 0.1);
     const dQueue = line('current channel row fades', sec(ev('qCur', O).onset), sec(ev('qCur', F).onset), 0.2, false);
     line('front slot starts to rotate', sec(ev('front', O).onset), sec(ev('front', F).onset), 0.1);
     line('front slot gone', sec(ev('front', O).settle), sec(ev('front', F).settle), 0.15);
@@ -1131,10 +1195,10 @@ async function measuredAgainstFootage() {
     const pageOn = (S, after) => { const e = events(S('page'), after); return e.onset === null ? null : e.onset + after; };
     const fPage = pageOn(F, ev('front', F).settle ?? 0), oPage = pageOn(O, ev('front', O).settle ?? 0);
     line('page begins to show', sec(oPage), sec(fPage), 0.15);
-    const fOrder = ev('legend', F).onset <= ev('qCur', F).onset && ev('qCur', F).onset < ev('front', F).onset && (ev('front', F).settle ?? 0) <= fPage;
-    const oOrder = ev('legend', O).onset <= ev('qCur', O).onset && ev('qCur', O).onset < ev('front', O).onset && (ev('front', O).settle ?? 0) <= oPage;
+    const fOrder = departs(F('legendR')) <= ev('qCur', F).onset && ev('qCur', F).onset < ev('front', F).onset && (ev('front', F).settle ?? 0) <= fPage;
+    const oOrder = departs(O('legendR')) <= ev('qCur', O).onset && ev('qCur', O).onset < ev('front', O).onset && (ev('front', O).settle ?? 0) <= oPage;
     ok(fOrder && oOrder, `the order legend -> queue -> front slot -> page does not hold on both (footage ${fOrder}, ours ${oOrder})`);
-    console.log(`    residual, not tuned: legend ${dLegend === null ? '-' : dLegend.toFixed(3)}s and queue ${dQueue === null ? '-' : dQueue.toFixed(3)}s ahead of the footage`);
+    console.log(`    residual, not tuned: the queue row fades ${dQueue === null ? '-' : dQueue.toFixed(3)}s after the footage's (the legend's ${dLegend === null ? '-' : dLegend.toFixed(3)}s is gated above)`);
   }
 
   /* --- B off a page: Yrt f07167.., the press at f07168 (i = 1) --- */
@@ -1150,6 +1214,20 @@ async function measuredAgainstFootage() {
     console.log('  B back to the home page [Yrt f07168-07232] against ours (seconds after the press):');
     line('front slot starts to rotate in', sec(after(O, 'front')), sec(after(F, 'front')), 0.25);
     line('current channel row returns', sec(after(O, 'qCur')), sec(after(F, 'qCur')), 0.25);
+    // Judge G R2, MEASURED here rather than quoted, and it says something the
+    // round-2 number did not: on the SECOND panel - the only one this suite has
+    // a region for - ours arrives in a THIRD of the footage's time, where the
+    // whole seven-panel cascade runs LONGER than the footage's. Both follow
+    // from the file's own rate: UnfoldEaseRange is unset, so dq/dt = 10 - 9.9q
+    // eases over the whole move - fast off q = 0 and asymptotic into q = 1, so
+    // the near panels snap and the far ones drag. The constants are the file's
+    // and nothing here is tuned; the SHAPE is what is still open. Not gated:
+    // this window's footage is a Rome profile page whose own panels share the
+    // band, so the absolute times below are not a like-for-like comparison.
+    const dur = (S) => { const g = pageGone(S); const e = events(S('panel2'), g); return e.onset === null || e.settle === null ? [null, null] : [e.onset + g, e.settle + g]; };
+    const [fo, fs] = dur(F), [oo, os] = dur(O);
+    console.log(`      panel2 band: footage ${fmt(sec(fo))}..${fmt(sec(fs))} ours ${fmt(sec(oo))}..${fmt(sec(os))}`);
+    line('R2 the second panel comes back over', sec(os !== null ? os - oo : null), sec(fs !== null ? fs - fo : null), 0.3, false);
     const fOrder = (after(F, 'front') ?? 0) <= (after(F, 'qCur') ?? 0), oOrder = (after(O, 'front') ?? 0) <= (after(O, 'qCur') ?? 0);
     ok(fOrder && oOrder, `the front slot should be back before the queue rows on both (footage ${fOrder}, ours ${oOrder})`);
   }
@@ -1181,4 +1259,310 @@ async function measuredAgainstFootage() {
     line('the exit band is clear again', sec(oe.settle), sec(fe.settle), 0.12);
     ok(oe.span > 3 && oe.settle !== null && oe.settle <= 12, `the passing panel did not cross and clear the left edge within the move (settle ${oe.settle}, span ${oe.span.toFixed(1)})`);
   }
+}
+
+/* ----------------------------------------------------- M4e: completeness */
+
+/** The Sign In page on the clean-geometry capture [FRAME Yrt f0268]: "Sign In"
+ *  drawn where Queue\Current sits, a profile panel in front (the same 420x320
+ *  geometry as the home's front slot), "1 of 3" under it, "(A) Select (B) Back". */
+function signinFrame() { return `${FRAMES}/nxe-9199-YrtwSj1f6aY/f0268.png`; }
+/** The Game Library's Rome strip on the themed capture, "6 of 53" [FRAME Kpa f0300]:
+ *  the second panel's edges are the RomeDefaultSpacing (480) projected. */
+function rome2Frame() { return `${FRAMES}/nxe-9199-Kparblu6r14/f0300.png`; }
+
+/** The vertical extent of bright ink inside a design region, on either image. */
+function inkRows(im, x0, x1, y0, y1, thr = 150) {
+  const k = im.w / 1280;
+  const rows = [];
+  for (let y = Math.round(y0 * k); y < Math.round(y1 * k); y++) {
+    let n = 0;
+    for (let x = Math.round(x0 * k); x < Math.round(x1 * k); x++) if (luma(im, x, y) > thr) n++;
+    if (n > 2 * k) rows.push(y / k);
+  }
+  return rows.length ? { top: rows[0], bottom: rows[rows.length - 1] } : null;
+}
+
+/**
+ * The vertical extent of TEXT inside a design region, by local contrast.
+ *
+ * `inkRows` cannot find the Sign In counter: on Yrt f0268 the whole band under
+ * the profile panel is the Aura floor lit to luma ~180, so a brightness
+ * threshold marks the background and never the glyphs, and our render's floor
+ * is dark there so the same threshold marks the glyphs and never the
+ * background - the two images are measured by opposite rules and the numbers
+ * are not comparable. This detector is the same rule on both: a row's median
+ * luma is its background whatever the background is, and a glyph is a run of
+ * pixels that departs from it. (LEARNINGS: "the landmark you measure has to be
+ * a DETECTOR, not five numbers" - and the detector has to survive the frame's
+ * lighting, not just ours.)
+ */
+function textRows(im, x0, x1, y0, y1, d = 20) {
+  const k = im.w / 1280;
+  const rows = [];
+  for (let y = Math.round(y0 * k); y < Math.round(y1 * k); y++) {
+    const v = [];
+    for (let x = Math.round(x0 * k); x < Math.round(x1 * k); x++) v.push(luma(im, x, y));
+    const sorted = [...v].sort((a, b) => a - b);
+    const med = sorted[sorted.length >> 1];
+    if (v.filter((l) => Math.abs(l - med) > d).length > 5 * k) rows.push(y / k);
+  }
+  return rows.length ? { top: rows[0], bottom: rows[rows.length - 1] } : null;
+}
+
+async function completeness() {
+  const SIGNIN_FRAME = signinFrame(), ROME2_FRAME = rome2Frame();
+  const nav = await load(`${BASE}/?build=9199&mute&manual`);
+  ok(nav.pageErrors.length === 0, `completeness js errors: ${nav.pageErrors.join(' | ')}`);
+  const drive = (fn, ...args) => nav.page.evaluate(fn, ...args);
+  // Every act runs the shell frame by frame to rest, then reads the page.
+  await drive(() => {
+    const api = window.__dashApi, s = api.nxeShell;
+    const settle = async (max = 400) => {
+      for (let i = 0; i < max; i++) {
+        const r = api.nxe();
+        const st = r.legacy?.strip;
+        // r.pending is the fold timeline's own owed work (a page waiting for
+        // its push frame, the cascade, the legend) plus scene fetches in
+        // flight: none of it moves `motion` or `transitions`, so a loop that
+        // watched only those stopped between the press and the page on a cold
+        // vite and every later act read a half-open shell (M4e).
+        const p = r.pending;
+        const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding'
+          || r.motion.channel.moving || r.motion.panel.moving || (st && (st.transitions?.playing || st.fold.phase === 'folding' || st.fold.phase === 'unfolding'))
+          || !!p.page || p.unfold || p.legendShow || p.legendHide || p.fetches > 0;
+        if (!busy && i > 8) break;
+        await new Promise((res) => setTimeout(res, 0));
+        api.stepFrames(1);
+      }
+      await s.idle();
+    };
+    const vis = (el) => el.getClientRects().length > 0;
+    const read = () => {
+      const r = api.nxe();
+      const texts = [...document.querySelectorAll('[data-xui-paint="text"]')].filter(vis).map((e) => e.textContent.trim()).filter(Boolean);
+      const l = r.legacy;
+      return {
+        top: l ? l.scene : null, kind: l?.kind ?? null, rows: l?.rows ?? [], focus: l?.focusId ?? null, focusClass: l?.focusClass ?? null, arrivalBy: l?.arrivalBy ?? null,
+        codeUnfilled: l?.codeUnfilled ?? [], tokensCleared: l?.tokens ?? [], painted: texts.filter((t) => /<[^<>]{1,40}>/.test(t)), texts,
+        legend: r.legend ? { buttons: r.legend.buttons.map((b) => `${b.group}=${b.text}`), title: r.legend.title, empty: r.legend.empty } : null,
+        strip: l?.strip ? { counter: l.strip.counter, cursor: l.strip.cursor, row: l.strip.channelRow, panels: l.strip.panels.map((p) => ({ scene: p.scene, z: p.z, mounted: p.mounted, visible: p.visible, opacity: p.opacity })) } : null,
+        counter: r.counter, cues: r.cues.length, audio: api.audio.log.length, errors: r.errors.slice(), codePaths: r.codePaths.slice(), unbound: r.unboundCommands.slice(),
+        pages: r.pages.length, cursor: r.motion.panel.cursor, swap: r.motion.swap.phase, trans: r.transitions?.playing ?? null, fold: r.motion.fold.phase,
+        states: api.engine.report().scopes.filter((x) => x.state).map((x) => `${x.id}:${x.state}`),
+        pending: r.pending, tFrame: r.transitions?.frame ?? null,
+      };
+    };
+    // The bank keeps the last 200 cues and a skin cue's tick is its keyframe
+    // frame, so "since" is a sequence the harness keeps on the bank's own play().
+    const seq = [];
+    const orig = api.audio.play.bind(api.audio);
+    api.audio.play = (cue, scope, tick) => { seq.push(cue); return orig(cue, scope, tick); };
+    const audioSince = (n) => seq.slice(n);
+    window.__m4e = { api, s, settle, read, audioSince, seq };
+  });
+  const step = async (act, frames = 0) => drive(async (act, frames) => {
+    const { api, s, settle, read, audioSince, seq } = window.__m4e;
+    const a0 = seq.length;
+    const ok = await s[act]();
+    for (let i = 0; i < frames; i++) { await new Promise((r) => setTimeout(r, 0)); api.stepFrames(1); }
+    await settle();
+    return { ok, ...read(), newAudio: audioSince(a0) };
+  }, act, frames);
+
+  /* --- (a) every page: System Settings and everything under it, to depth 4 --- */
+  const visited = new Map();
+  const pageErrors = [];
+  // COVERAGE B12: a list row's Down fires btn_Focus twice on the skin's XuiList
+  // template (the scene-declared control_ListItem of dashSysCslSet fires once).
+  // Printed, not gated: the runtime's list template is Blades' and is being
+  // looked at there.
+  const doubled = new Set();
+  const walk = async (label, depth) => {
+    const here = await step('idle');
+    const top = here.top;
+    if (!top) return;
+    if (!visited.has(top)) visited.set(top, { label, rows: here.rows, focus: here.focus, arrivalBy: here.arrivalBy, painted: here.painted, tokens: here.tokensCleared, codeUnfilled: here.codeUnfilled, legend: here.legend, strip: here.strip });
+    // Every mounted page: no painted token, an arrival focus wherever there is
+    // something to focus, no shell error.
+    ok(here.painted.length === 0, `${top}: authoring tokens PAINTED: ${here.painted.join(', ')}`);
+    ok(here.focus !== null || here.rows.length === 0 || here.kind === 'root', `${top}: ${here.rows.length} rows and no arrival focus (${here.arrivalBy})`);
+    ok(here.rows.length > 0 || here.kind === 'root' || here.codeUnfilled.length > 0 || /none|empty/.test(here.arrivalBy) , `${top}: no rows, no list and no reason (${here.arrivalBy})`);
+    if (here.errors.length) pageErrors.push(`${top}: ${here.errors.join(' | ')}`);
+    if (depth >= 5 || here.kind === 'root') return;
+    // Walk the rows: Up to the head, then Down, A on each, B back. A list that
+    // authors Wrap=true never refuses a Down, so the walk stops where the focus
+    // comes round again.
+    for (let i = 0; i < 70; i++) { const m = await step('up'); if (!m.ok) break; }
+    const seen = new Set();
+    for (let guard = 0; guard < 70; guard++) {
+      const before = await step('idle');
+      if (before.focus && seen.has(before.focus)) break;
+      if (before.focus) seen.add(before.focus);
+      const pressed = await step('press', 30);
+      if (pressed.top !== top) {
+        ok(pressed.newAudio.includes('btn_Select'), `${top}: A on ${before.focus} pushed ${pressed.top} without the row's btn_Select (${pressed.newAudio.join(',')})`);
+        await walk(`${label} > ${before.focus}`, depth + 1);
+        const back = await step('back', 30);
+        ok(back.top === top, `B from ${pressed.top} landed on ${back.top}, not ${top}`);
+        ok(back.newAudio.includes('btn_Back') || back.newAudio.includes('snd_buttonback'), `B from ${pressed.top} played no back cue (${back.newAudio.join(',')})`);
+      } else if (before.focus) {
+        // A that goes nowhere: the row still presses (btn_Select, unless its
+        // visual authors none: the radio buttons' does not) and the reason is
+        // recorded.
+        ok(pressed.newAudio.includes('btn_Select') || before.focusClass === 'XuiRadioButton', `${top}: A on ${before.focus} (${before.focusClass}) fired no btn_Select (${pressed.newAudio.join(',')})`);
+        ok(pressed.codePaths.some((c) => c.startsWith(`${top}:${before.focus}`)) || pressed.codePaths.some((c) => c.startsWith(`${top}:`)), `${top}: A on ${before.focus} went nowhere and was not recorded in codePaths`);
+      }
+      const moved = await step('down', 6);
+      if (!moved.ok) break;
+      const nFocus = moved.newAudio.filter((c) => c === 'btn_Focus').length;
+      ok(nFocus >= 1, `${top}: one Down fired no btn_Focus`);
+      if (nFocus > 1) doubled.add(top);
+      // Judge G N10 / COVERAGE N10: the row being left is sent KillFocus.
+      if (before.focus && !before.focus.includes('_item')) {
+        const mine = moved.states.filter((x) => x.includes(`/${before.focus}/`) || x.includes(`/${before.focus}:`));
+        ok(mine.some((x) => x.endsWith(':KillFocus')), `${top}: ${before.focus} was not sent KillFocus on Down (${mine.join(',') || 'no state'})`);
+      }
+    }
+  };
+  for (let i = 0; i < 7; i++) await step('right', 30);
+  const sys = await step('press', 80);
+  ok(sys.top === 'consoles/SystemScene.xur', `A on Settings opened ${sys.top}`);
+  await walk('Settings', 1);
+  console.log(`  M4e walk: ${visited.size} pages mounted by input under System Settings`);
+  for (const [scene, v] of visited) {
+    console.log(`    ${scene.padEnd(52)} rows ${String(v.rows.length).padStart(2)}  focus ${String(v.focus).padEnd(24)} by ${v.arrivalBy}${v.tokens.length ? `  tokens cleared ${v.tokens.length}` : ''}${v.codeUnfilled.length ? `  empty lists ${v.codeUnfilled.length}` : ''}`);
+  }
+  ok(pageErrors.length === 0, `shell errors on the walk: ${pageErrors.join(' || ')}`);
+  if (doubled.size) console.log(`  btn_Focus fires twice per Down on: ${[...doubled].join(', ')} (COVERAGE B12, runtime list template; reported, not gated)`);
+  ok(visited.size >= 40, `only ${visited.size} pages reached under System Settings; the audit counted 40 (7 Console Settings sub-pages, 15 children, the Display children, the Family Settings chain, Network Details)`);
+  const must = ['consoles/dashSysCslSetDisplay.xur', 'consoles/dashSysCslSetAudio.xur', 'consoles/dashSysCslSetAudioDigital.xur', 'consoles/dashSysCslSetLangLocale.xur',
+    'consoles/dashSysCslSetLanguage.xur', 'consoles/dashSysCslSetCountry.xur', 'consoles/dashSysCslSetClock.xur', 'consoles/dashSysCslSetClockTimeZone.xur',
+    'consoles/dashSysCslSetStartupShutdown.xur', 'consoles/dashSysCslSetStartUp.xur', 'consoles/dashSysCslSetMediaAutoLaunch.xur', 'consoles/dashSysCslSetRemoteC.xur',
+    'consoles/dashSysCslSetDisplayHiDef.xur', 'consoles/dashSysCslSetScreensaver.xur', 'consoles/dashSysCslSetPControl.xur', 'consoles/dashSysCslSetPControlGame.xur',
+    'consoles/dashSysCslSetPControlPasscodeHint.xur', 'network/2004_NetworkDetails.xur', 'network/2033_DNSConfig.xur', 'memory/DeviceSelector.xur'];
+  for (const m of must) ok(visited.has(m), `${m} was never reached by input`);
+  const v = (id) => visited.get(id);
+  ok(v('consoles/dashSysCslSetCountry.xur')?.rows.length === 37, `Locale: ${v('consoles/dashSysCslSetCountry.xur')?.rows.length} rows, expected the 37 of 0x92018d40 (and consoles/ over network/ on the basename collision)`);
+  ok(v('consoles/dashSysCslSetLanguage.xur')?.rows.length === 12 && v('consoles/dashSysCslSetLanguage.xur')?.rows[0] === 'English', `Language rows: ${JSON.stringify(v('consoles/dashSysCslSetLanguage.xur')?.rows)}`);
+  ok(v('consoles/dashSysCslSetClockTimeZone.xur')?.rows.length === 65, `Time Zone: ${v('consoles/dashSysCslSetClockTimeZone.xur')?.rows.length} rows, expected 65`);
+  ok(v('consoles/dashSysCslSetRemoteC.xur')?.rows.join('|') === 'Both Remotes|Xbox 360 Media Remote', `Remote Control rows: ${v('consoles/dashSysCslSetRemoteC.xur')?.rows.join('|')}`);
+  ok(v('consoles/dashSysCslSetDisplay.xur')?.rows.length === 7 && v('consoles/dashSysCslSetDisplay.xur')?.rows[0] === 'HDTV Settings', `Display rows: ${JSON.stringify(v('consoles/dashSysCslSetDisplay.xur')?.rows)}`);
+  ok(v('consoles/dashSysCslSetDisplay.xur')?.tokens.length === 1 && v('consoles/dashSysCslSetRemoteC.xur')?.tokens.length === 1, 'Display / Remote Control did not clear their <setting> token');
+  ok(v('memory/DeviceSelector.xur')?.tokens.some((t) => t.includes('<#> of <Total #>')), 'DeviceSelector did not clear "<#> of <Total #>"');
+  ok(v('memory/DeviceSelector.xur')?.legend.buttons.includes('YButton=Device Options'), `DeviceSelector legend: ${v('memory/DeviceSelector.xur')?.legend.buttons.join(' ')} [FRAME Yrt f0437]`);
+  const comp = visited.get('dashcomm/742_SelectNetworkDevice.xur');
+  ok(comp && !comp.legend.buttons.some((b) => b.startsWith('XButton')), `Computers draws an X entry for a "\\r\\n" caption: ${comp?.legend.buttons.join(' ')}`);
+  const net = visited.get('network/NetworkMain.xur');
+  ok(net && !net.legend.buttons.some((b) => b.startsWith('YButton')), `Network Settings draws its Show=false legend_y: ${net?.legend.buttons.join(' ')}`);
+
+  /* --- (b) X and Y on Storage Devices --- */
+  for (let i = 0; i < 12; i++) { const b = await step('back', 30); if (b.top === null) break; }
+  await step('idle', 100);
+  const home = await step('idle');
+  ok(home.top === null, `did not return to the home page after the walk (${home.top})`);
+  const ySys = await step('press', 80);
+  ok(ySys.top === 'consoles/SystemScene.xur', `A on Settings (second time) opened ${ySys.top} (ok ${ySys.ok}, pages ${ySys.pages}, cursor ${ySys.cursor}, swap ${ySys.swap}, trans ${ySys.trans}, tFrame ${ySys.tFrame}, pending ${JSON.stringify(ySys.pending)}, fold ${ySys.fold}, unbound ${ySys.unbound.slice(-1)})`);
+  await step('down', 6); await step('down', 6);
+  const mem = await step('press', 30);
+  ok(mem.top === 'memory/DeviceSelector.xur', `Memory opened ${mem.top}`);
+  const y = await step('y', 20);
+  ok(y.newAudio.includes('btn_Select') && y.codePaths.some((c) => c.includes('DeviceSelector.xur:legend_y (Y)')), `Y on Storage Devices: audio ${y.newAudio.join(',')}, codePaths ${y.codePaths.slice(-1)}`);
+  const x = await step('x', 20);
+  ok(!x.newAudio.length && x.codePaths.some((c) => c.includes('legend_x (X) is Enabled=false')), `X on Storage Devices (Enabled=false): audio ${x.newAudio.join(',')}`);
+  await step('back', 30); await step('back', 90);
+
+  /* --- (c) Sign In, measured against Yrt f0268 --- */
+  for (let i = 0; i < 6; i++) await step('left', 30);   // 7 -> 1, the gamer card
+  const si = await step('press', 140);
+  ok(si.top === 'signin/SigninScene.xur' && si.kind === 'root', `A on the gamer card opened ${si.top} (${si.kind})`);
+  ok(si.strip?.counter === '1 of 2' && si.strip.row === 'Sign In', `Sign In strip: ${JSON.stringify(si.strip && { counter: si.strip.counter, row: si.strip.row })}`);
+  ok(si.strip?.panels.map((p) => p.scene.replace(/^.*\//, '')).join(',') === 'CreateProfilePanelScene.xur,RecoverProfilePanelScene.xur', `Sign In panels: ${si.strip?.panels.map((p) => p.scene).join(',')}`);
+  ok(si.strip?.panels.every((p) => p.mounted && p.visible && p.opacity === 1), `Sign In panels not settled: ${JSON.stringify(si.strip?.panels)}`);
+  ok(si.legend?.buttons.join(' ') === 'AButton=Select BButton=Back' && si.legend.title === '', `Sign In legend: ${si.legend?.buttons.join(' ')} title "${si.legend?.title}" [FRAME Yrt f0268]`);
+  ok(si.texts.includes('Sign In') && si.texts.includes('Create Profile') && si.texts.includes('Recover Gamertag'), `Sign In paints: ${si.texts.slice(0, 12).join(' | ')}`);
+  ok(si.painted.length === 0, `Sign In paints tokens: ${si.painted.join(',')}`);
+  await nav.page.screenshot({ path: `${OUT}/nxe-signin.png` });
+  if (existsSync(SIGNIN_FRAME)) {
+    // The front panel's four edges are the home slot's [FRAME Yrt f0268 vs
+    // f0483: the profile panel is the same 420x320 at (96,248)]; the second
+    // panel's left edge; the "Sign In" row's ink band; the counter's band.
+    measure('signin', `${OUT}/nxe-signin.png`, SIGNIN_FRAME, [
+      { name: 'panel0 left', kind: 'v', at: 95.7, band: [430, 470] },
+      { name: 'panel0 right', kind: 'v', at: 515.7, band: [300, 350] },
+      { name: 'panel0 top', kind: 'h', at: 247.7, band: [110, 200] },
+      { name: 'panel0 bottom', kind: 'h', at: 567.7, band: [150, 450] },
+      { name: 'panel1 left', kind: 'v', at: 516.5, band: [300, 340], win: 6 },
+    ], 3.0);
+    const frame = readPng(SIGNIN_FRAME), ours = readPng(`${OUT}/nxe-signin.png`);
+    const fRow = inkRows(frame, 100, 240, 175, 240), oRow = inkRows(ours, 100, 240, 175, 240);
+    console.log(`    "Sign In" row ink: frame y ${fRow?.top.toFixed(1)}..${fRow?.bottom.toFixed(1)}   ours ${oRow?.top.toFixed(1)}..${oRow?.bottom.toFixed(1)}`);
+    ok(fRow && oRow && Math.abs(fRow.top - oRow.top) <= 4 && Math.abs(fRow.bottom - oRow.bottom) <= 4, `the "Sign In" row does not sit where Queue\\Current does on the frame`);
+    // The counter under the front panel: the frame draws "1 of 3" where we
+    // draw "1 of 2" (that console had a profile; ours has none), so only the
+    // BAND is comparable, not the glyphs. Measured by contrast, because the
+    // frame's floor is brighter there than its own text (see textRows).
+    // Only the TOP of the band is gated, and it is the landmark: the counter's
+    // Position is the scene's. The BOTTOM is 3-4 px shallower than the
+    // console's on the same Convection face at the same top, which is the text
+    // renderer's shadow depth and not a placement error - a residual of the
+    // runtime's text drawing, shared with Blades, printed here so it stays
+    // visible rather than gated here where it would be gated in the wrong
+    // suite.
+    const fCnt = textRows(frame, 96, 175, 560, 610), oCnt = textRows(ours, 96, 175, 560, 610);
+    console.log(`    counter text band: frame y ${fCnt?.top.toFixed(1)}..${fCnt?.bottom.toFixed(1)} (h ${(fCnt?.bottom - fCnt?.top).toFixed(1)})   ours ${oCnt?.top.toFixed(1)}..${oCnt?.bottom.toFixed(1)} (h ${(oCnt?.bottom - oCnt?.top).toFixed(1)})  [the 3-4 px is the text renderer's shadow depth, not placement]`);
+    ok(fCnt && oCnt && Math.abs(fCnt.top - oCnt.top) <= 3, `the Sign In counter does not sit where the frame's "1 of 3" does: frame top ${fCnt?.top}, ours ${oCnt?.top}`);
+  } else console.log(`  (no ${SIGNIN_FRAME}; Sign In geometry not measured)`);
+  const siRight = await step('right', 40);
+  ok(siRight.strip?.counter === '2 of 2' && siRight.newAudio.includes('snd_panelright'), `Right on Sign In: ${siRight.strip?.counter} ${siRight.newAudio.join(',')}`);
+  const siA = await step('press', 20);
+  ok(siA.top === 'signin/SigninScene.xur' && siA.codePaths.some((c) => c.includes('RecoverProfilePanelScene.xur: A')), `A on Recover Gamertag: ${siA.codePaths.slice(-1)}`);
+  const siBack = await step('back', 130);
+  ok(siBack.top === null && siBack.newAudio.includes('snd_buttonback'), `B off Sign In: top ${siBack.top}, ${siBack.newAudio.join(',')}`);
+
+  /* --- (d) the Game Library's Rome strip, against Yrt f0396 and Kpa f0300 --- */
+  await step('right', 30);
+  const gl = await step('press', 140);
+  ok(gl.top === 'arcade/ArcadeFilterScene.xur' && gl.strip?.counter === '1 of 2', `A on Games Library: ${gl.top} ${gl.strip?.counter}`);
+  ok(gl.legend?.buttons.join(' ') === 'AButton=Select BButton=Back YButton=Play' && gl.legend.title === '', `Game Library legend: ${gl.legend?.buttons.join(' ')} title "${gl.legend?.title}" [FRAME Kpa f0300: no title, Y Play]`);
+  ok(gl.codeUnfilled.length === 2, `Game Library empty lists disclosed: ${gl.codeUnfilled.length}`);
+  await nav.page.screenshot({ path: `${OUT}/nxe-rome-strip.png` });
+  if (existsSync(ROME2_FRAME)) {
+    // The second panel at RomeDefaultSpacing 480 behind the front one: its
+    // left edge and top, on the themed capture's busy background.
+    measure('rome strip (Kpa f0300)', `${OUT}/nxe-rome-strip.png`, ROME2_FRAME, [
+      { name: 'rome0 left', kind: 'v', at: 96.0, band: [300, 500] },
+      { name: 'rome0 top', kind: 'h', at: 104.7, band: [150, 450] },
+      { name: 'rome1 left', kind: 'v', at: 553.5, band: [400, 520], win: 8 },
+      { name: 'rome1 top', kind: 'h', at: 150.0, band: [600, 900], win: 8 },
+    ], 6.0);
+  }
+  const glRight = await step('right', 40);
+  ok(glRight.strip?.counter === '2 of 2', `Right on the Game Library: ${glRight.strip?.counter}`);
+  await nav.page.screenshot({ path: `${OUT}/nxe-rome-2of2.png` });
+  if (existsSync(ROME_FRAME)) {
+    measure('rome 2 of 2', `${OUT}/nxe-rome-2of2.png`, ROME_FRAME, ROME_LANDMARKS, 2.5);
+    const frame = readPng(ROME_FRAME), ours = readPng(`${OUT}/nxe-rome-2of2.png`);
+    const fCnt = inkRows(frame, 96, 240, 600, 640, 120), oCnt = inkRows(ours, 96, 240, 600, 640, 120);
+    console.log(`    "2 of 2" ink: frame y ${fCnt?.top.toFixed(1)}..${fCnt?.bottom.toFixed(1)}   ours ${oCnt?.top.toFixed(1)}..${oCnt?.bottom.toFixed(1)}`);
+    ok(fCnt && oCnt && Math.abs(fCnt.top - oCnt.top) <= 4, `the Rome counter does not sit where the frame's "2 of 2" does (RomeOverlayScene's Description at (96,605))`);
+  }
+  await step('back', 130);
+
+  /* --- (e) the Welcome channel's two roots (no offline footage: DOM gates) --- */
+  await step('down', 60);
+  const wn = await step('press', 140);
+  ok(wn.top === 'firstrun/WhatsNewRootScene.xur' && wn.strip?.counter === '1 of 8', `A on What's Hot: ${wn.top} ${wn.strip?.counter}`);
+  ok(wn.legend?.title === "What's Hot" && wn.texts.includes("What's Hot"), `What's Hot title: "${wn.legend?.title}"`);
+  ok(wn.strip?.panels[0]?.scene.endsWith('WhatsNewJoinXboxLIVEScene.xur') && wn.strip.panels.every((p) => p.mounted || p.z > 1850), `What's Hot panels: ${wn.strip?.panels.map((p) => p.scene.replace(/^.*\//, '')).join(',')}`);
+  ok(wn.texts.some((t) => /Join Xbox LIVE/i.test(t)), `the front What's Hot panel paints no text: ${wn.texts.slice(0, 8).join(' | ')}`);
+  await step('back', 130);
+  await step('right', 30);
+  const xb = await step('press', 140);
+  ok(xb.top === 'firstrun/XboxBasicsRootScene.xur' && xb.strip?.counter === '1 of 8' && xb.legend?.title === 'Xbox Essentials', `A on Xbox Basics: ${xb.top} ${xb.strip?.counter} "${xb.legend?.title}"`);
+  await step('back', 130);
+  const end = await step('idle');
+  ok(end.errors.length === 0, `shell errors after the M4e walk: ${end.errors.join(' | ')}`);
+  console.log(`  code paths recorded: ${end.codePaths.length}; unbound commands: ${end.unbound.length}`);
+  await nav.page.close();
 }

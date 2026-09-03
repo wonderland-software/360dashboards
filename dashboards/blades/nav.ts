@@ -71,6 +71,36 @@ export function resolvePress(
 }
 
 /**
+ * Presses the console handles in CODE, and where they go. Each is a control
+ * with no PressPath (or one that names a file the build does not carry) whose
+ * class navigates itself.
+ *
+ * - The Media blade's Music / Pictures / Videos rows carry PressPaths
+ *   1000_MusicMain.xur / 900_PicturesMain.xur / VideosMain.xur, none of which
+ *   is in any pack [SCENE]. What the console opens first is the source picker
+ *   dashcomm/MediaSourceSelection.xur (MediaSourceSelectionScene, whose list
+ *   class MediaSourceList is registered at 0x921ac344), then the device's own
+ *   page - music/1003_IndividualDevice, pictures/905_IndividualDeviceMain,
+ *   videos/Video [BLADES_GLUE_SPEC §4]. The chain is [INFER]: the spec reads
+ *   it from the pack inventory, and this shell opens only its first page.
+ * - Games' Create Gamer Profile has no PressPath; the console runs the OOBE
+ *   profile chain, whose first scene is oobe/oobeProfileCreation.xur ("Please
+ *   wait" over Loading_Large) [SPEC §4, INFER]. The profile it creates is
+ *   device state, so that page is where this shell stops.
+ * - Media Center opens MediaCenterScene (registered 0x922879c4): a Media
+ *   Center PC on the network. Hardware; not opened.
+ * - Initial Setup raises the message box at 0x92114a98 (settingsModel.ts
+ *   INITIAL_SETUP_DIALOG) and runs the OOBE on Yes; the box is xam's.
+ */
+export const CODE_PRESS_PATHS: Readonly<Record<string, { scene: string | null; note: string }>> = {
+  'mediabla/mediaSignedOut.xur#navMusic': { scene: 'dashcomm/MediaSourceSelection.xur', note: 'PressPath 1000_MusicMain.xur is not in the build; the source picker is the first page of the code path [SPEC §4, INFER]' },
+  'mediabla/mediaSignedOut.xur#navPictures': { scene: 'dashcomm/MediaSourceSelection.xur', note: 'PressPath 900_PicturesMain.xur is not in the build; the source picker is the first page of the code path [SPEC §4, INFER]' },
+  'mediabla/mediaSignedOut.xur#navVideo': { scene: 'dashcomm/MediaSourceSelection.xur', note: 'PressPath VideosMain.xur is not in the build; the source picker is the first page of the code path [SPEC §4, INFER]' },
+  'mediabla/mediaSignedOut.xur#navMCX': { scene: null, note: 'MediaCenterScene (0x922879c4) connects to a Media Center PC: hardware' },
+  'gamesbla/gamesSignedOut.xur#navCreateProfile': { scene: 'oobe/oobeProfileCreation.xur', note: 'the OOBE profile chain starts on its wait page [SPEC §4, INFER]; the profile is device state, so it ends there' },
+};
+
+/**
  * Second-level scenes declare TransFrom/TransTo "FadeOut"/"FadeIn", naming
  * one-timeline visuals of those names in dashuisk/skin.xur. Play them on the
  * outgoing and incoming scene while RootScene plays NOpen / NClose.

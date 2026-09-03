@@ -47,7 +47,15 @@ import { bindTimelines } from '../anim/bind';
 import type { TimelineEngine } from '../anim/TimelineEngine';
 import { NO_DELTA } from '../render/anchor';
 
-export interface ListItem { text: string; image?: string; navPath?: string }
+/**
+ * `enabled: false` is a row the console draws but will not let you pick: the
+ * XuiListItem is instantiated with Enabled=false (the disabled artwork) and
+ * its states are the *Disable pairs the skin's XuiButton authors (NormalDisable,
+ * FocusDisable, InitFocusDisable, PressDisable - the last carrying
+ * btn_InactiveSelect.xma). The Display page's "Screen Format" row is one while
+ * the console runs a widescreen mode [displaySettings.ts, 0x921c677c].
+ */
+export interface ListItem { text: string; image?: string; navPath?: string; enabled?: boolean }
 
 /** ItemsText / ItemsImage / ItemsNavPath are CRLF-separated, with a trailing
  *  separator; proven on all 31 XuiCommonLists in the build that set them. */
@@ -133,6 +141,9 @@ export class ListView {
   get id(): string { return idOf(this.list); }
   get count(): number { return this.items.length; }
   get focusIndex(): number { return this.focused; }
+  /** False for a row the console draws disabled (see ListItem.enabled). */
+  enabledAt(i: number): boolean { return this.items[i]?.enabled !== false; }
+  get focusEnabled(): boolean { return this.focused >= 0 && this.enabledAt(this.focused); }
   get focusId(): string | null { return this.focused < 0 ? null : this.rows[this.focused]?.id ?? null; }
   /** Rows that fit inside the list's Height at the template's pitch. */
   get visibleCount(): number { return Math.max(1, Math.floor((this.node.rect.h - E.LIST_ITEM_TOP) / this.pitch)); }
@@ -183,6 +194,7 @@ export class ListView {
           prop(this.reg, 'XuiListItem', 'Text', item.text),
           item.image ? prop(this.reg, 'XuiListItem', 'ImagePath', item.image) : null,
           item.navPath ? prop(this.reg, 'XuiListItem', 'NavPath', item.navPath) : null,
+          item.enabled === false ? prop(this.reg, 'XuiListItem', 'Enabled', false) : null,
         ].filter((p): p is XuProperty => p !== null),
         children: [], namedFrames: [], timelines: [],
       };
@@ -204,7 +216,7 @@ export class ListView {
     }
 
     bindTimelines(this.index, this.engine);
-    this.rows.forEach((r) => this.engine.setState(r.id, 'Normal'));
+    this.rows.forEach((r, k) => this.engine.setState(r.id, this.enabledAt(k) ? 'Normal' : 'NormalDisable'));
     this.layout();
   }
 
@@ -310,11 +322,34 @@ export class ListView {
     const prev = this.focused;
     if (prev === i && !force) return this.focusId;   // no edge, no state change
     this.focused = i;
-    if (prev >= 0 && prev !== i) this.engine.setState(this.rows[prev]!.id, 'KillFocus');
-    this.engine.setState(this.rows[i]!.id, state);
+    // A disabled row leaves through NormalDisable and arrives through the
+    // *Disable pair of the state asked for; the skin's XuiButton authors all of
+    // them, and PressDisable is where btn_InactiveSelect.xma lives.
+    if (prev >= 0 && prev !== i) this.engine.setState(this.rows[prev]!.id, this.enabledAt(prev) ? 'KillFocus' : 'NormalDisable');
+    this.engine.setState(this.rows[i]!.id, this.enabledAt(i) ? state : `${state}Disable`);
     this.scrollIntoView();
     this.layout();
     return this.focusId;
+  }
+
+  /**
+   * XuiListSetCurSel without focus: the row becomes the list's selection and
+   * the window scrolls to it, but no state plays - the list is not focused.
+   * A dashCValueSpin is parked on the clock this way (0x921cc848 / 0x921ccf70)
+   * while focus sits in another spinner. `focus()` later starts from here.
+   */
+  park(i: number): void {
+    if (this.items.length === 0 || i < 0 || i >= this.items.length) return;
+    this.focused = i;
+    this.scrollIntoView();
+    this.layout();
+  }
+
+  /** Focus leaves the list for another control: the row's KillFocus (or the
+   *  disabled rest) plays and the selection is kept for the next focus(). */
+  blur(): void {
+    if (this.focused < 0) return;
+    this.engine.setState(this.rows[this.focused]!.id, this.enabledAt(this.focused) ? 'KillFocus' : 'NormalDisable');
   }
 
   /**

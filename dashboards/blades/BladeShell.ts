@@ -22,17 +22,32 @@ import {
   type TimelineEngine, type SceneReport, type LoadedScene, type ListView,
 } from '@runtime/index';
 import { BLADES, DEFAULT_TAB, bladeByTab, panelSceneFor, switchRange, levelRange, type BladeState } from './tabs';
-import { IPTV_ROW, resolvePress } from './nav';
+import { IPTV_ROW, CODE_PRESS_PATHS, resolvePress } from './nav';
 import { panelEntries, entryForFocus, metaRange, metaPressRange, type PanelEntry } from './panels';
 import { FocusModel, type NavDirection } from './focus';
 import { populateLists } from './lists';
 import { AUTHORING_PLACEHOLDER, CONSOLE_SETTINGS_CURRENT, CONSOLE_SETTINGS_SCENE, CURRENT_SETTING_ASSOC } from './consoleSettings';
+import {
+  OPTION_PAGES, PARENT_LABELS, RATING_PAGES, INITIAL_SETUP_DIALOG, SETTINGS_STRINGS_PACK, SETTINGS_STRINGS_TABLE,
+  consoleSettingsCurrent, displayCurrentSetting, ratingTableFor, referenceState, unknownSettings,
+  type ConsoleState, type Dialog, type Label, type OptionPage,
+} from './settingsModel';
+import { LISTS_DISABLED_OFFLINE } from './codeLists';
 import { playTransition, transitionId, type TransitionProp, type RunningTransition } from './transitions';
 import { BOOT_RANGES, DEFAULT_BOOT } from './boot';
 import { fillContainers, DASH_STRINGS_PACK, DASH_STRINGS_TABLE, type FillHost } from './containers';
 
 export const DASHMAIN = 'dashmain/dashmain.xur';
 export const ROOT_SCENE = 'RootScene';
+/** The Display page: its right pane is loaded by the video mode (settingsModel.ts). */
+export const DISPLAY_SCENE = 'consoles/dashSysCslSetDisplay.xur';
+/** PanelStrings entries authored empty because the scene's class writes the
+ *  metapane itself. */
+const CODE_FILLED_PANEL_STRINGS: Readonly<Record<string, string>> = {
+  'consoles/dashSysCslSetPControl.xur#btnVideo': 'labVideoSummary is written by 0x921bd0b0 (through 0x921bb588) from the staged ratings block, console state we cannot read',
+};
+/** XuiNavButton.PressKey values the legends carry: X 0x5802, Y 0x5803, B 0x5841 [SCENE]. */
+export const PRESS_KEY = { X: 0x5802, Y: 0x5803, B: 0x5841 } as const;
 
 export interface ShellState {
   signedIn: boolean;
@@ -94,6 +109,10 @@ interface Level {
    *  smoke suites drive the ranges directly, and a bare level must not try to
    *  destroy the page underneath it on the way out. */
   bare?: boolean;
+  /** The option page this level is, when its A writes a setting (settingsModel.ts). */
+  option?: OptionPage;
+  /** Lists the console disables on this hardware; they take no focus. */
+  disabledLists: string[];
 }
 
 export interface ShellReport {
@@ -134,6 +153,17 @@ export interface ShellReport {
    *  non-empty list is a failure, not a warning. */
   missingStrings: string[];
   booted: string | null;
+  /** The console state the settings pages read and write (settingsModel.ts),
+   *  as it stands: the reference console's values, then every selection. */
+  settings: ConsoleState;
+  /** "scene:control -> value" for every setting a press wrote. */
+  selections: string[];
+  /** The xam message boxes the console would have raised, with their strings.
+   *  The box is system software and is not drawn; the code's no-box path is
+   *  what runs instead. */
+  dialogs: string[];
+  /** The option page on top, or null. */
+  optionPage: string | null;
 }
 
 export class BladeShell {
@@ -155,6 +185,17 @@ export class BladeShell {
   private readonly codeUnfilled: string[] = [];
   private localePatches = 0;
   private booted: string | null = null;
+  /** The console state the option pages read and write. */
+  readonly settings: ConsoleState = referenceState();
+  private readonly selections: string[] = [];
+  private readonly dialogs: string[] = [];
+  /** consoles/dashCSettingsStrings.xus and dashcomm/dashStrings.xus by index,
+   *  in the shell's locale, for the labels the code fetches by number. */
+  private settingsStrings: string[] = [];
+  private dashStrings: string[] = [];
+  /** Nodes whose text the shell wrote from the build's own strings, so the
+   *  authoring-token clear never takes "<None>" (string 427) for a token. */
+  private readonly filledByShell = new WeakSet<NodeRecord>();
   /** Loads in flight, so a test can wait for the metapane's sub-scene instead
    *  of sleeping. */
   private readonly pending = new Set<Promise<unknown>>();
@@ -202,6 +243,9 @@ export class BladeShell {
       opts.assets, dashmain, opts.skin, theme, ctx, opts.nodes, opts.engine, el, state, opts.strings, locale,
     );
     shell.localePatches += rootPatches.length;
+    shell.settingsStrings = await opts.strings.stringsByIndex(SETTINGS_STRINGS_PACK, SETTINGS_STRINGS_TABLE, locale);
+    shell.dashStrings = await opts.strings.stringsByIndex(DASH_STRINGS_PACK, DASH_STRINGS_TABLE, locale);
+    for (const u of unknownSettings(shell.settings)) shell.hardwareState.push(`settings unknown: ${u}`);
     await shell.parentPanels();
     shell.applyIptv();
     shell.applySignInState();
@@ -267,6 +311,10 @@ export class BladeShell {
           const sub = await this.loadLocalized(sceneId);
           const rec = this.renderInto(parent, sub);
           bindTimelines(this.nodes, this.engine);
+          // The clear has to run on the SUB-SCENE too: 2500_metaMyArcade's
+          // "<text>" lives in a metapane scene loaded after its host, and the
+          // host's clear had already run.
+          if (rec) this.clearTokens(sceneId, rec);
           return rec;
         } catch (err) {
           this.ctx.report.errors.push(`container ${sceneId}: ${err instanceof Error ? err.message : String(err)}`);
@@ -290,16 +338,86 @@ export class BladeShell {
    * `hardwareState`, and never replaced with a guess.
    */
   private discloseHardwareState(level: Level): void {
+    this.clearTokens(level.id, level.node);
+  }
+
+  /**
+   * The clear itself, on any mounted subtree. It runs on the page AND on
+   * every sub-scene mounted into it afterwards (the metapane scenes, the
+   * offline banners): the console overwrote each token before the control
+   * showed, whatever scene it sat in. A node the shell has already filled
+   * from the string table is left alone - the build's own "<None>" (string
+   * 427) is a value, not a token.
+   */
+  private clearTokens(sceneId: string, root: NodeRecord): void {
     const walk = (n: NodeRecord) => {
-      const text = propString(n.obj, 'Text');
-      if (text && AUTHORING_PLACEHOLDER.test(text)) {
-        setOwnerText(n, '');
-        const entry = `${level.id}:${idOf(n.obj) || n.obj.className} ${text.trim()}`;
-        if (!this.hardwareState.includes(entry)) this.hardwareState.push(entry);
+      if (!this.filledByShell.has(n)) {
+        const authored = propString(n.obj, 'Text');
+        const live = n.overrides.get('Text');
+        const text = typeof live === 'string' ? live : authored;
+        if (text && AUTHORING_PLACEHOLDER.test(text)) {
+          setOwnerText(n, '');
+          const entry = `${sceneId}:${idOf(n.obj) || n.obj.className} ${text.trim()}`;
+          if (!this.hardwareState.includes(entry)) this.hardwareState.push(entry);
+        }
       }
       n.children.forEach(walk);
     };
-    walk(level.node);
+    walk(root);
+  }
+
+  /** A string the code fetched by number: dashCSettingsStrings.xus unless the
+   *  label says dashStrings. Null when the table does not have it - which is
+   *  reported, never painted. */
+  private resolveLabel(l: Label & { table?: 'dashStrings' }, what: string): string | null {
+    if ('text' in l) return l.text;
+    const table = l.table === 'dashStrings' ? this.dashStrings : this.settingsStrings;
+    const v = table[l.idx];
+    if (v === undefined) {
+      const m = `${l.table === 'dashStrings' ? DASH_STRINGS_TABLE : SETTINGS_STRINGS_TABLE}[${l.idx}] (${what})`;
+      if (!this.missingStrings.includes(m)) this.missingStrings.push(m);
+      return null;
+    }
+    return v;
+  }
+
+  /** Write a label the console's code filled, and remember the node so the
+   *  token clear leaves it alone. Null clears it (the failed-read path). */
+  private writeLabel(level: Level, id: string, label: Label | null, what: string): void {
+    const node = findById(level.node, id);
+    if (!node) return;
+    const text = label ? this.resolveLabel(label, what) : null;
+    setOwnerText(node, text ?? '');
+    this.filledByShell.add(node);
+    if (text === null) {
+      const gap = `${level.id}:${id} - ${what}: console state we cannot query`;
+      if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+    }
+  }
+
+  /**
+   * A parent page's labCurrentSetting follows the focused row through its
+   * XN_FOCUS handler (PARENT_LABELS); the Display page's is the four-provider
+   * join (0x921c6f18), and the option page's own is fixed at arrival.
+   */
+  private syncParentLabel(level: Level): void {
+    const parent = PARENT_LABELS[level.id];
+    if (parent) {
+      const focused = level.focus.current;
+      const by = focused ? parent.by[focused] : undefined;
+      if (by) this.writeLabel(level, parent.labelId, by(this.settings), `${focused} current setting`);
+      return;
+    }
+    if (level.id === DISPLAY_SCENE) {
+      const d = displayCurrentSetting(this.settings);
+      const lines = d.lines.map((l) => this.resolveLabel(l, 'display current setting')).filter((t): t is string => t !== null);
+      const node = findById(level.node, 'labCurrentSetting');
+      if (node) { setOwnerText(node, lines.join('\r\n')); this.filledByShell.add(node); }
+      for (const u of d.unknown) {
+        const gap = `${level.id}:labCurrentSetting - ${u}: console state we cannot query`;
+        if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+      }
+    }
   }
 
   /**
@@ -531,9 +649,9 @@ export class BladeShell {
     rootNode: NodeRecord = node,
   ): Level {
     const focus = new FocusModel(scene, {
-      object: (fid) => findObject(scene, fid),
+      object: (fid) => findObjectPath(scene, fid),
       focusable: (fid) => {
-        const n = findById(node, fid);
+        const n = findNodePath(node, fid);
         return !!n && n.el.style.display !== 'none';
       },
       override: (fid, prop) => {
@@ -547,6 +665,7 @@ export class BladeShell {
       id, scene, node, rootNode, hostNode, loaded, pack, visuals, focus,
       entries: panelEntries(scene), lists, descriptions, navPaths,
       meta, metaIndex: -1, metaText: '', metaSub: null, metaSubId: null, savedFocus: null,
+      disabledLists: [],
     };
   }
 
@@ -583,10 +702,48 @@ export class BladeShell {
    */
   private arrivalFocus(level: Level): string | null {
     const declared = level.focus.defaultFocus;
-    if (declared) return declared;
+    if (declared) return this.descend(level, declared);
     const first = level.entries[0];
     if (first && findById(level.node, first.id)) return first.id;
-    return this.chainHead(level);
+    const head = this.chainHead(level);
+    if (head) return head;
+    // A scene with no DefaultFocus, no panel table and no chain - the option
+    // pages built from one XuiCommonList (dashSysCslSetClockDaylightSavings,
+    // ...AudioDigital when the read fails) - comes up on that list: XUI hands
+    // a scene with nothing declared its first focusable control [INFER; the
+    // ?scene= route has always done the same].
+    const list = level.lists.find((l) => l.count > 0);
+    return list ? list.id : null;
+  }
+
+  /**
+   * DefaultFocus can name a SCENE: network/ConnStatus.xur says "scene_main",
+   * a DashScene child holding the five-row list_items. XUI focuses a scene by
+   * focusing INTO it - CConnStatus's init hands scene_main to 0x92153150
+   * right after binding it [CODE 0x922434e4] - so the focus lands on the
+   * child scene's own DefaultFocus, or failing one, on its first list with
+   * rows, or its chain head. Which of those the runtime takes for a scene
+   * with no DefaultFocus is [INFER]; list_items is the only focusable thing
+   * inside scene_main, so the choice cannot change the outcome there.
+   */
+  private descend(level: Level, id: string): string {
+    const obj = findObjectPath(level.scene, id);
+    if (!obj) return id;
+    const own = idOf(obj) || id;
+    if (obj.className !== 'XuiScene' && obj.className !== 'DashScene') return own;
+    id = own;
+    const inner = propString(obj, 'DefaultFocus');
+    if (inner && findObject(obj, inner)) return this.descend(level, inner);
+    const list = level.lists.find((l) => findObject(obj, l.id) && l.count > 0);
+    if (list) return list.id;
+    let head: string | null = null;
+    const walk = (o: XuObject) => {
+      const oid = idOf(o);
+      if (head === null && oid && propByName(o, 'NavDown') && !propByName(o, 'NavUp') && findById(level.node, oid)) head = oid;
+      o.children.forEach(walk);
+    };
+    walk(obj);
+    return head ?? id;
   }
 
   /** The one focusable control in the scene with no NavUp: where a plain
@@ -635,9 +792,11 @@ export class BladeShell {
 
   /**
    * Up/Down inside a list move the list's rows; everywhere else they walk the
-   * authored NavUp/NavDown chain. Left/Right are never a focus move: no control
-   * in the build sets NavLeft or NavRight, because left and right are the blade
-   * switch and XuiTabScene owns them.
+   * authored NavUp/NavDown chain, and Left/Right the NavLeft/NavRight one.
+   * None of the five blade pages authors NavLeft/NavRight (that axis is the
+   * blade switch XuiTabScene owns), but 35 deeper scenes do - the clock
+   * spinners, the Arcade pages, the media source picker - so navLeft/navRight
+   * try the chain first and fall back to the switch.
    */
   moveFocus(dir: NavDirection): string | null {
     const level = this.top;
@@ -648,11 +807,20 @@ export class BladeShell {
       if (moved !== null) this.syncMeta(level);
       return moved;
     }
+    if (level.focus.current === null) return null;
     const before = level.focus.current;
-    const next = level.focus.move(dir);
+    let next = level.focus.move(dir);
     if (next === null) return null;
-    if (before) this.setState(level, before, 'KillFocus');
-    this.setState(level, next, 'Focus');
+    // A target that is a scene (or a child path to one) hands focus on to
+    // what is inside it, as an arrival does.
+    const inner = this.descend(level, next);
+    if (inner !== next) { level.focus.set(inner); next = inner; }
+    // Leaving a list plays KillFocus on its selected row; entering one plays
+    // Focus on its selection (the row it was parked on), not on the list box.
+    const from = list ?? level.lists.find((l) => l.id === before);
+    const to = level.lists.find((l) => l.id === next);
+    if (from) from.blur(); else if (before) this.setState(level, before, 'KillFocus');
+    if (to) to.focus(Math.max(0, to.focusIndex), 'Focus', true); else this.setState(level, next, 'Focus');
     this.syncMeta(level);
     return next;
   }
@@ -717,12 +885,20 @@ export class BladeShell {
       // hole in it is reported.
       const perRow = level.entries.some((e) => e.description || e.scenePath);
       if (entry && perRow && !text && !scenePath) {
-        const m = `${level.id}: PanelStrings[${entry.index}] (${entry.id}) is empty`;
-        if (!this.missingStrings.includes(m)) this.missingStrings.push(m);
+        // An empty entry the CODE fills is not a missing string: the Family
+        // Settings menu's Video row has none because dashPControlSettingsMenu
+        // writes labVideoSummary itself (0x921bd0b0 -> 0x921bb588, from the
+        // staged ratings block, which this console cannot read).
+        const filled = CODE_FILLED_PANEL_STRINGS[`${level.id}#${entry.id}`];
+        const m = filled
+          ? `${level.id}:${entry.id} PanelStrings[${entry.index}] is empty by design - ${filled}`
+          : `${level.id}: PanelStrings[${entry.index}] (${entry.id}) is empty`;
+        const into = filled ? this.hardwareState : this.missingStrings;
+        if (!into.includes(m)) into.push(m);
       }
     }
     level.metaText = text;
-    if (!level.meta) { level.metaIndex = index; return; }
+    if (!level.meta) { level.metaIndex = index; this.syncParentLabel(level); return; }
 
     // Destroy the previous sub-scene before anything else, as 0x921b48f4 does.
     if (level.metaSub) {
@@ -739,13 +915,24 @@ export class BladeShell {
     // empty rather than invented. PLACEHOLDERS.md carries the reason.
     if (level.id === CONSOLE_SETTINGS_SCENE) {
       // The TABLE row, not the visible slot: which setting the value describes
-      // does not change when the window scrolls.
+      // does not change when the window scrolls. The text is what the row's
+      // provider (the third field of its 0x920143d0 record) formats from the
+      // console state - settingsModel.consoleSettingsCurrent - except System
+      // Info, whose "Dashboard: %hs" is this build's own version string.
       const row = list ? list.focusIndex : index;
-      const cur = CONSOLE_SETTINGS_CURRENT.find((c) => c.row === row);
-      setOwnerSlot(level.meta, CURRENT_SETTING_ASSOC, cur?.value ?? '');
-      const gap = `${level.id}: row ${row} "Current Setting" is console state we cannot query`;
-      if (!cur && row >= 0 && !this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+      const pinned = CONSOLE_SETTINGS_CURRENT.find((c) => c.row === row && c.row === 10);
+      let text = pinned?.value ?? '';
+      if (!pinned && row >= 0) {
+        const cur = consoleSettingsCurrent(row, this.settings, this.state.signedIn);
+        text = cur.lines.map((l) => this.resolveLabel(l, `Console Settings row ${row} current setting`)).filter((t): t is string => t !== null).join('\r\n');
+        for (const u of cur.unknown) {
+          const gap = `${level.id}: row ${row} "Current Setting" ${u}: console state we cannot query`;
+          if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+        }
+      }
+      setOwnerSlot(level.meta, CURRENT_SETTING_ASSOC, text);
     }
+    this.syncParentLabel(level);
 
     const prev = level.metaIndex;
     level.metaIndex = index;
@@ -767,6 +954,7 @@ export class BladeShell {
       level.metaSub = this.renderInto(level.meta, sub);
       level.metaSubId = sub.id;
       bindTimelines(this.nodes, this.engine);
+      if (level.metaSub) this.clearTokens(sub.id, level.metaSub);
     } catch (err) {
       this.ctx.report.errors.push(`metapane scene ${path}: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -807,6 +995,14 @@ export class BladeShell {
     const focused = list?.focusId ?? level.focus.current;
     if (!focused) return false;
 
+    // A row the console draws disabled answers A with its PressDisable range,
+    // whose File keyframe is btn_InactiveSelect.xma, and nothing else.
+    const disabled = list ? !list.focusEnabled : findById(level.node, focused)?.overrides.get('Enabled') === false;
+    if (disabled) {
+      this.setState(level, focused, 'PressDisable');
+      return false;
+    }
+
     // The press flourish and its cue are the visual's own Press range.
     this.setState(level, focused, 'Press');
     const metaScope = this.metaScope(level);
@@ -815,9 +1011,48 @@ export class BladeShell {
       this.engine.playRange(metaScope, r.start, r.end);
     }
 
+    // An option page: the handler writes the setting and navigates back
+    // (settingsModel.ts §1). A press the code gates behind a xam message box
+    // takes the box's own failure branch here - the box cannot be shown, and
+    // the code writes nothing without its answer - and is reported.
+    const page = level.option;
+    const row = page?.rows.find((r) => r.control === focused);
+    if (page && row) {
+      const dialog = page.dialog?.(this.settings, row.value);
+      if (dialog) this.noteDialog(level.id, focused, dialog);
+      else {
+        page.write(this.settings, row.value);
+        this.selections.push(`${level.id}:${focused} -> ${row.value}`);
+      }
+      this.back(true);
+      return true;
+    }
+    const rating = RATING_PAGES[level.id];
+    if (rating && list && list.id === rating.list) {
+      const table = ratingTableFor(this.settings.locale, rating.category);
+      const item = table?.rows[list.focusIndex];
+      if (item) {
+        this.settings.parental[rating.key] = item.value;
+        this.selections.push(`${level.id}:${focused} -> ${item.value}`);
+        this.back(true);
+        return true;
+      }
+    }
+
     const target = this.pressTarget(level, list);
-    if (!target) {
-      this.codePaths.push(`${level.id}:${focused}`);
+    const code = CODE_PRESS_PATHS[`${level.id}#${focused}`];
+    if (!target || (code && !this.assets.findByBasename(target))) {
+      if (level.id === `${DASHMAIN}#System` && focused === 'navSystemSetUp') {
+        this.noteDialog(level.id, focused, INITIAL_SETUP_DIALOG);
+        return false;
+      }
+      if (code?.scene) {
+        this.codePaths.push(`${level.id}:${focused} -> ${code.scene} (${code.note})`);
+        level.savedFocus = list ? null : level.focus.current;
+        await this.push(code.scene, level);
+        return true;
+      }
+      this.codePaths.push(`${level.id}:${focused}${code ? ` (${code.note})` : ''}`);
       return false;
     }
     const resolved = resolvePress(this.assets, target, focused);
@@ -830,6 +1065,60 @@ export class BladeShell {
     await this.push(resolved.resolved.scene, level);
     return true;
   }
+
+  /** A xam message box the console would raise here, recorded with its strings. */
+  private noteDialog(sceneId: string, control: string, d: Dialog): void {
+    const t = (l: Label & { table?: 'dashStrings' }) => this.resolveLabel(l, 'dialog') ?? '';
+    const entry = `${sceneId}:${control} -> xam message box 0x${d.va.toString(16)}: "${t(d.title)}" / "${t(d.body)}" [${d.buttons.map(t).join(' | ')}] (not in the archive; the code's no-answer path taken)`;
+    if (!this.dialogs.includes(entry)) this.dialogs.push(entry);
+  }
+
+  /**
+   * X or Y. XuiNavButton.PressKey binds a control to a pad key: the legends
+   * carry 0x5802 (X) and 0x5803 (Y) and XuiBackButton 0x5841 (B) [SCENE, every
+   * page]. The press goes to the control on the TOP scene that carries the
+   * key and is enabled; disabled ones (the no-profile legend_x/legend_y) take
+   * no input. What it does is the control's own press: a PressPath pushes
+   * (memory/DeviceSelector's legend_y "Device Options" has none - it is a
+   * code path over the highlighted device, and there is no device), a code
+   * path is recorded.
+   */
+  pressKey(key: 'X' | 'Y'): Promise<boolean> { return this.track(this.doPressKey(key)); }
+
+  private async doPressKey(key: 'X' | 'Y'): Promise<boolean> {
+    const level = this.top;
+    if (!level) return false;
+    const code = PRESS_KEY[key];
+    let hit: XuObject | undefined;
+    const walk = (o: XuObject) => {
+      if (!hit && propByName(o, 'PressKey')?.value === code) hit = o;
+      o.children.forEach(walk);
+    };
+    walk(level.scene);
+    if (!hit) return false;
+    const id = idOf(hit);
+    const node = findById(level.node, id);
+    const enabled = node ? node.overrides.get('Enabled') !== false && propByName(hit, 'Enabled')?.value !== false : false;
+    if (!node || !enabled || node.el.style.display === 'none') return false;
+    this.setState(level, id, 'Press');
+    const path = propString(hit, 'PressPath');
+    if (!path) { this.codePaths.push(`${level.id}:${id} (${key}, PressKey 0x${code.toString(16)})`); return false; }
+    const resolved = resolvePress(this.assets, path);
+    if (!resolved.resolved) { this.unresolvedPresses.push(`${id} -> ${path}`); return false; }
+    level.savedFocus = level.focus.current;
+    await this.push(resolved.resolved.scene, level);
+    return true;
+  }
+
+  /**
+   * Left / Right: a focus move when the focused control authors NavLeft /
+   * NavRight (35 scenes in this build do - arcade/2504_TitleOptionsScene,
+   * dashcomm/MediaSourceSelection, the clock spinners), the blade switch
+   * otherwise. Nothing on the five blade pages authors either, so at level 0
+   * the axis is XuiTabScene's.
+   */
+  navLeft(): boolean { return this.moveFocus('Left') !== null || this.left(); }
+  navRight(): boolean { return this.moveFocus('Right') !== null || this.right(); }
 
   /** Where a press goes: a list row's code-table destination, or the focused
    *  nav button's PressPath. Null means the console took a code path. */
@@ -870,14 +1159,18 @@ export class BladeShell {
 
     const ctx: RenderCtx = { ...this.ctx, pack: loaded.pack, visuals };
     bindTimelines(this.nodes, this.engine);
-    const filled = await populateLists(loaded, ctx, this.nodes, this.engine, this.strings, this.locale);
+    const filled = await populateLists(loaded, ctx, this.nodes, this.engine, this.strings, this.locale,
+      { settings: this.settings, now: new Date() });
     for (const m of filled.missingStrings) if (!this.missingStrings.includes(m)) this.missingStrings.push(m);
     for (const c of filled.codeFilled) if (!this.codeFilled.includes(c)) this.codeFilled.push(c);
     for (const c of filled.codeUnfilled) if (!this.codeUnfilled.includes(c)) this.codeUnfilled.push(c);
     const level = this.makeLevel(loaded.id, scene, sceneNode, host, loaded, loaded.pack, visuals,
       filled.descriptions, filled.navPaths, filled.lists, node);
+    level.disabledLists = filled.disabledLists;
+    level.option = OPTION_PAGES[loaded.id];
     await this.fill(node);
     this.discloseHardwareState(level);
+    this.arrive(level);
 
     // The range first: the console plays it from SetPanelLevel before the new
     // scene has focus, and the incoming fade rides on top of it.
@@ -888,11 +1181,37 @@ export class BladeShell {
     // DefaultFocus lands on the incoming scene. InitFocus, not Focus: the
     // visual's InitFocus range carries an EMPTY File keyframe, so arriving on a
     // page is silent while moving inside it is not.
-    const first = this.arrivalFocus(level);
+    //
+    // An option page lands on the row of its CURRENT value instead - its init
+    // calls SetFocus / XuiListSetCurSel on it (settingsModel.ts §1; [FRAME
+    // 8498 f2170]) - unless the value is unknown, which is the failed-read
+    // path and keeps DefaultFocus. A spinner is parked on the clock. A list
+    // the console disabled takes no focus at all.
+    for (const [id, k] of filled.listFocus) level.lists.find((l) => l.id === id)?.park(k);
+    let first = this.arrivalFocus(level);
+    let listRow = first ? filled.listFocus.get(first) ?? filled.initialFocus : filled.initialFocus;
+    const page = level.option;
+    const cur = page ? page.current(this.settings) : null;
+    const row = page && cur !== null ? page.rows.find((r) => r.value === cur) : undefined;
+    if (page && row) {
+      if (page.list) { first = page.list; listRow = page.rows.indexOf(row); }
+      else if (findById(level.node, row.control)) first = row.control;
+    }
+    const rating = RATING_PAGES[loaded.id];
+    if (rating) {
+      const table = ratingTableFor(this.settings.locale, rating.category);
+      const v = this.settings.parental[rating.key];
+      const k = table && v !== null ? table.rows.findIndex((r) => r.value === v) : -1;
+      if (k >= 0) listRow = k;
+    }
+    if (first && level.disabledLists.includes(first)) {
+      this.codeUnfilled.push(`${level.id}: DefaultFocus ${first} is disabled on this hardware, so the page arrives with no focus`);
+      first = null;
+    }
     if (first) {
       level.focus.set(first);
       const list = this.listFor(level);
-      if (list) list.focus(filled.initialFocus, 'InitFocus');
+      if (list) list.focus(listRow, 'InitFocus');
       else this.setState(level, first, 'InitFocus');
     }
     this.syncMeta(level);
@@ -900,14 +1219,80 @@ export class BladeShell {
     return level;
   }
 
-  /** B. Pop the top scene, play NClose (or NBlink), and restore focus. */
-  back(): boolean {
+  /**
+   * What a page's init does beyond focus: the option page's own label, the
+   * Display page's pane, the camera page's no-camera state.
+   */
+  private arrive(level: Level): void {
+    const page = level.option;
+    if (page && page.labelId) this.writeLabel(level, page.labelId, page.label(this.settings), `${page.cls} current setting`);
+    // MediaSourceSelectionScene shows ONE of the three metapane sub-scenes it
+    // binds at 0x921a9e7c: WmcConnectingScene while the enumeration runs,
+    // NoComputersScene when it finds nothing (0x921aac44-0x921aac58: Info 0,
+    // NoComputers 1), MediaSourceInfoScene for a highlighted source
+    // (0x921aac64-0x921aac84). No source is ever found here, so the page is
+    // left in the "no computers" state with the "Please wait" pair hidden.
+    if (level.id === 'dashcomm/MediaSourceSelection.xur') {
+      for (const id of ['WmcConnectingScene', 'MediaSourceInfoScene', 'labelPleaseWaitText', 'labelPleaseWaitAnimation']) {
+        const n = findById(level.node, id); if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
+      }
+      const gap = `${level.id}: no media source on the network; the metapane rests on NoComputersScene (0x921aac44)`;
+      if (!this.codeUnfilled.includes(gap)) this.codeUnfilled.push(gap);
+    }
+    // dashStartUp's init hides btnIPTV without an IPTV provider (0x92282360(btnIPTV, 0)
+    // at 0x921c9308) and the chain around it has to be repaired the way the
+    // System blade's is.
+    if (level.id === 'consoles/dashSysCslSetStartUp.xur' && !this.state.iptv) {
+      const n = findById(level.node, 'btnIPTV');
+      if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
+      findById(level.node, 'btnMediaCenter')?.overrides.set('NavDown', '');
+    }
+    if (level.id === DISPLAY_SCENE) this.track(this.arriveDisplay(level));
+    const off = LISTS_DISABLED_OFFLINE[level.id];
+    if (off) {
+      for (const id of off.hide) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); } }
+      for (const id of off.show) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', true); updateNode(n, ['Show']); } }
+    }
+  }
+
+  /**
+   * dashVideoSettings::UpdateCurrentSetting (0x921c6f18): the aspect provider
+   * returns the metaPane_Display*.xur name for the video mode and the caller
+   * loads it into scnCurrentFormat (0x921c7040-0x921c7084); the four
+   * providers' join goes into labCurrentSetting.
+   */
+  private async arriveDisplay(level: Level): Promise<void> {
+    const d = displayCurrentSetting(this.settings);
+    const pane = findById(level.node, 'scnCurrentFormat');
+    if (pane && d.metaPane) {
+      const id = this.assets.findByBasename(d.metaPane) ?? `${level.pack}/${d.metaPane}`;
+      try {
+        const sub = await loadScene(this.assets, id);
+        const rec = this.renderInto(pane, sub);
+        bindTimelines(this.nodes, this.engine);
+        if (rec) this.clearTokens(sub.id, rec);
+        if (!this.containersFilled.includes(`scnCurrentFormat -> ${id}`)) this.containersFilled.push(`scnCurrentFormat -> ${id}`);
+      } catch (err) {
+        this.ctx.report.errors.push(`scnCurrentFormat ${id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    this.syncParentLabel(level);
+  }
+
+  /**
+   * B. Pop the top scene, play NClose (or NBlink), and restore focus.
+   * `programmatic` is XuiSceneNavigateBack called by a handler (an option
+   * select): the scene pops the same way but no back button was pressed, so
+   * legend_b's Press range - the one carrying btn_Back.xma - does not play.
+   */
+  back(programmatic = false): boolean {
     if (this.levels.length <= 1) return false;
     if (this.top?.bare) return this.closeLevel();
     const level = this.levels[this.levels.length - 1]!;
     const under = this.levels[this.levels.length - 2]!;
     // legend_b's Press range carries btn_Back.xma on its own frame 2.
-    if (findById(level.node, 'legend_b')) this.setState(level, 'legend_b', 'Press');
+    if (programmatic) { /* no button was pressed */ }
+    else if (findById(level.node, 'legend_b')) this.setState(level, 'legend_b', 'Press');
     else if (findById(under.node, 'legend_b')) this.setState(under, 'legend_b', 'Press');
 
     this.playClose();
@@ -1063,6 +1448,10 @@ export class BladeShell {
       codeUnfilled: [...this.codeUnfilled],
       missingStrings: [...this.missingStrings],
       booted: this.booted,
+      settings: JSON.parse(JSON.stringify(this.settings)) as ConsoleState,
+      selections: [...this.selections],
+      dialogs: [...this.dialogs],
+      optionPage: this.top?.option?.scene ?? null,
     };
   }
 
@@ -1106,6 +1495,32 @@ function findObject(root: XuObject, id: string): XuObject | undefined {
   const walk = (o: XuObject) => { if (!found) { if (idOf(o) === id) found = o; else o.children.forEach(walk); } };
   walk(root);
   return found;
+}
+
+/**
+ * A Nav* target can be a CHILD PATH: dashcomm/MediaSourceSelection.xur's
+ * listMediaSources says NavRight="metaPanelScene\NoComputersScene" [SCENE].
+ * XUI's path separator is the backslash, each segment an Id under the last.
+ */
+function findObjectPath(root: XuObject, path: string): XuObject | undefined {
+  if (!path.includes('\\')) return findObject(root, path);
+  let cur: XuObject | undefined = root;
+  for (const seg of path.split('\\')) {
+    if (!cur) return undefined;
+    cur = findObject(cur, seg);
+  }
+  return cur;
+}
+
+/** findById over a backslash child path (see findObjectPath). */
+function findNodePath(root: NodeRecord, path: string): NodeRecord | null {
+  if (!path.includes('\\')) return findById(root, path);
+  let cur: NodeRecord | null = root;
+  for (const seg of path.split('\\')) {
+    if (!cur) return null;
+    cur = findById(cur, seg);
+  }
+  return cur;
 }
 
 /** The nearest node with that Id INSIDE one level's subtree - never

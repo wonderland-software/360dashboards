@@ -161,7 +161,7 @@ const obj = (className: string, props: XuProperty[], children: XuObject[] = []):
   ({ className, properties: props, children, namedFrames: [], timelines: [] });
 
 /** dashmain's System chain, verbatim: a linked list with no wrap, and no
- *  NavLeft/NavRight anywhere because left and right are the blade switch. */
+ *  NavLeft/NavRight on it because left and right are the blade switch there. */
 function systemScene(hidden: string[] = []): { scene: XuObject; model: FocusModel } {
   const ids = ['navSettings', 'navPControls', 'navMemory', 'navNetwork'];
   const rows = ids.map((id, i) => {
@@ -203,8 +203,8 @@ test('focus walks the authored chain and stops at both ends - no wrap, no search
   // list is silent on the console.
   assert.equal(model.move('Down'), null);
   assert.equal(model.move('Up'), 'navMemory');
-  // No control in the build sets NavLeft or NavRight: that axis is the blade
-  // switch and XuiTabScene owns it.
+  // No BLADE page sets NavLeft or NavRight: that axis is the blade switch and
+  // XuiTabScene owns it (deeper scenes do, see the focus test below).
   assert.equal(model.move('Left'), null);
   assert.equal(model.move('Right'), null);
 });
@@ -221,4 +221,241 @@ test('the focus chain is walked UP, so a presenter inside a button finds its row
     o.properties.find((p) => p.def.name === 'Id')?.value);
   assert.deepEqual(chain, ['txt_navMemory', 'navMemory', 'System'],
     'the console compares each Id up the parent chain against the DashScene entry table');
+});
+
+/* --------------------------------------------------- the settings model (M3e) */
+
+import {
+  OPTION_PAGES, PARENT_LABELS, RATING_PAGES, INITIAL_SETUP_DIALOG, REFERENCE_STATE_SOURCES,
+  referenceState, unknownSettings, consoleSettingsCurrent, displayCurrentSetting, ratingTableFor,
+  formatTime, formatDate, SCREENSAVER_OFF, SCREENSAVER_ON, AUTO_OFF_ON,
+} from '@dash/blades/settingsModel';
+import { clockSpinners, DYNAMIC_LISTS, CODE_LISTS, LISTS_DISABLED_OFFLINE } from '@dash/blades/codeLists';
+import { CODE_PRESS_PATHS } from '@dash/blades/nav';
+import { RATING_CATEGORY_GAME, RATING_CATEGORY_MOVIE, RATING_CATEGORY_TV } from '@dash/blades/pcontrolSettings';
+import { TIMEZONE_ROWS } from '@dash/blades/localeSettings';
+
+test('twenty option pages plus the camera page, each with rows that map to values and a label rule', () => {
+  // The audit's twenty-first, dashSysLiveVision, is not an option page on
+  // this console: its three choosers are disabled without a camera
+  // (LISTS_DISABLED_OFFLINE), so A on it does nothing, as on the console.
+  const pages = Object.values(OPTION_PAGES);
+  assert.equal(pages.length, 20);
+  assert.ok(LISTS_DISABLED_OFFLINE['consoles/dashSysLiveVision.xur']);
+  for (const p of pages) {
+    assert.ok(p.rows.length >= 2, `${p.scene} has ${p.rows.length} rows`);
+    assert.ok(p.va.init > 0x92100000 && p.va.press > 0x92100000, `${p.scene} VAs`);
+    const values = new Set(p.rows.map((r) => r.value));
+    assert.equal(values.size, p.rows.length, `${p.scene}: every row writes a different value`);
+    if (p.list) assert.ok(p.rows.every((r) => r.control.startsWith(`${p.list}_item`)), `${p.scene}: list rows are ${p.list}_itemN`);
+  }
+});
+
+test('the reference console\'s state is what the 6717 stills show, and every value cites its frame', () => {
+  const s = referenceState();
+  assert.equal(s.startup, 'dashboard');                 // f0061 "Xbox Dashboard"
+  assert.equal(s.autoOff, 0);                            // f0062 "Auto-Off Disabled"
+  assert.equal(s.backgroundDownloads, true);             // f0062
+  assert.equal(s.screensaver, SCREENSAVER_ON);           // f0063
+  assert.equal(s.remote, 0);                             // f0064 "All Channels"
+  assert.equal(s.digitalOutput, 1);                      // f0055 "Dolby Digital"
+  assert.equal(s.soundEffectsOff, false);
+  assert.equal(s.locale, 35);                            // f0060 "United Kingdom"
+  assert.equal(s.language, 1);                           // f0057 "English"
+  assert.equal(TIMEZONE_ROWS[s.timeZone!]?.label, 278);  // f0059 "GMT+00 London"
+  assert.equal(s.clock24h, true);                        // f0059 "12:00", no AM/PM
+  assert.equal(s.widescreen, true);                      // f0053
+  assert.equal(s.referenceLevel, 3);                     // f0053 "Standard"
+  assert.equal(s.dstOff, null, 'the DST bit is not in any frame');
+  assert.ok(Object.values(s.parental).every((v) => v === null), 'no capture enters Family Settings');
+  assert.ok(REFERENCE_STATE_SOURCES.every((r) => /^6717\/f00\d\d/.test(r.frame)));
+  assert.equal(unknownSettings(s).length, 2);
+});
+
+test('an option page arrives on the row of its current value, and A writes the row\'s value', () => {
+  const s = referenceState();
+  const startup = OPTION_PAGES['consoles/dashSysCslSetStartUp.xur']!;
+  assert.equal(startup.rows.find((r) => r.value === startup.current(s))?.control, 'btnDashboard');
+  assert.deepEqual(startup.label(s), { idx: 538 });
+  startup.write(s, 0);
+  assert.equal(s.startup, 'disc');
+  assert.deepEqual(startup.label(s), { idx: 539 });
+
+  const ss = OPTION_PAGES['consoles/dashSysCslSetScreensaver.xur']!;
+  assert.equal(ss.rows.find((r) => r.value === ss.current(s))?.control, 'btnOn');
+  ss.write(s, SCREENSAVER_OFF);
+  assert.deepEqual(ss.label(s), { idx: 130 });
+
+  const ao = OPTION_PAGES['consoles/dashSysCslSetAutoOff.xur']!;
+  assert.equal(ao.rows.find((r) => r.value === ao.current(s))?.control, 'btnOff');
+  ao.write(s, AUTO_OFF_ON);
+  assert.deepEqual(ao.label(s), { idx: 153 });
+
+  const digital = OPTION_PAGES['consoles/dashSysCslSetAudioDigital.xur']!;
+  assert.equal(digital.rows[digital.current(s)!]?.control, 'listOptions_item1');
+  assert.deepEqual(digital.label(s), { idx: 36 });
+  digital.write(s, 2);
+  assert.deepEqual(digital.label(s), { idx: 38 });
+
+  const levels = OPTION_PAGES['consoles/dashSysCslSetOutputLevels.xur']!;
+  assert.equal(levels.rows.find((r) => r.value === 3)?.control, 'btnStandard');
+  assert.equal(levels.rows.find((r) => r.value === 1)?.control, 'btnExpanded');
+  assert.deepEqual(levels.label(s), { idx: 374 });
+
+  // unknown = the failed-read path: no row, no label
+  const dst = OPTION_PAGES['consoles/dashSysCslSetClockDaylightSavings.xur']!;
+  assert.equal(dst.current(s), null);
+  assert.equal(dst.label(s), null);
+  dst.write(s, 1);
+  assert.deepEqual(dst.label(s), { idx: 94 });
+  // a time zone without a daylight rule turns DST off, as 0x921ca070 does
+  const tz = OPTION_PAGES['consoles/dashSysCslSetClockTimeZone.xur']!;
+  const noDst = TIMEZONE_ROWS.findIndex((r) => !r.observesDst);
+  tz.write(s, noDst);
+  assert.equal(s.dstOff, true);
+});
+
+test('the yes/no parental pages store 0xff for btnNo and 0 for btnYes, labelled from the 0x92013adc pairs', () => {
+  const s = referenceState();
+  const liveA = OPTION_PAGES['consoles/dashSysCslSetPControlLiveA.xur']!;
+  assert.equal(liveA.rows.find((r) => r.control === 'btnNo')?.value, 0xff);
+  assert.equal(liveA.current(s), null);
+  liveA.write(s, 0xff);
+  assert.deepEqual(liveA.label(s), { idx: 400 });   // Allowed
+  liveA.write(s, 0);
+  assert.deepEqual(liveA.label(s), { idx: 401 });   // Blocked
+  const content = OPTION_PAGES['consoles/dashSysCslSetPControlContent.xur']!;
+  content.write(s, 0xff);
+  assert.deepEqual(content.label(s), { idx: 409 }); // Hide Restricted Content
+  content.write(s, 0);
+  assert.deepEqual(content.label(s), { idx: 408 }); // Show All Content
+});
+
+test('Background Downloads: Enable is gated behind a xam message box, Disable is not', () => {
+  const s = referenceState();
+  const bg = OPTION_PAGES['consoles/dashSysCslSetBackgroundDownloads.xur']!;
+  assert.equal(bg.dialog!(s, 0), null, 'Disable writes outright');
+  assert.equal(bg.dialog!(s, 1), null, 'Enable when already enabled: nothing to ask');
+  bg.write(s, 0);
+  const d = bg.dialog!(s, 1)!;
+  assert.deepEqual([d.title, d.body], [{ idx: 42 }, { idx: 41 }]);
+  assert.equal(d.buttons.length, 2);
+  assert.equal(d.va, 0x921a63f0);
+  assert.equal(INITIAL_SETUP_DIALOG.va, 0x92114a98);
+  assert.deepEqual(INITIAL_SETUP_DIALOG.buttons.map((b) => ('idx' in b ? b.idx : -1)), [177, 178]);
+});
+
+test('Console Settings\' eleven Current Setting providers follow the state', () => {
+  const s = referenceState();
+  const lines = (row: number) => consoleSettingsCurrent(row, s, false).lines;
+  assert.deepEqual(lines(0), [{ idx: 217 }, { idx: 197 }, { idx: 374 }]);   // 1080p / Widescreen / Standard
+  assert.deepEqual(lines(1), [{ idx: 36 }, { idx: 40 }]);                   // Dolby Digital / Sound Effects Enabled
+  assert.deepEqual(lines(2), [{ idx: 126 }]);                               // Xbox 360 (Default)
+  assert.deepEqual(lines(3), [{ idx: 141 }]);                               // English
+  assert.equal(lines(4).length, 2);                                          // date time / GMT+00 London
+  assert.deepEqual(lines(4)[1], { idx: 278 });
+  assert.deepEqual(lines(5), [{ idx: 198 }]);                               // United Kingdom
+  assert.deepEqual(lines(6), [{ idx: 538 }]);                               // Xbox Dashboard
+  assert.deepEqual(lines(7), [{ idx: 127 }, { idx: 154 }]);                 // Auto-Off Disabled / Background Downloads Enabled
+  assert.deepEqual(lines(8), [{ idx: 156 }]);                               // Screen Saver Enabled
+  assert.deepEqual(lines(9), [{ idx: 244 }]);                               // All Channels
+  assert.deepEqual(lines(10), []);                                           // System Info is the version string
+  OPTION_PAGES['consoles/dashSysCslSetStartUp.xur']!.write(s, 2);
+  assert.deepEqual(lines(6), [{ idx: 541 }]);                               // Media Center
+  const d = displayCurrentSetting(s);
+  assert.equal(d.metaPane, 'metaPane_DisplayWidescreen.xur');
+  OPTION_PAGES['consoles/dashSysCslSetDisplayFormat.xur']!.write(s, 0);
+  assert.equal(displayCurrentSetting(s).metaPane, 'metaPane_DisplayNormal.xur');
+  assert.equal(consoleSettingsCurrent(2, s, true).lines.length, 0, 'a dash user\'s theme is not readable');
+});
+
+test('the parent pages label the focused row from the same rules', () => {
+  const s = referenceState();
+  assert.deepEqual(PARENT_LABELS['consoles/dashSysCslSetShutdown.xur']!.by['btnAutoOff']!(s), { idx: 127 });
+  assert.deepEqual(PARENT_LABELS['consoles/dashSysCslSetAudio.xur']!.by['btnSoundEffects']!(s), { idx: 40 });
+  assert.deepEqual(PARENT_LABELS['consoles/dashSysCslSetClock.xur']!.by['btnOption3']!(s), { idx: 278 });
+  assert.equal(PARENT_LABELS['consoles/dashSysCslSetClock.xur']!.by['btnOption4']!(s), null);
+  assert.deepEqual(PARENT_LABELS['consoles/dashSysCslSetPControlVideo.xur']!.by['btnTV']!(s), { idx: 427 }, 'no TV system for the UK: "<None>"');
+  assert.equal(PARENT_LABELS['consoles/dashSysCslSetPControlVideo.xur']!.by['btnMovie']!(s), null, 'a movie system exists but the staged value is unknown');
+  s.parental.movie = 40;
+  assert.deepEqual(PARENT_LABELS['consoles/dashSysCslSetPControlVideo.xur']!.by['btnMovie']!(s), { idx: 557 }, 'BBFC 15');
+});
+
+test('the rating lists come from the locale: UK games are PEGI+BBFC, movies BBFC, TV none', () => {
+  const s = referenceState();
+  assert.equal(ratingTableFor(s.locale, RATING_CATEGORY_GAME)?.system, 4);
+  assert.equal(ratingTableFor(s.locale, RATING_CATEGORY_MOVIE)?.system, 2);
+  assert.equal(ratingTableFor(s.locale, RATING_CATEGORY_TV), null);
+  assert.equal(ratingTableFor(103, RATING_CATEGORY_TV)?.system, 0, 'the United States has a TV system');
+  const game = DYNAMIC_LISTS['consoles/dashSysCslSetPControlGame.xur']!({ settings: s, now: new Date() });
+  assert.equal(game[0]?.rows.length, 9);
+  assert.equal(game[0]?.rows[0]?.label, 569, 'Allow All Games first');
+  assert.equal(game[0]?.rows[1]?.image, 'PEGI_18P.png');
+  assert.deepEqual(DYNAMIC_LISTS['consoles/dashSysCslSetPControlVideoTV.xur']!({ settings: s, now: new Date() }), []);
+  assert.equal(Object.keys(RATING_PAGES).length, 3);
+});
+
+test('the clock spinners are the sprintf ranges parked on the clock', () => {
+  const now = new Date(2026, 8, 3, 23, 7);   // 3 September 2026, 23:07
+  const lists = clockSpinners(now, true);
+  const by = Object.fromEntries(lists.map((l) => [l.list, l]));
+  assert.equal(by['lstHour']!.rows.length, 24);
+  assert.equal(by['lstHour']!.rows[23]!.text, '23');
+  assert.equal(by['lstHour']!.initialIndex, 23);
+  assert.equal(by['lstMin']!.rows.length, 60);
+  assert.equal(by['lstMin']!.rows[7]!.text, '07');
+  assert.equal(by['lstDay']!.rows.length, 30, 'September');
+  assert.equal(by['lstDay']!.initialIndex, 2);
+  assert.equal(by['lstMonth']!.rows[8]!.text, '09');
+  assert.equal(by['lstYear']!.rows.length, 21);
+  assert.equal(by['lstYear']!.rows[0]!.text, '2005');
+  assert.equal(by['lstYear']!.initialIndex, 20, '2026 clamps to the table\'s 2025');
+  assert.equal(by['lstAMPM']!.rows.length, 0, 'authored rows, only parked');
+  assert.equal(by['lstAMPM']!.initialIndex, 1);
+  const h12 = clockSpinners(now, false);
+  assert.equal(h12.find((l) => l.list === 'lstHour')!.rows.length, 12);
+  assert.equal(h12.find((l) => l.list === 'lstHour')!.initialIndex, 10, '23 -> 11');
+  assert.equal(formatTime(now, true), '23:07');
+  assert.equal(formatTime(now, false), '11:07 PM');
+  assert.equal(formatDate(now), '03/09/2026');
+});
+
+test('the family timer with no timer is one row, and the camera page is disabled without a camera', () => {
+  assert.deepEqual(CODE_LISTS['consoles/dashSysCslSetPControlFamilyTimer.xur']![0]!.rows.map((r) => r.label), [383]);
+  assert.deepEqual(LISTS_DISABLED_OFFLINE['consoles/dashSysLiveVision.xur']!.lists, ['BrightnessSetting', 'LightingSetting', 'FlickerSetting']);
+});
+
+test('code press paths name scenes that exist in the pack inventory, or nothing', () => {
+  for (const [k, v] of Object.entries(CODE_PRESS_PATHS)) {
+    assert.ok(k.includes('#'), k);
+    if (v.scene) assert.ok(/^(dashcomm|oobe)\//.test(v.scene), `${k} -> ${v.scene}`);
+    assert.ok(v.note.length > 20);
+  }
+  assert.equal(CODE_PRESS_PATHS['mediabla/mediaSignedOut.xur#navMusic']!.scene, 'dashcomm/MediaSourceSelection.xur');
+  assert.equal(CODE_PRESS_PATHS['gamesbla/gamesSignedOut.xur#navCreateProfile']!.scene, 'oobe/oobeProfileCreation.xur');
+});
+
+test('focus: a NavLeft/NavRight authored deeper in the tree is honoured, an empty one falls back to the parent', () => {
+  const lstYear = obj('XuiList', [prop('Id', 'lstYear', 'XuiList'), prop('NavLeft', 'lstMonth', 'XuiList'), prop('NavRight', '', 'XuiList')]);
+  const scDate = obj('XuiScene', [prop('Id', 'scDate', 'XuiScene'), prop('NavRight', 'scTime', 'XuiScene')], [lstYear]);
+  const lstHour = obj('XuiList', [prop('Id', 'lstHour', 'XuiList'), prop('NavRight', 'lstMin', 'XuiList')]);
+  const lstMin = obj('XuiList', [prop('Id', 'lstMin', 'XuiList'), prop('NavLeft', 'lstHour', 'XuiList')]);
+  const scTime = obj('XuiScene', [prop('Id', 'scTime', 'XuiScene'), prop('NavLeft', 'scDate', 'XuiScene')], [lstHour, lstMin]);
+  const scene = obj('XuiScene', [prop('Id', 'SceneMain', 'XuiScene')], [scDate, scTime]);
+  const over = new Map<string, string>([['lstYear/NavRight', '']]);   // what dashCDate's field-order timeline writes
+  const model = new FocusModel(scene, {
+    object: (id) => findDeep(scene, id) ?? (id === 'SceneMain' ? scene : undefined),
+    focusable: () => true,
+    override: (id, p) => over.get(`${id}/${p}`) ?? null,
+  });
+  model.set('lstYear');
+  assert.equal(model.move('Right'), 'scTime', 'the parent scene\'s NavRight carries the move');
+  model.set('lstHour');
+  assert.equal(model.move('Right'), 'lstMin');
+  assert.equal(model.move('Left'), 'lstHour');
+  assert.equal(model.move('Left'), 'scDate', 'and back through the parent');
+  // the IPTV chain repair: an empty NavDown with no parent NavDown ends the chain
+  const { model: sys } = systemScene();
+  sys.set('navNetwork');
+  assert.equal(sys.move('Down'), null);
 });

@@ -5,8 +5,18 @@
 // neighbours in NavUp / NavDown / NavLeft / NavRight. The System blade's chain
 // is a plain linked list with no wrap - navSettings.NavDown=navPControls ...
 // navIPTVSettings.NavUp=navSystemSetUp, with no NavUp on the first and no
-// NavDown on the last - and NavLeft/NavRight are unset everywhere, because
-// left and right are the blade switch and XuiTabScene owns them [SCENE].
+// NavDown on the last - and NavLeft/NavRight are unset on every blade page,
+// where left and right are the blade switch XuiTabScene owns [SCENE]. Deeper
+// pages DO author them: 35 scenes in the build, among them the clock spinners
+// (lstDay.NavRight=lstMonth), arcade/2504_TitleOptionsScene and
+// dashcomm/MediaSourceSelection (NavRight="metaPanelScene\NoComputersScene",
+// a child PATH).
+//
+// A control that names no neighbour in a direction takes its PARENT's: the
+// Date and Time page's scDate scene says NavRight="scTime" and its last
+// spinner lstYear says nothing, which is the only way a Right ever crosses
+// from the date into the time [SCENE consoles/dashSysCslSetClockTime.xur;
+// INFER that this is XUI's own rule - the scene has no other route].
 //
 // Nothing here searches for the nearest control in a direction: the console
 // does not, and inventing a search would move focus where the data says it
@@ -72,11 +82,28 @@ export class FocusModel {
 
   private neighbour(from: string, dir: NavDirection): string | null {
     const prop = NAV_PROP[dir];
-    const over = this.host.override(from, prop);
-    if (over !== null) return over || null;
-    const o = this.host.object(from);
-    const v = o ? propByName(o, prop)?.value : undefined;
-    return typeof v === 'string' && v ? v : null;
+    let o = this.host.object(from);
+    let id: string | null = from;
+    // The control's own, then each ancestor's up to (not including) the root.
+    while (o && o !== this.root) {
+      // A live override wins; an EMPTY one ("" - the IPTV chain repair, or a
+      // timeline that clears a spinner's NavRight, as dashCDate's field-order
+      // frames do to lstYear) means "nothing here", and the walk goes on up.
+      if (id) {
+        const over = this.host.override(id, prop);
+        if (over !== null && over !== '') return over;
+        if (over === null) {
+          const v = propByName(o, prop)?.value;
+          if (typeof v === 'string' && v) return v;
+        }
+      } else {
+        const v = propByName(o, prop)?.value;
+        if (typeof v === 'string' && v) return v;
+      }
+      o = this.parents.get(o);
+      id = o ? idOf(o) || null : null;
+    }
+    return null;
   }
 
   /** The focused object and every ancestor up to the scene root, nearest

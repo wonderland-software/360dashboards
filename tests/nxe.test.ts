@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Axis, stepDuration, FoldCascade, ChannelSwap, CHANNEL_SWAP, passingOpacity, type AxisConstants } from '@dash/nxe/physics';
-import { QUEUE_SLOTS, QUEUE_WALK, queueTargetSlot, queueRowChannel } from '@dash/nxe/NxeShell';
+import { QUEUE_SLOTS, QUEUE_WALK, queueTargetSlot, queueRowChannel, LEGEND_HIDE_FRAME, LEGEND_SHOW_FRAME } from '@dash/nxe/NxeShell';
 import { queueRowTheta, foldHinge, foldOpacity } from '@dash/nxe/transitions';
 
 const HZ = 60;
@@ -289,4 +289,243 @@ test('a distance cull mounts a rig when a slot comes inside VisiblePanelDistance
   assert.equal(inRange(7, 1), true);
   assert.equal(inRange(0, 0.5), true, 'the passing panel is still drawn while it fades');
   assert.equal(inRange(0, 1), false, 'and dropped once a whole spacing in front, where its fade reaches zero');
+});
+
+/* ------------------------------------------- M4e: the 9199 code lists */
+
+import { existsSync, readFileSync } from 'node:fs';
+import {
+  LANGUAGE_LABELS_9199, LANGUAGE_LABELS_VA_9199, LANGUAGE_GROUPS_9199, LANGUAGE_GROUPS_VA_9199, LANGUAGE_GROUP_STRIDE_9199, LANGUAGE_ROWS_9199,
+  COUNTRY_ROWS_9199, COUNTRY_TABLE_VA_9199, COUNTRY_COUNT_VA_9199,
+  TIMEZONE_LABELS_9199, TIMEZONE_TABLE_VA_9199, TIMEZONE_RECORD_SIZE_9199,
+  REMOTE_ROWS_9199, REMOTE_BASE_9199, REMOTE_COUNT_9199, HINT_ROWS_9199, HINT_TABLE_VA_9199,
+  DISPLAY_ROWS_9199, DISPLAY_TABLE_VA_9199, CODE_LISTS_9199,
+} from '@dash/nxe/codeLists9199';
+import { EPIX_COMMANDS, ROOT_STRIPS, resolveScenePath, SIGNIN_LEGEND } from '@dash/nxe/navigation';
+import { collectPageRows, isAuthoringToken, findPressKey, PRESS_KEYS } from '@dash/nxe/pageFocus';
+import type { XuObject } from '@xur/index';
+
+const IMAGE = 'extracted/9199/basefile.exe';
+const BASE = 0x92000000;
+const image = existsSync(IMAGE) ? readFileSync(IMAGE) : null;
+const u32 = (va: number) => image!.readUInt32BE(va - BASE);
+const u16 = (va: number) => image!.readUInt16BE(va - BASE);
+
+test('the 9199 code lists have the shape the image gives them', () => {
+  assert.equal(LANGUAGE_LABELS_9199.length, 13);
+  assert.equal(LANGUAGE_GROUPS_9199.length, 5);
+  assert.ok(LANGUAGE_GROUPS_9199.every((g) => g.length <= LANGUAGE_GROUP_STRIDE_9199 - 1));
+  assert.equal(LANGUAGE_ROWS_9199.length, 12);
+  assert.equal(LANGUAGE_ROWS_9199[0]!.label, 168, 'group 0 starts on English');
+  assert.equal(COUNTRY_ROWS_9199.length, 37);
+  assert.equal(TIMEZONE_LABELS_9199.length, 65);
+  assert.deepEqual(REMOTE_ROWS_9199.map((r) => r.label), [273, 274]);
+  assert.deepEqual(HINT_ROWS_9199, [433, 434, 435, 436, 437]);
+  assert.equal(DISPLAY_ROWS_9199.length, 7);
+  // Every 9199 index is inside the 621-entry table, and no two rows share one.
+  const all = [...LANGUAGE_LABELS_9199, ...COUNTRY_ROWS_9199.map((r) => r.label), ...TIMEZONE_LABELS_9199, ...HINT_ROWS_9199, ...DISPLAY_ROWS_9199.map((r) => r.label)];
+  assert.ok(all.every((i) => i >= 0 && i < 621));
+  assert.equal(new Set(COUNTRY_ROWS_9199.map((r) => r.label)).size, 37);
+  assert.equal(new Set(TIMEZONE_LABELS_9199).size, 65);
+  // The lists the shell fills, keyed the way lists.ts reads them.
+  assert.ok(CODE_LISTS_9199['consoles/dashSysCslSetCountry.xur']![0]!.list === 'lstCountries');
+  assert.ok(CODE_LISTS_9199['network/dashSysCslSetCountry.xur'], 'the network pack\'s copy of the Locale page is filled from the same table');
+  assert.equal(CODE_LISTS_9199['consoles/dashSysCslSetRemoteC.xur']![0]!.rows.length, REMOTE_COUNT_9199);
+});
+
+test('the 9199 code lists are the bytes of the image (skipped without extracted/9199)', { skip: !image }, () => {
+  // Language: 13 labels at 0x92018bfc by 0-based id, then the groups at
+  // 0x92018c30, stride 13, the count (5) after them.
+  for (let i = 0; i < 13; i++) assert.equal(u32(LANGUAGE_LABELS_VA_9199 + 4 * i), LANGUAGE_LABELS_9199[i], `language label ${i}`);
+  for (const [g, ids] of LANGUAGE_GROUPS_9199.entries()) {
+    for (let k = 0; k < LANGUAGE_GROUP_STRIDE_9199; k++) {
+      const v = u32(LANGUAGE_GROUPS_VA_9199 + 4 * (g * LANGUAGE_GROUP_STRIDE_9199 + k));
+      assert.equal(v, ids[k] ?? 0, `language group ${g} entry ${k}`);
+    }
+  }
+  assert.equal(u32(LANGUAGE_GROUPS_VA_9199 + 4 * 5 * LANGUAGE_GROUP_STRIDE_9199), 5, 'the group count follows the groups');
+  // Country: the count, then 37 x (u32 label, u16 locale, u16 0).
+  assert.equal(u32(COUNTRY_COUNT_VA_9199), 37);
+  for (const [i, r] of COUNTRY_ROWS_9199.entries()) {
+    assert.equal(u32(COUNTRY_TABLE_VA_9199 + 8 * i), r.label, `country ${i} label`);
+    assert.equal(u16(COUNTRY_TABLE_VA_9199 + 8 * i + 4), r.locale, `country ${i} locale`);
+    assert.equal(u16(COUNTRY_TABLE_VA_9199 + 8 * i + 6), 0);
+  }
+  // Time zone: 65 x 32-byte records, label first, then a record that is not one.
+  for (const [i, label] of TIMEZONE_LABELS_9199.entries()) assert.equal(u32(TIMEZONE_TABLE_VA_9199 + TIMEZONE_RECORD_SIZE_9199 * i), label, `time zone ${i}`);
+  const after = u32(TIMEZONE_TABLE_VA_9199 + TIMEZONE_RECORD_SIZE_9199 * 65);
+  assert.ok(after === 0 || after >= 621, 'the table ends after 65 records');
+  // Hints: u16[5] and the count.
+  for (const [i, label] of HINT_ROWS_9199.entries()) assert.equal(u16(HINT_TABLE_VA_9199 + 2 * i), label);
+  assert.equal(u32(HINT_TABLE_VA_9199 + 12), 5);
+  // Display: (label, wide scene, present, enabled) x 7.
+  for (const [i, r] of DISPLAY_ROWS_9199.entries()) {
+    const rec = DISPLAY_TABLE_VA_9199 + 16 * i;
+    assert.equal(u32(rec), r.label, `display row ${i} label`);
+    const ptr = u32(rec + 4);
+    let name = '';
+    for (let p = ptr - BASE; image!.readUInt16BE(p) !== 0; p += 2) name += String.fromCharCode(image!.readUInt16BE(p));
+    assert.equal(name, r.scene, `display row ${i} scene`);
+    assert.equal(u32(rec + 8), 1); assert.equal(u32(rec + 12), 1);
+  }
+  // Remote control: `addi r11, r11, 273` in the item-text routine and `li r11, 2`
+  // in the count routine (true VAs; the file offset of .text is VA - 0x92000200).
+  const text = (va: number) => image!.readUInt32BE(va - 0x92000200);
+  assert.equal(text(0x9221a68c), 0x396b0000 | REMOTE_BASE_9199, 'addi r11, r11, 273 at 0x9221a68c');
+  assert.equal(text(0x9221a6c0), 0x39600000 | REMOTE_COUNT_9199, 'li r11, 2 at 0x9221a6c0');
+});
+
+test('the EcNavTo jump table binds what navigation.ts says it binds (skipped without extracted/9199)', { skip: !image }, () => {
+  // .rdata 0x920288a0: 35 x { char* name, u32 id }; 0x92028ad0: u16 offsets
+  // from the dispatcher base 0x922d312c, indexed by id.
+  const names = new Map<string, number>();
+  for (let i = 0; i < 35; i++) {
+    const ptr = u32(0x920288a0 + 8 * i), id = u32(0x920288a4 + 8 * i);
+    let name = '';
+    for (let p = ptr - BASE; image![p] !== 0; p++) name += String.fromCharCode(image![p]!);
+    names.set(name, id);
+  }
+  const caseOf = (id: number) => 0x922d312c + u16(0x92028ad0 + 2 * id);
+  const wideAt = (va: number) => { let s = ''; for (let p = va - BASE; image!.readUInt16BE(p) !== 0; p += 2) s += String.fromCharCode(image!.readUInt16BE(p)); return s; };
+  // The literal a case materialises: `lis rX, hi` then `addi r5, rX, lo` within the case.
+  const literalOf = (caseVa: number): string | null => {
+    const hi = new Map<number, number>();
+    // The jump table holds TRUE .text VAs; the image is flat, so the file
+    // offset is VA - 0x92000000 (the 0x200 is only on ppc-dis's printout).
+    for (let va = caseVa; va < caseVa + 0x40; va += 4) {
+      const ins = image!.readUInt32BE(va - BASE);
+      const op = ins >>> 26, rD = (ins >>> 21) & 31, rA = (ins >>> 16) & 31, imm = ins & 0xffff;
+      if (op === 15 && rA === 0) hi.set(rD, imm << 16);
+      else if (op === 14 && rD === 5 && hi.has(rA)) { const s = imm >= 0x8000 ? imm - 0x10000 : imm; return wideAt(((hi.get(rA)! + s) >>> 0)); }
+      else if (op === 18 && !(ins & 1)) break;   // an unconditional branch ends the case; a `bl` does not
+    }
+    return null;
+  };
+  for (const [name, cmd] of Object.entries(EPIX_COMMANDS)) {
+    assert.equal(names.get(name), cmd.id, `${name} id`);
+    if (cmd.scene) assert.equal(literalOf(caseOf(cmd.id)), cmd.scene.replace(/^.*\//, ''), `${name} scene literal`);
+  }
+  assert.equal(names.get('EcNavToSettings'), 4);
+  assert.equal(literalOf(caseOf(4)), 'SystemScene.xur');
+  assert.equal(literalOf(caseOf(3)), 'ArcadeFilterScene.xur');
+});
+
+test('the root strips carry the archive\'s scenes in the order the image gives', () => {
+  assert.equal(ROOT_STRIPS['firstrun/WhatsNewRootScene.xur']!.panels.length, 8);
+  assert.equal(ROOT_STRIPS['firstrun/XboxBasicsRootScene.xur']!.panels.length, 8);
+  assert.equal(ROOT_STRIPS['homepage/LiveUpsellRootScene.xur']!.panels.length, 5);
+  assert.equal(ROOT_STRIPS['arcade/ArcadeFilterScene.xur']!.panels.length, 2);
+  assert.equal(ROOT_STRIPS['signin/SigninScene.xur']!.panels.length, 2);
+  assert.equal(ROOT_STRIPS['signin/SigninScene.xur']!.channel?.index, 91);
+  assert.equal(SIGNIN_LEGEND.select, 97);
+});
+
+test('the What\'s New table at 0x9202b63c is eight (flag, id, scene) rows in that order (skipped without extracted/9199)', { skip: !image }, () => {
+  const wideAt = (va: number) => { let s = ''; for (let p = va - BASE; image!.readUInt16BE(p) !== 0; p += 2) s += String.fromCharCode(image!.readUInt16BE(p)); return s; };
+  const rows = ROOT_STRIPS['firstrun/WhatsNewRootScene.xur']!.panels;
+  const ids: number[] = [];
+  for (let i = 0; i < 8; i++) {
+    const rec = 0x9202b63c + 12 * i;
+    ids.push(u32(rec + 4));
+    assert.equal(wideAt(u32(rec + 8)), rows[i]!.replace(/^.*\//, ''), `What's New row ${i}`);
+  }
+  assert.deepEqual(ids, [7, 0, 1, 2, 3, 4, 5, 6]);
+});
+
+test('a PressPath resolves in the pressing page\'s own pack before the global index', () => {
+  const fake = {
+    entry: (pack: string, path: string) => (pack === 'consoles' && path === 'dashSysCslSetCountry.xur') || (pack === 'network' && path === 'dashSysCslSetCountry.xur') ? {} : undefined,
+    findByBasename: (name: string) => (name === 'dashSysCslSetCountry.xur' ? null : name === 'dashSysCslSetLanguage.xur' ? 'consoles/dashSysCslSetLanguage.xur' : null),
+    collisions: ['dashsyscslsetcountry.xur'],
+  } as unknown as Parameters<typeof resolveScenePath>[0];
+  assert.equal(resolveScenePath(fake, 'dashSysCslSetCountry.xur', 'consoles'), 'consoles/dashSysCslSetCountry.xur');
+  assert.equal(resolveScenePath(fake, 'dashSysCslSetCountry.xur', 'network'), 'network/dashSysCslSetCountry.xur');
+  assert.equal(resolveScenePath(fake, 'dashSysCslSetCountry.xur'), null, 'a collision with no pack named is refused, not guessed');
+  assert.equal(resolveScenePath(fake, 'dashSysCslSetLanguage.xur', 'dashmain'), 'consoles/dashSysCslSetLanguage.xur');
+});
+
+test('a hosted page\'s rows are its button controls on the plate, and a parked legend carrier never is', () => {
+  const obj = (className: string, props: Record<string, unknown>, children: XuObject[] = []): XuObject =>
+    ({ className, properties: Object.entries(props).map(([name, value]) => ({ def: { name }, value })), children, namedFrames: [], timelines: [] } as unknown as XuObject);
+  // dashSysCslSetAudio.xur, abridged: two btn* rows, four parked legend carriers.
+  const scene = obj('DashScene', { Id: 'scAudioSettings', Width: 880, Height: 480 }, [
+    obj('XuiNavButton', { Id: 'btnDigital', Position: { x: 10, y: 15, z: 0 }, Width: 420, Height: 47, NavDown: 'btnSoundEffects', Text: 'Digital Output', PressPath: 'dashSysCslSetAudioDigital.xur' }),
+    obj('XuiNavButton', { Id: 'legend_y', Position: { x: 165, y: 1035.6, z: 0 }, Width: 420, Height: 47, Visual: 'legend_Y', Enabled: false, NavUp: 'btnTest', PressKey: 22531 }),
+    obj('XuiNavButton', { Id: 'legend_a', Position: { x: 573, y: 1063.6, z: 0 }, Width: 420, Height: 47, Visual: 'legend_A', Text: 'Select' }),
+    obj('XuiBackButton', { Id: 'legend_b', Position: { x: 555, y: 1035.6, z: 0 }, Width: 420, Height: 47, Visual: 'legend_B', Text: 'Back', PressKey: 22593 }),
+    obj('XuiNavButton', { Id: 'btnSoundEffects', Position: { x: 10, y: 60, z: 0 }, Width: 420, Height: 47, NavUp: 'btnDigital', Text: 'Sound Effects', PressPath: 'dashSysCslSetAudioSoundEffects.xur' }),
+  ]);
+  const r = collectPageRows(scene);
+  assert.deepEqual(r.rows.map((x) => x.id), ['btnDigital', 'btnSoundEffects']);
+  assert.equal(r.arrival, 'btnDigital');
+  assert.equal(r.arrivalBy, 'chain head');
+  assert.equal(findPressKey(scene, PRESS_KEYS.B) && (findPressKey(scene, PRESS_KEYS.B) as XuObject).className, 'XuiBackButton');
+  assert.equal(findPressKey(scene, PRESS_KEYS.X), null);
+  // A DefaultFocus that names a list lands on the list; a nested scene's wins
+  // when the root has none (2004_NetworkDetails' Tab1 names btn_IP).
+  const tabbed = obj('XuiScene', { Id: 'Scene_Main', Width: 880, Height: 480 }, [
+    obj('XuiScene', { Id: 'Tab2', Show: false, DefaultFocus: 'btn_PPPoE', Position: { x: 137, y: 196, z: 0 } }, [obj('XuiNavButton', { Id: 'btn_PPPoE', Position: { x: 30, y: 30, z: 0 }, Height: 144, PressPath: 'x.xur' })]),
+    obj('XuiScene', { Id: 'Tab1', DefaultFocus: 'btn_IP', Position: { x: 137, y: 196, z: 0 } }, [
+      obj('XuiNavButton', { Id: 'btn_DNS', Position: { x: 30, y: 162, z: 0 }, Height: 119, NavUp: 'btn_IP' }),
+      obj('XuiNavButton', { Id: 'btn_IP', Position: { x: 30, y: 30, z: 0 }, Height: 144, NavUp: 'btn_Wireless', NavDown: 'btn_DNS' }),
+    ]),
+  ]);
+  const t = collectPageRows(tabbed);
+  assert.deepEqual(t.rows.map((x) => x.id), ['btn_IP', 'btn_DNS'], 'the hidden tab is not on screen; rows sort by authored y');
+  assert.equal(t.arrival, 'btn_IP');
+  assert.equal(t.arrivalBy, 'DefaultFocus');
+  const listed = obj('XuiScene', { Id: 'sc', DefaultFocus: 'lstSettings' }, [obj('XuiCommonList', { Id: 'lstSettings' })]);
+  assert.equal(collectPageRows(listed).arrivalList, 'lstSettings');
+});
+
+test('an authoring token is nothing but tokens, digits and "of"', () => {
+  for (const t of ['<setting>', '<servicename>', '<#> of <Total #>', '<current settings>\r\n2\r\n3', '<help text>', '  <MAC Addr> ']) assert.ok(isAuthoringToken(t), t);
+  for (const t of ['Uninstall <servicename> now please', '<font size="16" color="#FFFFFF">Make your profile a little more personal</font>', 'Digital Output', '']) assert.ok(!isAuthoringToken(t), t);
+});
+
+/**
+ * The two frames the shell hides and shows the legend on are the two edges of
+ * one plateau in the FILE, not two tuned numbers.
+ *
+ * `SceneTransitions/TransitionSubElements` holds a zero across the middle of
+ * every range, and the sub-elements (legend, counter, queue captions) are
+ * absent exactly while it is 0. `LEGEND_HIDE_FRAME` is the near edge on `From`
+ * and `LEGEND_SHOW_FRAME` the far edge on `BackTo`; this re-reads both out of
+ * `controlp/Variables.xur` so a scene change cannot move them silently.
+ */
+test('the legend frames are the edges of TransitionSubElements\' zero plateau (skipped without extracted/9199)', { skip: !existsSync('extracted/9199/xuiz/controlp/Variables.xur') }, async () => {
+  const { XuRegistry, parseXur } = await import('@xur/index');
+  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/9199/registry.json', 'utf8')));
+  const doc = parseXur(new Uint8Array(readFileSync('extracted/9199/xuiz/controlp/Variables.xur')), reg);
+  const idOfObj = (o: XuObject): string | null => {
+    const p = o.properties.find((x) => x.def.name === 'Id');
+    return typeof p?.value === 'string' ? p.value : null;
+  };
+  const findGroup = (o: XuObject): XuObject | null => {
+    if (idOfObj(o) === 'SceneTransitions') return o;
+    for (const c of o.children) { const r = findGroup(c); if (r) return r; }
+    return null;
+  };
+  const group = findGroup(doc.root);
+  assert.ok(group, 'controlp/Variables.xur has no SceneTransitions group');
+  const named = new Map(group.namedFrames.map((f) => [f.name, f.keyframe]));
+  assert.equal(named.get('From'), 76);
+  assert.equal(named.get('FromEnd'), 150);
+  assert.equal(named.get('BackTo'), 151);
+  assert.equal(named.get('BackToEnd'), 225);
+  const tl = group.timelines.find((t) => t.elementId === 'TransitionSubElements');
+  assert.ok(tl, 'no TransitionSubElements timeline');
+  // FloatVariable is the first track, so values[0] is the variable.
+  assert.equal(tl.tracks[0]?.def.name, 'FloatVariable');
+  const at = (frame: number): number | undefined => tl.keyframes.find((k) => k.keyframe === frame)?.values[0] as number | undefined;
+  // `From`: 1 at the range's first frame, 0 from LEGEND_HIDE_FRAME to the end.
+  assert.equal(at(76), 1);
+  assert.equal(at(LEGEND_HIDE_FRAME), 0, 'the From plateau does not start where the legend hides');
+  assert.equal(at(150), 0);
+  assert.ok(!tl.keyframes.some((k) => k.keyframe > LEGEND_HIDE_FRAME && k.keyframe < 150 && k.values[0] !== 0), 'the From plateau is not flat');
+  // `BackTo`: 0 from the range's first frame to LEGEND_SHOW_FRAME, then back.
+  assert.equal(at(151), 0);
+  assert.equal(at(LEGEND_SHOW_FRAME), 0, 'the BackTo plateau does not end where the legend shows');
+  assert.equal(at(225), 1);
+  assert.ok(!tl.keyframes.some((k) => k.keyframe > 151 && k.keyframe < LEGEND_SHOW_FRAME && k.values[0] !== 0), 'the BackTo plateau is not flat');
 });

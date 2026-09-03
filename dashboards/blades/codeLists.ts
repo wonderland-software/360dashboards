@@ -18,6 +18,13 @@
 //   consoles/dashSysCslSetPControlPasscodeHint lstHintQ  0x92015320, u16[5]
 //   consoles/dashSysCslSetRemoteC      listChannels  no table: 0x921c8d08
 //                                      computes 244 + (row != 0)
+//   consoles/dashSysCslSetPControlFamilyTimer lstTime  one row, string 383
+//                                      (the timer-off fall-through, 0x921cb5e0)
+// and, computed from the console state at push time (DYNAMIC_LISTS):
+//   consoles/dashSysCslSetPControlGame / VideoMovie / VideoTV  lstRating
+//                                      the 0x920163a0 table the locale picks
+//   consoles/dashSysCslSetClockTime    lstHour/lstMin/lstDay/lstMonth/lstYear
+//                                      the sprintf ranges, parked on the clock
 //
 // Every row is a POSITION in consoles/dashCSettingsStrings.xus, never baked
 // English, so a locale table works by index the way the console's did. The row
@@ -29,16 +36,25 @@
 // Lists that are code-driven and NOT filled: they are listed at the bottom with
 // the reason. Nothing is guessed to make a page look finished.
 import { COUNTRY_ROWS, LANGUAGE_ROWS, TIMEZONE_ROWS } from './localeSettings';
-import { PASSCODE_HINT_ROWS, REMOTE_CHANNEL_ROWS } from './pcontrolSettings';
+import {
+  PASSCODE_HINT_ROWS, REMOTE_CHANNEL_ROWS, FAMILY_TIMER_OFF_LABEL, CLOCK_SPIN_RANGES, DAYS_IN_MONTH,
+  RATING_CATEGORY_GAME, RATING_CATEGORY_MOVIE, RATING_CATEGORY_TV,
+} from './pcontrolSettings';
 import { DISPLAY_ROWS_NTSC_HD } from './displaySettings';
+import { ratingTableFor, type ConsoleState } from './settingsModel';
 
 /** consoles/dashCSettingsStrings.xus - every table below indexes it. */
 export const SETTINGS_STRINGS_PACK = 'consoles';
 export const SETTINGS_STRINGS_TABLE = 'dashCSettingsStrings.xus';
 
 export interface CodeListRow {
-  /** Position in the pack's positional string table. */
+  /** Position in the pack's positional string table, or -1 when `text` is the
+   *  row (a value the code sprintf's rather than looks up). */
   label: number;
+  /** A literal the code formats itself: the clock spinners' "%0*d". */
+  text?: string;
+  /** A rating badge the row carries beside its label (consoles/*.png). */
+  image?: string;
   /** Destination scene basename, or null when the row is not a navigation. */
   scene?: string | null;
   /** False for a row the console draws but will not let you pick. */
@@ -53,6 +69,16 @@ export interface CodeList {
   rows: readonly CodeListRow[];
   /** Where the table lives, for the header of the file that decoded it. */
   va: string;
+  /** The row the list is parked on when the code selects one (a spinner on
+   *  the console clock); the shell's option-page rule decides otherwise. */
+  initialIndex?: number;
+}
+
+/** What a list computed at runtime is computed FROM. */
+export interface DynamicListCtx {
+  settings: ConsoleState;
+  /** The console clock, which is the host clock here (disclosed). */
+  now: Date;
 }
 
 export const CODE_LISTS: Readonly<Record<string, readonly CodeList[]>> = {
@@ -91,6 +117,91 @@ export const CODE_LISTS: Readonly<Record<string, readonly CodeList[]>> = {
     va: 'no table: count 2 at 0x921c8d88, label 244 + (row != 0) at 0x921c8d08',
     rows: REMOTE_CHANNEL_ROWS.map((r) => ({ label: r.label, scene: null })),
   }],
+  // CFamilyTimerDurationList with the timer OFF: the frequency mask's
+  // fall-through at 0x921cb5e0 sets count 1, and the text handler 0x921cb4b0
+  // emits string 383 for that single row. Off is the state of a console with
+  // no profile and no timer set, which is this one; a running timer's rows are
+  // profile state and are not listed.
+  'consoles/dashSysCslSetPControlFamilyTimer.xur': [{
+    list: 'lstTime', pack: SETTINGS_STRINGS_PACK, table: SETTINGS_STRINGS_TABLE,
+    va: 'computed: count 1 at 0x921cb5e0 (mask 0), string 383 at 0x921cb4b0',
+    rows: [{ label: FAMILY_TIMER_OFF_LABEL, scene: null }],
+  }],
+};
+
+/**
+ * Lists whose rows are built at runtime from console state, so they take the
+ * shell's ConsoleState and clock rather than a constant table.
+ *
+ *  - The three rating lists (dashCRatingView, 0x921bd4f0): the locale's
+ *    rating system picks one of the 29 tables at 0x920163a0 through the 39-row
+ *    locale table at 0x92016530 [pcontrolSettings.ts §3]. The reference console
+ *    is United Kingdom [FRAME 6717/f0060]: games -> system 4 (PEGI + BBFC),
+ *    movies -> system 2 (BBFC), TV -> system 7 = none, on which the init
+ *    returns before touching the list (`lwz r11, 0xc(r31); beq` at
+ *    0x921bd584), so the TV page's list stays empty on this console.
+ *    Each row carries the badge(s) the table names (0x921c7714-0x921c7718).
+ *  - The five clock spinners (dashCValueSpin, 0x921cc4c0): "%0*d" over the
+ *    ranges the setters at 0x921cc9d4 / 0x921cca10 / 0x921cce2c / 0x921cce5c /
+ *    0x921cd128 install [pcontrolSettings.ts §5], parked on the console clock
+ *    by 0x921cc848 / 0x921ccf70 - which is the host clock here.
+ */
+export const DYNAMIC_LISTS: Readonly<Record<string, (ctx: DynamicListCtx) => readonly CodeList[]>> = {
+  'consoles/dashSysCslSetPControlGame.xur': (c) => ratingList(c, RATING_CATEGORY_GAME),
+  'consoles/dashSysCslSetPControlVideoMovie.xur': (c) => ratingList(c, RATING_CATEGORY_MOVIE),
+  'consoles/dashSysCslSetPControlVideoTV.xur': (c) => ratingList(c, RATING_CATEGORY_TV),
+  'consoles/dashSysCslSetClockTime.xur': (c) => clockSpinners(c.now, c.settings.clock24h ?? true),
+};
+
+function ratingList(c: DynamicListCtx, category: number): CodeList[] {
+  const table = ratingTableFor(c.settings.locale, category);
+  if (!table) return [];
+  return [{
+    list: 'lstRating', pack: SETTINGS_STRINGS_PACK, table: SETTINGS_STRINGS_TABLE,
+    va: `0x${table.va.toString(16)} (category ${table.category}, system ${table.system}, picked by XC_LOCALE ${c.settings.locale} through 0x92016530)`,
+    rows: table.rows.map((r) => ({ label: r.label, scene: null, ...(r.icon ? { image: r.icon } : {}) })),
+  }];
+}
+
+/** "%0*d" with the pad width the range setter derives from max's digit count. */
+const pad = (v: number, max: number) => String(v).padStart(String(max).length, '0');
+
+export function clockSpinners(now: Date, h24: boolean): CodeList[] {
+  const num = (list: string, min: number, max: number, current: number, va: string, padded = true): CodeList => {
+    const rows: CodeListRow[] = [];
+    for (let v = min; v <= max; v++) rows.push({ label: -1, text: padded ? pad(v, max) : String(v) });
+    return { list, pack: SETTINGS_STRINGS_PACK, table: SETTINGS_STRINGS_TABLE, rows, va, initialIndex: Math.max(0, Math.min(max, current) - min) };
+  };
+  const h = now.getHours();
+  const hour = h24 ? num('lstHour', CLOCK_SPIN_RANGES['lstHour24']!.min, CLOCK_SPIN_RANGES['lstHour24']!.max, h, '0..23 at 0x921ccac0 (24-hour)')
+    : num('lstHour', CLOCK_SPIN_RANGES['lstHour12']!.min, CLOCK_SPIN_RANGES['lstHour12']!.max, h % 12 === 0 ? 12 : h % 12, '1..12 at 0x921cc9d4');
+  const month = now.getMonth() + 1;
+  return [
+    hour,
+    // lstAMPM is authored ("AM\nPM"); dashCTime parks it on the hour's half
+    // (0x921cc848) - rows here would be an invention, the park is not.
+    { list: 'lstAMPM', pack: SETTINGS_STRINGS_PACK, table: SETTINGS_STRINGS_TABLE, rows: [], va: 'authored; parked by 0x921cc848', initialIndex: h >= 12 ? 1 : 0 },
+    num('lstMin', CLOCK_SPIN_RANGES['lstMin']!.min, CLOCK_SPIN_RANGES['lstMin']!.max, now.getMinutes(), '0..59 at 0x921cca10'),
+    num('lstDay', 1, DAYS_IN_MONTH[month - 1]!, now.getDate(), `1..DAYS[month] from 0x92017040 at 0x921cce5c`),
+    num('lstMonth', CLOCK_SPIN_RANGES['lstMonth']!.min, CLOCK_SPIN_RANGES['lstMonth']!.max, month, '1..12 at 0x921cce2c'),
+    num('lstYear', CLOCK_SPIN_RANGES['lstYear']!.min, CLOCK_SPIN_RANGES['lstYear']!.max, now.getFullYear(), '2005..2025 from 0x927c00a0/0x927c00a8', false),
+  ];
+}
+
+/**
+ * Lists the console DISABLES on this hardware, with the code that does it.
+ * The Xbox LIVE Vision page's three choosers are enabled from the camera
+ * state (0x921cda90: SetEnable(list, cameraPresent) on each), and there is no
+ * camera here; the page also hides VideoFeed and shows NoCameraTextField from
+ * the same flag. A disabled list takes no focus, so A does nothing on it and
+ * the arrival focus the scene declares (BrightnessSetting) is refused.
+ */
+export const LISTS_DISABLED_OFFLINE: Readonly<Record<string, { lists: readonly string[]; hide: readonly string[]; show: readonly string[]; why: string }>> = {
+  'consoles/dashSysLiveVision.xur': {
+    lists: ['BrightnessSetting', 'LightingSetting', 'FlickerSetting'],
+    hide: ['VideoFeed'], show: ['NoCameraTextField'],
+    why: 'no Xbox LIVE Vision camera: 0x921cdd30 reads the camera state (0x92356ef8) and 0x921cda90 disables the three choosers, hides VideoFeed and shows NoCameraTextField',
+  },
 };
 
 /**
@@ -108,14 +219,25 @@ export const CODE_LISTS_NOT_FILLED: Readonly<Record<string, string>> = {
     + 'minutes 0-59, months 1-12, days 1..DAYS[month] from 0x92017040, years '
     + '2005-2025 from the two date records at 0x927c00a0/0x927c00a8. The value they '
     + 'come up on is the console clock, which this build has no reading of.',
-  'consoles/dashSysCslSetPControlFamilyTimer.xur#lstTime':
-    'computed from the timer frequency bitmask at 0x921cb5e0 (744 hours, 96 '
-    + 'quarter-hours or 168 hours per step) and formatted with "%d %ls"; with the '
-    + 'timer off the code shows the single string 383, and the timer state is '
-    + 'profile data this console does not have.',
-  'consoles/dashSysCslSetPControlGame.xur#lstRating':
-    'region-selected: the 29 rating tables at 0x920163a0 are picked through the '
-    + 'locale table at 0x92016530 by the console\'s XC_LOCALE. The reference console '
-    + 'reads "United Kingdom" [FRAME hi f0060]; the decoded tables are in '
-    + 'pcontrolSettings.ts but the page has not been wired to the locale pick.',
+  'consoles/dashSysCslSetPControlVideoTV.xur#lstRating':
+    'the locale\'s TV rating system is 7 = none (United Kingdom, row 0x23 of the '
+    + 'locale table at 0x92016530), and dashCRatingView\'s init returns before it '
+    + 'touches the list (0x921bd584); every other rating list is filled from its '
+    + 'table (DYNAMIC_LISTS).',
+  'memory/DeviceSelector.xur#list_devices':
+    'the storage devices attached to the console, enumerated by DeviceSelectorScene '
+    + '(0x9225aec8) into the list; none is attached here, which is the state the '
+    + 'scene\'s own txt_EmptyList "No storage devices found." describes.',
+  'dashcomm/MediaSourceSelection.xur#listMediaSources':
+    'the media sources on the network (MediaSourceList, registered 0x921ac344): '
+    + 'PCs running media sharing software, discovered at runtime; none here, which '
+    + 'is the metapane\'s own NoComputersScene state.',
+  'pictures/905_IndividualDeviceMain.xur#List':
+    'the pictures on the selected device: device state.',
+  'music/1028_NowPlaying.xur#listSongs': 'the songs on the selected device: device state.',
+  'music/1003_MediaContainerList.xur#listItems': 'the albums, artists or playlists on the selected device: device state.',
+  'music/1003_SongList.xur#listItems': 'the songs of the selected container: device state.',
+  'arcade/250x_FriendsPlayingNowScene.xur#lstFriends': 'the friends list: Xbox LIVE.',
+  'arcade/2502_TwistSelectorScene.xur#listTitles': 'the installed Arcade titles: content enumerated from storage.',
+  'arcade/2502_TwistSelectorScene.xur#listCategories': 'the Arcade categories: Xbox LIVE.',
 };

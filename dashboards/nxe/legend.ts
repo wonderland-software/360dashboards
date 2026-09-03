@@ -26,7 +26,7 @@
 import { idOf, propByName, type XuObject } from '@xur/index';
 import {
   loadScene, renderElement, indexVisuals, VisualScope, Skin, walk,
-  NO_DELTA, updateNode, isNativeLocale, xuiRegistry, pathOf,
+  NO_DELTA, updateNode, isNativeLocale, xuiRegistry, pathOf, PropBag, NO_OVERRIDES, authoredRect,
   type AssetIndex, type RenderCtx, type NodeIndex, type NodeRecord,
   type Strings, type TimelineEngine,
 } from '@runtime/index';
@@ -149,6 +149,8 @@ export interface HoistOpts {
   locale: string;
   /** The hosted page whose parked controls are read, or null. */
   source: NodeRecord | null;
+  /** Where the TITLE comes from when it is not the caption source (a pushed root). */
+  titleSource?: NodeRecord | null;
   /** Filled with the groups that need settling once timelines are bound. */
   pending: NodeRecord[];
   /** Handed the mounted LegendScene root, so the shell can rebind it later
@@ -234,7 +236,7 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
   const root = o.nodes.all[before];
   if (!root) return null;
   o.mounted?.(root);
-  return bindLegend(root, o.source, o.pending, o.supplied ?? []);
+  return bindLegend(root, o.source, o.pending, o.supplied ?? [], o.titleSource ?? o.source);
 }
 
 /**
@@ -247,21 +249,37 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
  */
 export function bindLegend(
   root: NodeRecord, source: NodeRecord | null, pending: NodeRecord[],
-  supplied: readonly SuppliedCaption[] = [],
+  supplied: readonly SuppliedCaption[] = [], titleSource: NodeRecord | null = source,
 ): LegendReport {
   const report: LegendReport = { scene: LEGEND_SCENE, buttons: [], title: '', titleGroup: null, empty: [], settled: [] };
   const settle: NodeRecord[] = [];
   const o = { source };
 
-  // What the page parks, by id.
+  // What the page parks, by id. A carrier the author left Show=false is not
+  // read: `signin/SigninScene.xur`'s legend_a says "Continue" with Show=false
+  // and the footage draws "Select" there [FRAME Yrt f0268] (M4e).
   const parked = new Map<string, XuObject>();
-  let header: XuObject | null = null;
   if (o.source) {
     walk(o.source.obj, (ob) => {
       const id = idOf(ob);
-      if (id && id in LEGEND_BUTTONS) parked.set(id, ob);
+      if (id && id in LEGEND_BUTTONS && propByName(ob, 'Show')?.value !== false) parked.set(id, ob);
+    });
+  }
+  // The title: a `Label_Head*` label the page PARKS off its own plate. A label
+  // wearing the visual INSIDE the scene with Show=false (arcade/
+  // ArcadeFilterScene.xur's labRomeTitle at (40,56)) stays where it is: the
+  // footage shows no "Game Library" title over the Rome strip [FRAME Yrt
+  // f0396, Kpa f0300] (M4e).
+  let header: XuObject | null = null;
+  const titleRoot = titleSource ?? o.source;
+  if (titleRoot) {
+    const size = PropBag.of(titleRoot.obj.children[0] ?? titleRoot.obj, NO_OVERRIDES);
+    const h = size.num('Height', 480);
+    walk(titleRoot.obj, (ob) => {
       const visual = propByName(ob, 'Visual')?.value;
-      if (!header && typeof visual === 'string' && visual in HEADER_TITLES) header = ob;
+      if (header || typeof visual !== 'string' || !(visual in HEADER_TITLES)) return;
+      const r = authoredRect(PropBag.of(ob, NO_OVERRIDES));
+      if (r.y < 0 || r.y >= h) header = ob;
     });
   }
 
@@ -273,7 +291,10 @@ export function bindLegend(
     // home page there is no page to park one: the A caption is the focused
     // slot's own `<onclick><helptext>` out of the channel XML (§4.1).
     const given = supplied.find((c) => c.group === group);
-    const text = given ? given.text : ob ? String(propByName(ob, 'Text')?.value ?? '') : '';
+    // A caption that is nothing but whitespace is no caption:
+    // dashcomm/742_SelectNetworkDevice.xur's legend_x reads "\n" and is
+    // Enabled=false, and M4d drew a blank X entry for it [COVERAGE N9] (M4e).
+    const text = (given ? given.text : ob ? String(propByName(ob, 'Text')?.value ?? '') : '').trim();
     const enabled = given ? true : ob ? propByName(ob, 'Enabled')?.value !== false : false;
     const node = find(root, group);
     if (!node) continue;

@@ -1065,3 +1065,186 @@ Judge G's twelve findings closed (JUDGE.md). What the work taught:
   dropped from `legacy.rows` and still painted its `<servicename>` token;
   the gate is now on PAINTED text in the DOM, which is the only thing a frame
   can see.
+
+## Blades M3e: the settings pages select (2026-09-03)
+
+Every option page under Console Settings and Family Settings now does what
+its class does on A (settingsModel.ts), the 6717 stills pin the reference
+console's whole state, and the empty pages of the offline tree each carry
+their reason. What the work taught:
+
+- **A scene class's handlers are one vtable slot away.** Every dash scene
+  class is registered through `XuiRegisterClass` (0x92147948) with a
+  descriptor whose +0x14 is the ctor; the ctor stores a two-slot vtable
+  `[dtor, dispatcher]`, and the dispatcher is a switch on `pMsg->dwMessage`
+  at +4: `0x13` init, `0x0e` notify (sub-id at pNotify+0: 1 press, 2 focus, 4
+  selection change), `0x1a` the list's selection message, `0x27` the timer.
+  Shared dispatchers (`dashClockSettings_*`, `dashAudioSettings_*`,
+  `dashVideoSettings_*`) call further slots instead of branching. A script
+  over the registrations (scratchpad `classmap.py`) maps every class to its
+  init and press in one pass; reading twenty pages by hand would have taken
+  the day.
+- **`ppc-refs.txt`'s .text addresses are 0x200 high**, like `ppc-dis`'s
+  (LEARNINGS "flat-mapped"): a reference printed at 0x921c944c is at
+  0x921c924c. Every code site in `settingsModel.ts` was re-read at the flat
+  address; the first hour went to a "labCurrentSettings" that landed on a
+  `li r3, 3`.
+- **The press handler ends in `XuiSceneNavigateBack`.** `0x921b5428(scene,
+  0xfd)` resolves the parent scene and calls 0x921536d8 with index 0xfd - the
+  same 253 `NavigateToScenePath` pushes with. So an option page POPS on A,
+  before any footage said so, and the parent's label is refreshed by the
+  `XN_FOCUS` it gets when focus returns. **The cue evidence follows:**
+  `btn_Select` plays (the row's Press), `btn_Back` does not (no
+  `XuiBackButton` was pressed), and the shell's `back(programmatic)` keeps
+  that distinction.
+- **The arrival row is the current value's, from the init, not from a
+  frame.** Every init does `SetFocus` (0x9214cbc0) on the button that carries
+  the read value or `XuiListSetCurSel` (0x92251760) on its row; the 8498
+  frames (f2170: Background Downloads arriving on "Disable") only confirmed
+  it. When the read fails the init skips both, which is exactly the path a
+  value nobody can know should take: DefaultFocus and a blank label, not a
+  guess.
+- **The reference console's state was in the stills all along.** The 6717
+  capture walks every Console Settings row at 2 fps (f0053-f0066) with its
+  "Current Setting" beside it - Dolby Digital, English, GMT+00 London,
+  24-hour ("12:00" with no AM/PM), United Kingdom, Xbox Dashboard, Auto-Off
+  Disabled, Background Downloads Enabled, Screen Saver Enabled, All Channels.
+  Judge E's three cited rows were the three someone had looked at. **Before
+  declaring a value unknowable, tile the whole capture** (`ffmpeg tile=5x6`
+  at 384 px is one image to read).
+- **The user-options word is one XConfig setting, one bit per page.**
+  XCONFIG_USER 0x0c: 0x2 DST off, 0x8 24-hour, 0x80 / 0x800 / 0x20000 the
+  three start-ups, 0x100 sound effects OFF, 0x10000 background downloads; the
+  accessor pair 0x921c7ef8 / 0x921c7e90 reads and writes one bit through the
+  xam read-modify-write import at 0x92739ccc. Screen saver and auto-off are
+  XCONFIG_CONSOLE 1 and 2 (0x1000 = off; 0 = off, 0x168 = six hours).
+- **A timeline can clear a Nav property.** `dashCDate`'s field-order frames
+  write `lstYear.NavRight = ""` (the year is last in the UK's d/m/y order),
+  so the runtime override was the empty string - and an empty override read
+  as "chain ends" stranded focus in the year spinner. The rule that makes the
+  Date and Time page work is XUI's own: **a control with no neighbour takes
+  its parent's** (`scDate.NavRight = scTime`), and an empty override is "no
+  neighbour", not "stop". The IPTV chain repair still ends the chain because
+  the System scene has no NavDown to inherit.
+- **`DefaultFocus` can name a scene, and a Nav target can be a child path.**
+  `network/ConnStatus.xur` says `DefaultFocus="scene_main"`;
+  `MediaSourceSelection.xur` says `NavRight="metaPanelScene\NoComputersScene"`.
+  Focus descends: the scene's own DefaultFocus, else its first list with rows,
+  else its chain head. The console's `CConnStatus` hands `scene_main` to
+  0x92153150 right after binding it.
+- **An empty `XuiList` still owns its visual.** A code-driven list with no
+  rows and no `ListView` painted the skin's `control_ListItem` TEMPLATE as a
+  blank row (DeviceSelector's one "item" in the coverage drive). Consuming the
+  visual with an empty `ListView` is what an empty list looks like on the
+  console: nothing.
+- **The double `btn_Focus` of the audit did not survive a fresh mount.** One
+  Down on Console Settings or Display fires one cue and a list item owns one
+  scope; the doubled cue is what a second shell from a long-lived dev server
+  produces (the HMR leak `__dash.hmr` exists for), so the gate asserts one
+  and the audit's number is recorded, not explained away.
+- **The message boxes are xam's.** 0x92114a98 (Initial Setup), 0x921a63f0
+  (Background Downloads' Enable) and 0x92114898 (the display and Family
+  Settings prompts) wrap `XShowMessageBoxUI`; no scene path is involved. A
+  press behind one takes the code's own no-answer branch here and the box is
+  recorded with its strings. Building a box to get past it would be
+  inventing chrome.
+
+## NXE 9199 shell, M4e: the pages behind the home page (2026-09-03)
+
+- **"Materialised in code" was a jump table.** M4d swept for a pointer to the
+  `SystemScene.xur` literal, found none, and bound one command by inference.
+  The dispatcher does `rlwinm r0, r5, 1; lhzx r0, table, r0; add; mtctr;
+  bctr` - a u16 offset table at `.rdata` 0x92028ad0 indexed by the command
+  id, base 0x922d312c - and each case materialises its pack and file with
+  `lis/addi` right before one shared call (0x922c5780). Five commands bind a
+  scene that way. **When a sweep for a data pointer finds nothing, look for
+  a `bcctr` with a `lhzx`/`lwzx` off `.rdata` above it; a switch over ids is
+  a table of code, not of data.** The 0x200: `tools/ppc-dis.ts` prints .text
+  addresses 0x200 above the true VA, and the jump table holds TRUE VAs, so
+  the two disagree by exactly that before they agree.
+- **The image's wide literals are UTF-16BE.** A search for `'S\0y\0s'` (LE)
+  hits one byte past the real start; a search for `'\0S\0y\0s'` lands on it.
+  Every "odd address" in a first pass is this.
+- **A name filter is not a focus rule.** `Id.startsWith('nav')` was true of
+  the one page M4d walked and false of the next fifty. XUI's own rule -
+  DefaultFocus, then the NavUp/NavDown chain, over controls that are shown and
+  enabled - needs no names at all, and the parked legend carriers are told
+  apart by their VISUAL (`legend_A..Y`), which is also how the console finds
+  them. A `DefaultFocus` can name a nested scene's control
+  (`2004_NetworkDetails`'s Tab1 names `btn_IP`) or a list; take the first one
+  down the visible tree.
+- **"Every basename is unique" was a 6770 fact.** 9199 carries
+  `dashSysCslSetCountry.xur` in `consoles/` and `network/`; a global basename
+  index refuses it and the Locale page could never open. The pressing page's
+  own pack first, the index second, a bare collision refused.
+- **A pushed root is the home page's mechanism one level down**, not a new
+  one: an empty 1280x720 host, a `PanelLayer` of `PanelScene` rigs on the
+  Rome or Moby constants, the overlay's `Description` as the counter, and the
+  same `SceneTransitions` group played `To`/`BackFrom`. The footage shows the
+  Sign In title where `Queue\Current` sits at the queue's own 33 px cap
+  height [FRAME Yrt f0268], so a MobyRootScene with one channel is what a
+  "Sign In page" IS, and the strip's front panel lands within 1.2 px of the
+  frame with no number of its own.
+- **`Show=false` on a parked legend carrier means "not hoisted".** The Rome
+  channel page on the themed capture draws "(A) Select" and no B entry with
+  `romechan.xur`'s Show=false `legend_b` "Back" [FRAME Kpa f0450]; the
+  sign-in root's Show=false "Continue" never shows either. And a `Label_Head`
+  INSIDE its scene with Show=false is not a title - only a PARKED one is
+  hoisted (the Game Library shows none [FRAME Kpa f0300]).
+- **A skin cue's `tick` in the audio log is its keyframe frame, not the
+  engine's.** `btn_Focus@6` is frame 6 of the Focus range; a harness that
+  slices the (200-entry, shifting) log by index or by engine tick reads
+  nothing after the two-hundredth cue. Wrap the bank's `play` in a sequence.
+- **A wrapping list never refuses a Down.** `XuiList.Wrap=true` on the Display
+  and Remote Control lists turns a "walk until refused" into a loop; stop when
+  the focus id comes round.
+- **The hosted page's cues are the skin's, not the strip's.** A LegacyControl
+  page is Blades' machinery, and Blades' rule is that the row's Press range
+  and `legend_b`'s carry the cue. M4d played the strip glue's table cues on
+  those presses and the skin's `btn_Select` / `btn_Back` were silent on every
+  page.
+- **A "timing residual" is usually a detector, and the two images have to be
+  asked the same question.** Three of Judge G's five residuals were re-opened
+  with a measurement and two of them dissolved. The pattern each time was a
+  detector whose threshold means different things on the two images:
+  - The Sign In counter "did not sit where the frame's does". A brightness
+    threshold marks the frame's **lit Aura floor** under the profile panel -
+    the whole band saturates - and marks **our glyphs** against our darker
+    floor. The two pictures were being read by opposite rules. Taking each
+    row's MEDIAN as its background, whatever the background is, put the two
+    tops 0.3 px apart.
+  - The name scroll "settles in ~0.17 s where ours takes 0.30". 0.17 s is
+    where the motion is largest; the same detector on both says 0.300 s and
+    0.267 s. Three landmarks on the same axis in the same block were already
+    agreeing to a frame - **when one number on an axis disagrees and its
+    neighbours agree, suspect the number.**
+  - `events().onset` fires at a tenth of each series' OWN span, so two ramps
+    of different shape are compared by different absolute amounts: the
+    console's legend drops 5 luma in one sample where ours takes four, and the
+    detector read them three samples apart although both start on the same
+    one. A departure test with an absolute floor reads both at the sample
+    they share.
+  And a region has to exclude what you are not measuring: `pressLegend` blooms
+  the A glyph over its own 20-frame range, a bigger swing than the caption
+  leaving, so the legend band had to start after the glyph before it could
+  measure the legend at all.
+- **`TransitionSubElements` is a plateau, and the plateau's edges are the two
+  frames.** Its whole keyframe list is
+  `0:1 1:0 55:0 75:1 | 76:1 95:0 150:0 | 151:0 205:0 225:1 | 226:1 250:0 300:0`
+  [SCENE controlp/Variables.xur]: every range ramps the variable to zero, HOLDS
+  it there, and ramps back. The sub-elements are absent exactly while it is
+  zero, so "when does the legend go" and "when does it come back" are one
+  question with two answers - the near edge (`From` 95) and the far edge
+  (`BackTo` 205). M4d had derived 205 and then played the Hide on the press,
+  0.27 s early, because it read the two ends as two rules. **When a constant
+  for one direction comes out of a variable's shape, read the other direction
+  out of the same shape before assuming the press.**
+- **Owed work that moves nothing is still busy.** The page walker failed 28
+  gates on a cold vite and none on a warm one. Every one of the fold
+  timeline's deferred acts - the page at `PAGE_PUSH_FRAME`, the cascade at
+  `UNFOLD_BEHIND_FRAME`, the legend at `LEGEND_HIDE_FRAME` / `LEGEND_SHOW_FRAME`
+  - waits on a frame count and moves no cursor, no transition and no fold
+  phase, so a settle loop watching those stopped between the press and the
+  page, and every later act read a shell that was neither at home nor on a
+  page. **A shell that defers work has to DISCLOSE the deferral**, or the only
+  thing gating it is how fast the machine happened to be.

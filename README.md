@@ -54,10 +54,24 @@ dump cannot pass.
 
 A controller works through the Gamepad API with the standard mapping. Without
 one, the keyboard maps as: Enter = A, Esc or Backspace = B, X = X, Y = Y,
-Q/E = LB/RB (blade switch, as are left and right — no control in the build sets
-NavLeft or NavRight), arrows or WASD = d-pad (up and down walk the scene's own
-NavUp/NavDown chain, A presses the focused control, B goes back a page), Tab = Guide (a no-op,
-see PLACEHOLDERS.md). Routes: `/` is the dashboard — it BOOTS, playing `dashmain`'s own `BootLive`
+Q/E = LB/RB (the blade switch), arrows or WASD = d-pad (up and down walk the
+scene's own NavUp/NavDown chain; left and right walk a NavLeft/NavRight where
+the focused control authors one - 35 scenes in the build do, among them the
+clock spinners, the Arcade pages and the media source picker; none of the five
+blade pages does, so at home that axis is the blade switch too - A presses
+the focused control, B goes back a page, X and Y go to the control carrying
+that `PressKey`), Tab = Guide (a no-op, see PLACEHOLDERS.md).
+
+On the System blade the settings pages are driven by console state
+(`dashboards/blades/settingsModel.ts`): each option page arrives on the row
+of its current value, A writes the setting and pops the page the way
+`XuiSceneNavigateBack` does, and the parent's "Current Setting" follows. The
+state starts where the reference console's stills put it (every Console
+Settings row's value is in `reference/frames/6717/f0053-f0066`), and what no
+frame or file settles - the daylight-saving bit, the Family Settings block,
+the xam message boxes behind Initial Setup and Background Downloads' Enable -
+is left on the code's own failed-read path and reported in
+`__dash.shell.hardwareState` / `dialogs`. Routes: `/` is the dashboard — it BOOTS, playing `dashmain`'s own `BootLive`
 range onto Xbox LIVE the way the console's boot dispatcher does (`&boot=<range>`
 picks another of the fifteen, `&boot=none` parks on `DefaultTab`, `&blade=N`
 drops straight onto a blade's rest state). `/?scene=<pack>/<file>.xur` renders
@@ -238,6 +252,52 @@ npx vercel@latest deploy --prebuilt --prod
   `reference/frames/<capture>-30fps/` is absent), and mounts the app twice to
   prove the teardown leaves exactly one viewport, one input router, one clock
   and one audio bank.
+- `tests/smoke/smoke-nav.mjs` section 8 walks the settings pages: every
+  Console Settings row's Current Setting against its own 6717 still, the
+  option selects (arrival row, the write, the pop with its cue, the parent's
+  line), the disabled Display row and its `btn_InactiveSelect`, the clock
+  spinners, the rating lists, X/Y, and a painted-token gate on every page it
+  reaches.
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.
+
+### NXE 9199, M4e: every page the code can reach offline
+
+The audit in `COVERAGE.md` found the NXE home page moving like the console
+and one slot working. After M4e (`dashboards/nxe/pageFocus.ts`, `strip.ts`,
+`codeLists9199.ts`, `navigation.ts`):
+
+- A hosted page's rows are its own button controls (any `btn*`, `nav*`,
+  `XuiButton`, radio button on the plate and enabled), its arrival focus is
+  the scene's `DefaultFocus` / chain head / first row, Up/Down/Left/Right walk
+  the authored NavUp/NavDown/NavLeft/NavRight chain, a real move sends
+  `KillFocus` and `Focus`, A plays the row's own Press (`btn_Select.xma`) and B
+  `legend_b`'s (`btn_Back.xma`). Fifty pages open under System Settings by
+  input; every option list is filled from 9199's own tables (Display,
+  Language, Locale, Time Zone, Remote Control, Pass code hints), and the lists
+  that stay empty say why in `__dash.nxe.codeUnfilled`. A press that would
+  write a setting on the console is recorded in `__dash.nxe.codePaths` and
+  writes nothing here.
+- The home slots: A on the Gamer Card opens the Sign In page (a Moby strip
+  under one "Sign In" row, "1 of 2"); A on What's Hot, Xbox Basics, the five
+  upsell slots and Games Library opens their root scene with its Rome strip
+  (8 / 8 / 5 / 2 panels, `RomeOverlayScene`'s counter, the front panel's
+  legend); the `EcNavTo*` bindings are read off the dispatcher's jump table
+  at `.rdata` 0x92028ad0. Video / Music / Picture Library and Media Center
+  build their page from device state on the console and stay refused with
+  the case address. `&page=<root scene>` hosts a root directly.
+- X and Y go to the page's control bound by `PressKey` 0x5802 / 0x5803
+  (Storage Devices' "Device Options"); every `<...>` authoring token is
+  cleared on every page; a whitespace or `Show=false` legend caption draws
+  no entry.
+- The legend leaves on A at `From` frame 95, not on the press: the
+  `SceneTransitions/TransitionSubElements` variable holds a zero across the
+  middle of each range and the legend, counter and queue captions are absent
+  exactly while it is zero, so the two frames the shell uses are that
+  plateau's two edges (95 on `From`, 205 on `BackTo`). Measured against the
+  footage the legend now leaves within a 30 fps frame of the console's.
+- `tests/smoke/smoke-nxe.mjs` walks all of it and measures Sign In against
+  [FRAME Yrt f0268] and the Game Library strip against [FRAME Yrt f0396] and
+  [FRAME Kpa f0300]. `SMOKE_NXE_ONLY=completeness` runs the walker alone and
+  `=footage` the frame-by-frame comparisons; the board always runs everything.

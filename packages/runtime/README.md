@@ -463,8 +463,9 @@ Settings 0 → 1 by frame 30, then back the other way on B.
 one; otherwise, for a `DashScene`, `PanelSettings[0]` — which is why Games and
 Media come up with the metapane on "Create Gamer Profile" no matter which row
 you look at. `NavUp`/`NavDown` walk a linked list with no wrap; `NavLeft` and
-`NavRight` are unset everywhere in the build because that axis is the blade
-switch. A move that the end of the chain absorbs returns null, so it plays no
+`NavRight` are unset on the five blade pages, where that axis is the blade
+switch, and authored on 35 deeper scenes (M3e: the shell walks them, with the
+parent's Nav* as the fallback for a control that names none). A move that the end of the chain absorbs returns null, so it plays no
 state and fires no cue.
 
 **The metapane** follows focus exactly as `CDashScene` does: destroy the
@@ -1722,3 +1723,46 @@ swap. `curvesFor()` returns the plain pair everywhere.
 - A refused press is silent; a channel change plays its channel cue only; A
   plays select + fold and the range's `snd_transitionfrom` at +9 ticks; B
   plays back, the range's `snd_transitioninto` at +39 and unfold at +49.
+
+## Blades M3e: the settings pages select (2026-09-03)
+
+Two additive changes in `ListView`, both driven by what the skin's `XuiButton`
+row visual already authors:
+
+- **A row can be disabled.** `ListItem.enabled: false` instantiates the
+  `XuiListItem` with `Enabled=false` (the disabled artwork `mountVisual`
+  picks) and drives it through the `*Disable` state pairs the visual carries -
+  `NormalDisable` at rest, `FocusDisable` / `InitFocusDisable` under the
+  highlight, `PressDisable` on A, whose File keyframe is
+  `btn_InactiveSelect.xma`. The Display page's "Screen Format" row is one
+  while the console runs a widescreen mode (the 0x927bfff0 table's `enabled`
+  field, gated at 0x921c677c); it used to be drawn selectable and disclosed.
+- **A list can be parked and blurred.** `park(i)` is `XuiListSetCurSel`
+  without focus: the row becomes the selection and the window scrolls to it,
+  no state plays. `blur()` plays the selected row's `KillFocus` (or
+  `NormalDisable`) when focus leaves the list for another control. The five
+  clock spinners are parked on the clock this way (0x921cc848 / 0x921ccf70)
+  while focus sits in one of them, and Right walks between them.
+
+The Blades glue gained `settingsModel.ts` (the console state and every option
+page's decoded handler), `DYNAMIC_LISTS` in `codeLists.ts` (lists computed
+from that state: the rating tables by locale, the spinners by the clock), and
+in `BladeShell`: arrival on the current value's row, the write-and-pop on A,
+the parent labels on focus, X/Y through `PressKey`, NavLeft/NavRight with the
+blade switch as the fallback, a `DefaultFocus` that names a scene descending
+into it, and the token clear running on every sub-scene a page mounts.
+
+## NXE 9199, M4e: completeness
+
+No runtime change. The NXE glue gained: `dashboards/nxe/pageFocus.ts` (the
+rows and arrival focus of a hosted page, the authoring-token rule),
+`codeLists9199.ts` (9199's own option tables, each VA re-read by
+`tests/nxe.test.ts`), `strip.ts` (a strip inside a pushed root scene on the
+Rome or Moby constants: rigs by distance, `To`/`BackFrom`, the overlay
+counter), and the dispatcher's jump table in `navigation.ts`. `NxeShell`
+pushes a root scene the way it pushes a page (`pushRoot`), walks a page's
+NavUp/NavDown/NavLeft/NavRight chain through the Blades `FocusModel`, sets the
+row's / `legend_b`'s Press for the skin's cues, routes X and Y by `PressKey`,
+and clears every authoring token on push. `__dash.nxe` grew `codePaths`,
+`codeUnfilled`, and per page `arrivalBy`, `focusClass`, `codeFilled`,
+`tokens`, `strip`.
