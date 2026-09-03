@@ -16,11 +16,12 @@
 //
 // WHAT IS EXACT HERE. The mirror geometry is not approximated at all: the
 // runtime already applies `Scale` as a CSS scale about `Pivot`, so a
-// `Scale=(1,-1,1)` element authored at y=1022 with a 512-tall surface puts the
-// mirror line at 1022/2 = 511 - flush with the surface's own bottom edge, which
-// is why the reflection starts exactly at the panel's foot. Placing a live
-// clone of the surface's subtree inside that element needs no arithmetic of
-// ours; the numbers are the file's.
+// `Scale=(1,-1,1)` element 512 tall authored at y=1022 has its TOP edge - the
+// mirror line - at 1022 - 512 = 510, flush with the surface's own bottom edge,
+// which is why the reflection starts exactly at the panel's foot. Placing a
+// live clone of the surface's subtree inside that element needs no arithmetic
+// of ours; the numbers are the file's. (An earlier version of this comment read
+// "1022/2 = 511", which is a coincidence of arithmetic and not the derivation.)
 //
 // WHAT IS APPROXIMATE, and recorded in PLACEHOLDERS.md:
 //
@@ -54,10 +55,21 @@ export const RIG_IDS = {
 } as const;
 
 /**
- * The reflection stand-in. Alpha at the floor line and the fraction of the
- * mirror's height it survives - both chosen to match what the default-theme
- * frames show under the front slot and both APPROXIMATE
+ * The reflection stand-in: alpha at the floor line, and the fraction of the
+ * mirror's height it survives. Both APPROXIMATE
  * [FRAME nxe-9199-YrtwSj1f6aY/f0483].
+ *
+ * SWEPT, and the sweep found nothing to choose between: 35 (alpha, fade) pairs
+ * over alpha 0.38..1.0 and fade 0.4..1.0, measured as the mean absolute luma
+ * difference against the frame over the whole floor (four column bands, rows
+ * 570..716), all land between MAD 90.1 and 93.3. The reflection is simply not
+ * the dominant term down there - the AURA's own floor is. With the reflection
+ * switched off entirely the same band reads 153/142/96/81 at rows 572/590/610/
+ * 630 against the frame's 182/192/189/174, so the floor beneath is already
+ * 30-90 luma dark before anything is mirrored onto it. That residual is
+ * recorded in the runtime README rather than tuned away here, because tuning a
+ * mirror to compensate for a background is how a plausible wrong answer
+ * survives a phase.
  */
 export const REFLECTION_ALPHA = 0.38;
 export const REFLECTION_FADE = 0.55;
@@ -96,6 +108,15 @@ export function rigParts(root: NodeRecord): RigParts {
  * left edge lands, and 0 is where its TOP edge lands once the -1 y scale has
  * been applied (the flip maps local v to rig 1022 - v, and the surface's top
  * at rig -2 mirrors about the floor line to rig 1022). No offset of ours.
+ *
+ * THE RAMP RUNS THE OTHER WAY, and getting it backwards is invisible in code
+ * and obvious in a frame (Judge F, finding 2). Inside a `Scale.y = -1` element
+ * local v = 0 is the FAR end of the mirror - rig y 1022, some 512 px below the
+ * floor - and local v = 100% is the floor line itself at rig 510. So the
+ * gradient has to be opaque at 100% and gone before 0%: `to top`. Written `to
+ * bottom` the reflection is missing everywhere it should be (a column mean
+ * below the front panel measured 0 at every row 568..716 against the frame's
+ * 167 -> 202 -> 103) and appears instead as detached slabs far below the foot.
  */
 export function mountReflection(surface: NodeRecord, reflection: NodeRecord): HTMLElement {
   const clone = surface.el.cloneNode(true) as HTMLElement;
@@ -114,10 +135,10 @@ export function mountReflection(surface: NodeRecord, reflection: NodeRecord): HT
   wrap.style.cssText = [
     'position:absolute', 'left:0', 'top:0', 'width:100%', 'height:100%',
     `opacity:${REFLECTION_ALPHA}`,
-    // Local v = 0 IS the floor line (see the header), so the ramp runs from
-    // opaque at the top of this box to nothing part way down.
-    `-webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) ${fade}%)`,
-    `mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) ${fade}%)`,
+    // Local v = 100% IS the floor line (see the header), so the ramp is opaque
+    // there and gone `fade` of the way back toward the far end.
+    `-webkit-mask-image:linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) ${fade}%)`,
+    `mask-image:linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) ${fade}%)`,
     'pointer-events:none',
   ].join(';');
   wrap.appendChild(clone);

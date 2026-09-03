@@ -391,6 +391,24 @@ export class TimelineEngine {
     return steps;
   }
 
+  /**
+   * Glue that has to advance on the SAME fixed 60 Hz step the timelines do.
+   *
+   * NXE's navigation is a physics integrator, not a named range (NXE_GLUE_SPEC
+   * §2.3), so the strip's velocity has to be integrated once per timeline
+   * frame and never off a wall clock of its own - otherwise `?frame=`,
+   * `stepFrames()` and the browser would each produce a different strip
+   * position for the same input. Returns the unsubscriber.
+   */
+  addStepper(fn: (frame: number) => void): () => void {
+    this.steppers.add(fn);
+    return () => { this.steppers.delete(fn); };
+  }
+  private readonly steppers = new Set<(frame: number) => void>();
+  /** Total 60 Hz steps taken since the engine was built. The tick a cue is
+   *  logged against, so a cue log is comparable with a measured frame index. */
+  frames = 0;
+
   /** Exactly one 60 Hz frame, for tests and for ?play. */
   step(): void {
     for (const s of this.scopes.values()) {
@@ -398,6 +416,8 @@ export class TimelineEngine {
       s.step();
       this.applyNow(s);
     }
+    this.frames += 1;
+    for (const fn of [...this.steppers]) fn(this.frames);
     this.drainWaiters();
   }
 

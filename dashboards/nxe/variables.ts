@@ -46,6 +46,13 @@ export const VARIABLE_NAMES: readonly string[] = [
 
 export interface Vec3 { x: number; y: number; z: number }
 
+/** One input axis's three constants. Units: see dashboards/nxe/physics.ts. */
+export interface AxisConstants {
+  acceleration: number;
+  deceleration: number;
+  maxVelocity: number;
+}
+
 export interface StripConstants {
   /** Depth between one panel and the next, in z units. */
   defaultSpacing: number;
@@ -60,6 +67,11 @@ export interface StripConstants {
   backPosition: Vec3;
   visiblePanelDistance: number;
   visiblePanelDistanceSD: number;
+  /** Moby names its two axes `ChannelInput*` and `PanelInput*`; Rome has ONE,
+   *  named `Input*`, and it drives both [SCENE]. So Rome's two are the same
+   *  object, which is a fact of the file and not a shortcut here. */
+  channel: AxisConstants;
+  panel: AxisConstants;
 }
 
 export class Variables {
@@ -85,11 +97,17 @@ export class Variables {
       if (typeof i === 'number') this.ints.set(id, i);
       if (v && typeof v === 'object' && 'x' in v) this.vectors.set(id, v as Vec3);
     });
+    // A table entry resolves by its TAIL: `SceneTransitions/TransitionScene` is
+    // the XuiVariable `TransitionScene` in this same scene (see
+    // sceneTransitions() for why that closes NXE_GLUE_SPEC §10.4). The eight
+    // `Sound*` entries are .xma file names, not variables, and are skipped.
+    const tail = (n: string): string => n.slice(n.lastIndexOf('/') + 1);
     for (const n of VARIABLE_NAMES) {
-      if (n.includes('/') || n.startsWith('Sound')) continue; // not XuiVariables
-      if (!seen.has(n)) this.missing.push(n);
+      if (n.startsWith('Sound')) continue;
+      if (!seen.has(tail(n))) this.missing.push(n);
     }
-    for (const n of seen) if (!VARIABLE_NAMES.includes(n)) this.extra.push(n);
+    const known = new Set(VARIABLE_NAMES.map(tail));
+    for (const n of seen) if (!known.has(n)) this.extra.push(n);
   }
 
   float(name: string): number | undefined { return this.floats.get(name); }
@@ -112,6 +130,15 @@ export class Variables {
       if (!v) throw new Error(`${VARIABLES_SCENE}: no ${prefix}${n}`);
       return v;
     };
+    // Moby names its two axes; Rome ships one and uses it for both.
+    const axis = (kind: 'Channel' | 'Panel'): AxisConstants => {
+      const stem = prefix === 'Rome' ? 'Input' : `${kind}Input`;
+      return {
+        acceleration: f(`${stem}Acceleration`),
+        deceleration: f(`${stem}Deceleration`),
+        maxVelocity: f(`${stem}MaxVelocity`),
+      };
+    };
     return {
       defaultSpacing: f('DefaultSpacing'),
       foldSpeed: f('FoldSpeed'),
@@ -123,9 +150,45 @@ export class Variables {
       backPosition: v3('BackPosition'),
       visiblePanelDistance: f('VisiblePanelDistance'),
       visiblePanelDistanceSD: f('VisiblePanelDistanceSD'),
+      channel: axis('Channel'),
+      panel: axis('Panel'),
     };
   }
+
+  /**
+   * The four `SceneTransitions/*` entries of the code's name table.
+   *
+   * NXE_GLUE_SPEC §10.4 lists these as unresolved - "no scene in the build
+   * declares an object called SceneTransitions", so "either a fifth lookup
+   * namespace, or they are optional and absent". They are neither: all four
+   * are ORDINARY XuiVariables in `controlp/Variables.xur`, alongside the thirty
+   * strip constants, named by the TAIL of the table entry [SCENE, re-read from
+   * the file]. The scene has exactly 35 XuiVariables: 30 strip + 4 transition +
+   * `RomeUnfoldEaseRange` and `MobyUnfoldEaseRange` unset.
+   *
+   *   TransitionScene       1  (float)
+   *   TransitionSubElements 1  (float)
+   *   TransitionChannel     unset
+   *   TransitionPanel       unset
+   *
+   * Read as switches, that says the console runs a Trans* curve when the SCENE
+   * changes and when its sub-elements do, and NO curve when only the channel or
+   * the panel cursor moves - which is exactly the behaviour the strip physics
+   * needs (a cursor move is motion, not a cross-fade) and exactly what the
+   * footage shows. That last sentence is the INFERENCE; the four values are the
+   * file's.
+   */
+  sceneTransitions(): { name: string; value: number | null }[] {
+    return SCENE_TRANSITION_NAMES.map((n) => ({
+      name: n,
+      value: this.floats.get(n) ?? this.ints.get(n) ?? null,
+    }));
+  }
 }
+
+/** The tails of the four `SceneTransitions/*` entries at .rdata 0x927f7108. */
+export const SCENE_TRANSITION_NAMES: readonly string[] =
+  ['TransitionScene', 'TransitionSubElements', 'TransitionChannel', 'TransitionPanel'];
 
 /**
  * The eight navigation cues, by the name the config table gives them. Their

@@ -26,6 +26,14 @@
 //                           instead of the home strip
 //   &channel=<id>           (9199) come up on that channel instead of the XML's
 //                           own <defaultchannelid>
+//   &iptv                   (9199 too) an IPTV provider is configured, so
+//                           System Settings shows its eighth row
+//
+// On ?build=9199 the pad drives the strip: left/right move the PANEL cursor,
+// up/down the CHANNEL cursor (the opposite axis assignment to Blades), A runs
+// the focused slot's <onclick> and B pops the page stack. All of it is a
+// per-frame integrator on the timeline's own 60 Hz clock, so &manual +
+// __dashApi.stepFrames() reproduces any position exactly.
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
@@ -73,25 +81,91 @@ interface DashApi {
   playRange(scopeId: string, from: string, to?: string): boolean;
   /** The NXE shell's report, on ?build=9199 only. */
   nxe?: () => NxeReport;
+  /** The NXE shell's navigation, on ?build=9199 only. */
+  nxeShell?: {
+    /** The panel cursor, within the current channel. */
+    left(): boolean;
+    right(): boolean;
+    /** The channel cursor. */
+    up(): boolean;
+    down(): boolean;
+    /** A: the focused slot's <onclick>, or the focused row of a hosted page. */
+    press(): Promise<boolean>;
+    /** B: pop the page stack. */
+    back(): boolean;
+    idle(): Promise<void>;
+    report(): NxeReport;
+  };
   /** Step exactly N timeline frames, synchronously, ignoring wall time. */
   stepFrames(n: number): void;
   scopeIds(): string[];
+  /** Tear this mount down and build it again, the way a hot update does.
+   *  The smoke suite drives it to prove nothing is left behind. */
+  remount(): Promise<void>;
 }
 declare global { interface Window { __dashApi?: DashApi } }
 
 const params = new URLSearchParams(location.search);
 const host = document.getElementById('app')!;
 
-main().catch((err: unknown) => {
-  const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err);
-  const b = document.createElement('div');
-  b.className = 'banner';
-  b.textContent = msg;
-  host.appendChild(b);
-  const t = window.__dash;
-  if (t) t.errors.push(msg);
-  console.error(err);
-});
+/* ------------------------------------------------------------- the mount */
+
+/**
+ * Everything ONE run of main() created that a second run must not inherit.
+ *
+ * main() runs at module scope, and a Vite dev server re-executes this module on
+ * every hot update. Without a teardown, each reload appended a SECOND viewport
+ * to `#app`, attached a SECOND InputRouter to the window, and started a second
+ * rAF clock and a second AudioContext - so one key press drove two shells, both
+ * of which were still in the document. That is what stacked the Blades
+ * metapane's descriptions on a dev server that had been up for hours: the
+ * descriptions were not accumulating in one pane, there were N panes.
+ *
+ * So the module owns a disposer list, `teardown()` runs it, and
+ * `import.meta.hot` is wired to it. `__dashApi.remount()` is the same path, and
+ * it is what the smoke suite drives - a leak that only a human notices after an
+ * afternoon of editing is not a leak anyone will find, so it has a test.
+ */
+const disposers: (() => void)[] = [];
+function onDispose(fn: () => void): void { disposers.push(fn); }
+
+export function teardown(): void {
+  // Last in, first out: the clock stops before the shell it drives goes away.
+  while (disposers.length) {
+    const fn = disposers.pop()!;
+    try { fn(); } catch (err) { console.error(err); }
+  }
+  host.replaceChildren();
+  delete (window as { __dashApi?: DashApi }).__dashApi;
+  delete document.body.dataset['ready'];
+}
+
+/** How many times main() has run in this page. Reported, so a suite can prove
+ *  it really did remount rather than measure the first mount twice. */
+let mounts = 0;
+
+function boot(): void {
+  main().catch((err: unknown) => {
+    const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err);
+    const b = document.createElement('div');
+    b.className = 'banner';
+    b.textContent = msg;
+    host.appendChild(b);
+    const t = window.__dash;
+    if (t) t.errors.push(msg);
+    console.error(err);
+  });
+}
+boot();
+
+// A hot update replaces this module: tear the old mount down first, then let
+// the new copy of main() run. Every module the app imports propagates its
+// update up to this one, so the whole app is rebuilt from a clean page rather
+// than layered on top of the last one.
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => teardown());
+  import.meta.hot.accept();
+}
 
 async function main(): Promise<void> {
   // ?blend=5:screen - sweep a candidate BlendMode mapping against the frames.
@@ -113,7 +187,8 @@ async function main(): Promise<void> {
   setActiveBuild(build);
   const assets = await AssetIndex.load(base, build);
   const telemetry = createTelemetry(assets.build);
-  startFpsMeter(telemetry);
+  mounts += 1;
+  onDispose(startFpsMeter(telemetry));
   await loadFont(assets.base + `assets/${build}/fonts/`, telemetry.placeholders);
 
   const skin = await Skin.load(assets, activeBuild().skin);
@@ -124,8 +199,22 @@ async function main(): Promise<void> {
   // AFTER the route: publish() replaces the telemetry's errors with the
   // scene report's, so a message pushed before it would vanish.
   if (error) telemetry.errors.push(error);
+  syncHmr(telemetry);
   document.body.dataset['ready'] = 'true';
 }
+
+/** The live-singleton census. Every count is 1 on a healthy page, however many
+ *  times the app has been mounted. */
+function syncHmr(t: DashTelemetry): void {
+  t.hmr = {
+    mounts,
+    viewports: Viewport.live.size,
+    inputRouters: InputRouter.attached.size,
+    audioContexts: AudioBank.open.size,
+    clocks: liveClocks,
+  };
+}
+let liveClocks = 0;
 
 /** The console face is extracted from the ROM, so a miss is a real placeholder. */
 async function loadFont(fontDir: string, placeholders: string[]): Promise<void> {
@@ -210,6 +299,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   if (!params.has('mute')) audio.unlockOnGesture();
   audio.attach(engine);
   const input = installBladeInput(shell, t, audio);
+  onDispose(() => { input.detach(); audio.close(); viewport.dispose(); });
   installApi(engine, t, input, audio, []);
   window.__dashApi!.shell = {
     go: (tab) => { const ok = shell.go(tab); syncShell(t, shell, audio); return ok; },
@@ -332,6 +422,7 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   refreshVisibility(viewport.canvas.firstElementChild as HTMLElement, report);
   publish(t, report);
   const input = installInput(engine, lists, t, audio);
+  onDispose(() => { input.detach(); audio.close(); viewport.dispose(); });
   installApi(engine, t, input, audio, lists);
   runClock(engine, t);
 
@@ -363,6 +454,8 @@ function runClock(engine: TimelineEngine, t: DashTelemetry): void {
   let last = performance.now();
   let stepped = 0;
   let window1s = last;
+  let raf = 0;
+  liveClocks += 1;
   const loop = (now: number) => {
     stepped += engine.tick(now - last);
     last = now;
@@ -372,9 +465,12 @@ function runClock(engine: TimelineEngine, t: DashTelemetry): void {
     } else {
       t.timeline = { ...engine.report(), fps: t.timeline.fps };
     }
-    requestAnimationFrame(loop);
+    raf = requestAnimationFrame(loop);
   };
-  requestAnimationFrame(loop);
+  raf = requestAnimationFrame(loop);
+  // A clock that outlives its engine keeps a whole shell alive and stepping in
+  // a page the user cannot see - the second half of the dev-server leak.
+  onDispose(() => { cancelAnimationFrame(raf); liveClocks -= 1; });
 }
 
 function installApi(engine: TimelineEngine, t: DashTelemetry, input: InputRouter, audio: AudioBank, lists: ListView[]): void {
@@ -392,6 +488,7 @@ function installApi(engine: TimelineEngine, t: DashTelemetry, input: InputRouter
     playRange: (scopeId, from, to) => { const ok = engine.playRange(scopeId, from, to); t.timeline = { ...engine.report(), fps: t.timeline.fps }; return ok; },
     stepFrames: (n) => { for (let i = 0; i < n; i++) engine.step(); t.timeline = { ...engine.report(), fps: t.timeline.fps }; },
     scopeIds: () => engine.all().map((s) => s.id),
+    remount: async () => { teardown(); await main(); },
   };
 }
 
@@ -425,6 +522,7 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
     state: {
       page: params.get('page'),
       channel: params.get('channel'),
+      iptv: params.has('iptv'),
       // Every console-state predicate is a switch, because none of them can be
       // answered from this archive; the defaults are the offline/no-profile
       // state the 8955 capture is in (dashboards/nxe/epix.ts).
@@ -443,13 +541,72 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
   audio.attach(engine);
-  const input = new InputRouter();
-  input.attach();
+  // The eight navigation cues are named in a CODE table and played by the GLUE
+  // (NXE_GLUE_SPEC §2.3), the opposite of the Blades rule where every cue is a
+  // XuiSoundXAudio.File keyframe. So the shell gets the bank, not the engine.
+  shell.attach(audio);
+  const input = installNxeInput(shell, t, audio);
+  onDispose(() => { input.detach(); audio.close(); shell.dispose(); viewport.dispose(); });
   installApi(engine, t, input, audio, []);
-  window.__dashApi!.nxe = () => shell.report();
+  const api = window.__dashApi!;
+  api.nxe = () => shell.report();
+  api.nxeShell = {
+    left: () => nxeStep(shell, t, audio, () => shell.movePanel(-1)),
+    right: () => nxeStep(shell, t, audio, () => shell.movePanel(1)),
+    up: () => nxeStep(shell, t, audio, () => shell.moveChannel(1)),
+    down: () => nxeStep(shell, t, audio, () => shell.moveChannel(-1)),
+    press: async () => { const ok = await shell.press(); await shell.idle(); syncNxe(t, shell, audio); return ok; },
+    back: () => nxeStep(shell, t, audio, () => shell.back()),
+    idle: async () => { await shell.idle(); syncNxe(t, shell, audio); },
+    report: () => shell.report(),
+  };
+  syncNxe(t, shell, audio);
   runClock(engine, t);
 
   if (params.has('debug')) mountInspector(host, shell.home.root, viewport.canvas);
+}
+
+/**
+ * NXE's pad. Left/right move the PANEL cursor and up/down the CHANNEL cursor -
+ * the opposite axis assignment to Blades, where left/right switch the blade,
+ * and it is the file's: `MobyPanelInput*` is named for the d-pad's horizontal
+ * axis and `MobyChannelInput*` for the vertical [SPEC §2.3]. A is the focused
+ * slot's `<onclick>`, B pops the page stack.
+ */
+function installNxeInput(shell: NxeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
+  const router = new InputRouter();
+  router.push({
+    id: 'nxe',
+    onButton: (b) => {
+      if (b === Button.Left) shell.movePanel(-1);
+      else if (b === Button.Right) shell.movePanel(1);
+      // UP moves to the channel drawn ABOVE the current one, which is the NEXT
+      // channel in file order (NxeShell's QUEUE_ROWS header).
+      else if (b === Button.Up) shell.moveChannel(1);
+      else if (b === Button.Down) shell.moveChannel(-1);
+      else if (b === Button.A) { void shell.press().then(() => shell.idle()).then(() => syncNxe(t, shell, audio)); }
+      else if (b === Button.B) shell.back();
+      else if (b === Button.Guide) noteGuide(t);
+      else return;
+      syncNxe(t, shell, audio);
+    },
+  });
+  router.attach();
+  return router;
+}
+
+function nxeStep(shell: NxeShell, t: DashTelemetry, audio: AudioBank, fn: () => boolean): boolean {
+  const ok = fn();
+  syncNxe(t, shell, audio);
+  void shell.idle().then(() => syncNxe(t, shell, audio));
+  return ok;
+}
+
+function syncNxe(t: DashTelemetry, shell: NxeShell, audio: AudioBank): void {
+  t.nxe = shell.report();
+  t.input = window.__dashApi?.input.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer })) ?? t.input;
+  t.cues = audio.log.slice(-60).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
+  t.lastCue = audio.log.length ? audio.log[audio.log.length - 1]!.cue : t.lastCue;
 }
 
 /* ------------------------------------------------------------------- input */

@@ -33,6 +33,19 @@ export interface ViewportOptions {
 export class Viewport {
   readonly stage: HTMLElement;
   readonly canvas: HTMLElement;
+  private readonly onResize = () => this.layout();
+
+  /**
+   * Every viewport that has not been disposed.
+   *
+   * A viewport owns a window `resize` listener and a subtree of the page, so a
+   * second one built without disposing the first leaves two dashboards stacked
+   * in the document and two listeners on the window. That is exactly what a
+   * long-lived Vite dev server produced (LEARNINGS, "Rendering (DOM)"), so the
+   * count is telemetry rather than a comment: `__dash.hmr.viewports` is 1 on a
+   * healthy page and the smoke suite asserts it after a remount.
+   */
+  static readonly live = new Set<Viewport>();
 
   constructor(private readonly host: HTMLElement, private readonly opts: ViewportOptions = { consoleView: false }) {
     this.stage = document.createElement('div');
@@ -45,8 +58,16 @@ export class Viewport {
     this.canvas.style.transformOrigin = '0 0';
     this.stage.appendChild(this.canvas);
     this.host.appendChild(this.stage);
-    addEventListener('resize', () => this.layout());
+    addEventListener('resize', this.onResize);
+    Viewport.live.add(this);
     this.layout();
+  }
+
+  /** Drop the listener and the subtree. Idempotent. */
+  dispose(): void {
+    if (!Viewport.live.delete(this)) return;
+    removeEventListener('resize', this.onResize);
+    this.stage.remove();
   }
 
   /** The console's output size in framebuffer pixels. */

@@ -582,11 +582,35 @@ measured off the footage. The model is a pinhole,
 wears its own 3D position. Panel *k* sits at `z = k · MobyDefaultSpacing` on
 the straight line from `MobyFrontPosition` to `MobyBackPosition`.
 
-Fitted to ten landmarks on three panels of one frame, each read by the same
-gradient detector:
+**Refitted in M4b, and the M4a numbers were over-fitted.** Ten landmarks on
+three panels of ONE frame, three of them the same panel, do not constrain three
+free parameters where it matters - far down the strip, where panels are 60 px
+apart rather than 200. The fit is now over **thirty-two landmarks on six panels
+of two frames** (`Yrt f0483`, default theme; `Kpa f0048`, a themed console),
+detected by a rule rather than by hand: the model predicts panel k's box, and
+each edge is the strongest luma step across a band that crosses only that panel.
 
 ```
-f = 1428    Cu = 154.5    Cv = 356.5      rms 0.46 px, worst 0.86 px
+f = 1434    Cu = 153.5    Cv = 353.3      rms 0.93 px, worst 2.47 px
+```
+
+against **rms 1.59** for M4a's numbers over the same thirty-two. Fitting each
+frame alone gives 1428/154.8/353.4 (rms 0.70) and 1443/150.5/353.0 (rms 1.02);
+the projection belongs to the console and not to a capture, so the joint fit is
+the answer and the spread between two capture chains is the error bar on `f`
+(about +-8).
+
+**The anchor carries the rig's own -2.** Panel 0 sits at z = 0, where the
+projection is the identity, so its top and bottom are exactly 250 and 570 - and
+both frames read 248 and 568. Those two pixels are `ReflectedItems` at the rig's
+(0,-2) [SCENE], not a projection error; leaving them out of the fit dragged Cv
+3 px down and doubled the rms. **A residual that is the same on the top and the
+bottom of one panel is never the projection.**
+
+The M4a fit, for the record:
+
+```
+f = 1428    Cu = 154.5    Cv = 356.5      rms 0.46 px on its own ten landmarks
 ```
 
 | landmark | measured | model | d |
@@ -688,20 +712,31 @@ Measured against the Console Settings still, with the same detector on both
 
 | | frame | ours | d |
 |---|---|---|---|
-| page left | 192.3 | 193.5 | +1.17 |
-| page top | 109.7 | 107.5 | −2.17 |
-| page bottom | 593.7 | 589.5 | −4.17 |
-| **list row pitch** | **45.14** | **45.00** | **−0.14** |
+| framed left | 192.3 | 192.5 | +0.17 |
+| framed right | 1085.7 | 1082.5 | −3.17 |
+| framed top | 109.7 | 110.5 | +0.83 |
+| framed bottom | 593.7 | 593.5 | −0.17 |
+| **list row pitch** | **45.10** | **44.90** | **−0.20** |
 
-The three page edges are the OUTER edge of the framed page: the frame measures
-890.7 x 484.0 around an authored 880 x 480, i.e. about 5.4 px each side and
-2 px top and bottom of border the rig draws and this milestone does not, which
-is the sign and the size of all three offsets. The row pitch is the landmark no
-border can shift, and it settles a number the spec leaves open: the spec reads
-46 px off `SystemScene`'s hand-placed nav buttons (y = 10, 56, 102), but the
-Console Settings LIST runs at **45**, the same pitch as Blades - because the
-pitch comes from the `XuiList` visual's own `control_ListItem`, not from the
-scene's.
+**The border is not the story it looked like, and M4a's placement was an
+assumption dressed as a measurement.** What both sides draw is the page's own
+`BackgroundPanel` visual, which ends in a 907x500 nine-grid at (-15,-12) - so
+the outer edge IS a fair landmark, and the border is not symmetric. Solving for
+the page origin from it puts the page at centre x **638.8**, top **114.7**; M4a
+read the 4 px of extra height as a symmetric 2 px border and put it at 640/111,
+which is 3.7 px high. The remaining −3.17 on the right edge is 3.4 px of
+nine-grid border ink, not placement: the other three edges land within 0.9 px.
+
+The row pitch is the landmark no border can shift, and it settles a number the
+spec leaves open: the spec reads 46 px off `SystemScene`'s hand-placed nav
+buttons (y = 10, 56, 102), but the Console Settings LIST runs at **45**, the
+same pitch as Blades - because the pitch comes from the `XuiList` visual's own
+`control_ListItem`, not from the scene's. **The detector is a comb, not eight
+picks**: scoring every (pitch, origin) pair by the rising-step response at the
+eight positions it predicts. Taking the eight strongest steps and averaging
+their gaps - which is what M4a did - lets one strong impostor turn the "mean
+pitch" into the distance between the first and last thing it happened to pick,
+divided by seven.
 
 **Where Blades' machinery is reused, and where it is not.** `ListView`,
 `FocusModel`'s arrival rule, the `DashScene` panel tables and the
@@ -716,23 +751,180 @@ header are hoisted instead of drawn in place.
 `f0375` is SYSTEM Settings (seven rows); the eight-row Console Settings page is
 `f0381`. The row set and order the spec gives are exactly right.
 
-### What M4a does not do
+## NXE 9199, M4b: the strip moves
 
-`__dash.nxe.physics` names it on every load, and the smoke suite asserts the
-list is not empty:
+M4a placed the strip; M4b integrates it. Everything M4a listed as not done is
+done, and `__dash.nxe.physics` now names the READINGS the data does not settle
+rather than the features that are missing.
 
-- **the strip does not move.** Navigation is a per-frame velocity integrator
-  over `Moby{Channel,Panel}Input{Acceleration,Deceleration,MaxVelocity}`;
-  panels sit at their resting depths.
-- **no fold/unfold.** `Moby{Fold,Unfold}Speed`, `{Fold,Unfold}NextRange` and
-  `UnfoldMinSpeed` describe a cascade that is not integrated.
-- **no navigation cues.** The eight `controlp/snd_*.xma` are named in a CODE
-  table (`.rdata` 0x927f7194) and played by the glue on the console - the
-  opposite of the Blades rule - and nothing plays them here because nothing
-  moves yet.
-- **no scene transitions.** `LegacyTo`/`LegacyFrom` and their `…Ex` forms are in
-  the skin and are not driven.
-- **no Aura background, no avatars, no shaders.** PLACEHOLDERS.md.
+### The integrator
+
+`controlp/Variables.xur` gives three constants per axis and no unit. Two of the
+three possible units are refuted by arithmetic alone (z units make one step take
+25 s; per-frame units make it take 0.9 ms), and the third - **index units per
+second** - is confirmed by an exact number: for a triangular accel/decel move of
+distance 1, `T = sqrt(2 (a + d) / (a d))`, and the channel axis (50/40) closes at
+`sqrt(0.09)` = **0.300 000 s**. Two numbers that are not round producing a round
+three tenths of a second is the evidence; it is still INFERRED and says so.
+
+The input is a SERVO to an integer target, not free acceleration. Read
+literally, §2.3's "a held direction accelerates the cursor toward a velocity
+cap" makes a one-frame tap move 0.007 of a panel; the console moves exactly one.
+Holding re-targets as each step completes, which is the same continuous scroll
+without a second model.
+
+The braking rule is a **speed ceiling**, `|v| <= sqrt(2 d e)`, not a switch.
+Written as a switch - accelerate until the braking distance, then decelerate -
+the discrete step overshoots, the arrival clamp eats the tail, and the
+integrator disagrees with its own closed form by 12 % (17 frames against 20.5).
+
+**Measured**, on the only two captures that can carry a velocity claim. The
+per-frame displacement is a 1-D cross-correlation of a row band between
+consecutive frames, so it measures the strip and not a threshold:
+
+| | frames | seconds | screen centroid | peak at |
+|---|---|---|---|---|
+| model, panel axis 40/30/20 (cursor) | 19 | 0.317 | — | 0.42 |
+| model, same, projected onto a panel edge | 19 | 0.317 | 0.428 | 0.42 |
+| **measured, 8498 t = 504.0 s** (genuine 60 fps) | 22 | **0.367** | **0.446** | 0.32 |
+| **measured, 9199 t = 240.5 s** (30 fps doubled) | 23 enc | **0.383** | **0.410** | 0.23 |
+| closed form `stepDuration` | 20.5 | 0.342 | — | — |
+
+Three more 9199 steps in the same run measure 0.383 s each. So the file's own
+constants reproduce the console's move to within two to four frames of
+twenty-two, and the SHAPE agrees once the projection is applied - which it must
+be, because a constant cursor rate is not a constant screen rate. Comparing a
+measured screen profile against a cursor profile is meaningless and would have
+made the fit look 20 % worse than it is.
+
+The 8498 capture is **build 8498, not 9199**: its own `Variables.xur` was not
+extracted and may differ. It is quoted because it is the only genuine 60 fps
+material, and the 9199 number is quoted beside it.
+
+### The fold cascade
+
+`FoldSpeed 30 / UnfoldSpeed 10` with `FoldNextRange 0.3 / UnfoldNextRange 0.7 /
+UnfoldMinSpeed 0.1`, read as progress per second with panel *k+1* starting when
+panel *k* passes `NextRange`: a fold is 33 ms a panel and 11 ms of stagger
+(seven panels in 100 ms), an unfold 100 ms and 70 ms (520 ms). At 30 FRAMES a
+fold would be slower than an unfold, which is backwards from every capture.
+`UnfoldMinSpeed` cannot bind, because `UnfoldEaseRange` is unset in the file and
+nothing else varies the rate; it is applied anyway rather than dropped.
+
+**The gate has to be read off the progress at the START of the frame.** Read off
+the array being written, panel 0 advances, panel 1 sees the advanced value,
+passes its gate and advances in the same pass - and the whole cascade collapses
+into two frames. A cascade whose stagger is one frame is not a cascade, and
+nothing about the code says so.
+
+Measured: four channel changes on the 9199 home run measure 0.78, 0.92, 0.95 and
+0.82 s of continuous motion (a fold, a rebuild and an unfold). The model is
+0.62 s. That 25 % is unexplained and is not tuned away: the fold's GEOMETRY is
+inferred, so its duration is the only thing worth quoting.
+
+### The cues
+
+The eight `Sound*` entries of the code table at `.rdata` 0x927f7194, played by
+the GLUE - the opposite of the Blades rule, where every cue is a
+`XuiSoundXAudio.File` keyframe and the engine fires it. `__dash.nxe.cues` logs
+each with the 60 Hz tick it fired on and whether the name came from the table or
+from an inference. A REFUSED move is silent, exactly as a held d-pad at the end
+of a Blades list is.
+
+| event | cue | evidence |
+|---|---|---|
+| d-pad left / right | `snd_panelleft` / `snd_panelright` | table |
+| d-pad up / down | `snd_channelup` / `snd_channeldown` | table |
+| A | `snd_buttonselect` | table |
+| B | `snd_buttonback` | table |
+| strip folds / unfolds | `snd_panelfold` / `snd_panelunfold` | table |
+| page pushed / popped | `snd_transitioninto` / `snd_transitionfrom` | **inferred** - `controlp` holds ten `.xma` and the table names eight |
+
+### The transitions, and §2.4's inference measured
+
+The shell writes the chosen curve name into the scene's own `TransTo` /
+`TransFrom` / `TransBackTo` / `TransBackFrom` - which is what the code does
+(the four property names and the eight visual names are one block at `.text`
+0x9249229c) - and then the ordinary Trans machinery plays it. Read out of the
+9199 skin: `LegacyFrom` 15 frames, `LegacyTo` hold 5 then 5..20, `LegacyFromEx`
+30, `LegacyToEx` hold 45 then 45..60.
+
+§2.4 leaves the choice between the plain and `…Ex` forms as an [INFER]. **The
+footage settles it.** A legacy page replacing another legacy page - System
+Settings to Console Settings, on a 29.97 fps cut of the primary capture -
+measures a 0.501 s burst of change, a quiet 0.43 s, then a 0.234 s burst
+[FRAME Kpa t = 190.06-191.22 s, between f0375 and f0381]. `LegacyFromEx` is
+0.500 s, its hold to the incoming fade is 0.250 s and that fade is 0.250 s. The
+plain pair (0.250 / 0.083 / 0.250) cannot produce a half-second outgoing fade.
+So the `…Ex` pair is what covers a page-over-page swap, and the plain pair is
+what the strip's fold covers.
+
+### The Aura background
+
+`dashmain/DashBkgnd.xur` is mounted behind the shell and `controlp/AuraScene.xur`
+is mounted as a live DOM subtree where its `Aura` image's
+`ImagePath="controlpack://aurascene.xur"` would be - the same approximation
+`PanelScene`'s `XuiTextureSurface` already is. `AuraControl`'s four properties
+are read and reported; the only one this archive can honour is `SurfaceSphere`,
+because `BackgroundImage` and `BannerImage` are unset in all thirteen scenes
+that carry one. `themeripple.uxfx` is mounted and animates nothing: both of its
+`XuiImagePresenter`s are theme data the archive does not have.
+
+**Measured, and a residual that is stated rather than tuned.** Under the front
+panel (design x 110..500), the frame's floor reads 182 / 192 / 189 / 174 / 154 /
+136 / 120 / 106 at rows 572..710 [FRAME Yrt f0483]; ours reads 101 / 108 / 96 /
+99 / 116 / 112 / 119 / 102. Thirty-five (alpha, fade) pairs for the reflection
+were swept over the whole floor and all land between MAD 90.1 and 93.3, so the
+reflection is not the term that is wrong - with it switched off entirely the
+same rows read 153 / 142 / 96 / 81, so the Aura's own floor is already 30-90
+luma dark before anything is mirrored onto it. Tuning the mirror to compensate
+for the background is how a plausible wrong answer survives a phase, so the
+constants stay where the file's own comment put them and the number is here.
+
+### What M4b still does not do
+
+`__dash.nxe.physics` names all of it on every load:
+
+- **the queue's rows shrink with distance on the console and do not here.** Cap
+  heights on [FRAME Kpa f0048] measure about 33 / 25 / 18 / 15 / 14 design px
+  going up the stack, against a flat 36 px pitch in the file. The brightness
+  ramp is reproduced; the size ramp is measured and not modelled.
+- **avatars** - `XuiAvatar` in five scenes, all of it Live/`xam` data.
+- **the Rome shells** - `RomeRootScene`, `RomeOverlayScene`, the 460x495 panels
+  and the `ColumnLayer`/`OverlayLayer` pair. The Rome constants ARE read out of
+  `Variables.xur` and reported; nothing mounts them.
+- **everything Xbox LIVE served**, as in M4a.
+
+## The mount is disposable (2026-09-03)
+
+`app/main.ts` runs at module scope and a Vite dev server re-executes it on every
+hot update. With no teardown, each reload appended a SECOND viewport to `#app`,
+attached a SECOND `InputRouter` to the window, and started a second rAF clock and
+a second `AudioContext` - so one key press drove two shells, both still in the
+document. **The Blades metapane looked as though it were accumulating every
+description ever written; it was not accumulating anything, there were N
+metapanes.** A leak whose only symptom is "the page looks wrong after an
+afternoon of editing" is a leak nobody finds, so it has a teardown and a test:
+
+- `app/main.ts` owns a disposer list; `teardown()` runs it last-in-first-out,
+  empties `#app` and drops `__dashApi`. `import.meta.hot.dispose(teardown)` plus
+  a self-accept means a hot update rebuilds the app from a clean page instead of
+  layering on the last one, and an update to any module the app imports
+  propagates up to it.
+- `Viewport.dispose()` removes its `resize` listener and its subtree;
+  `InputRouter.detach()` removes its key listeners and cancels its pad poll;
+  `AudioBank.close()` closes the context and drops the gesture listeners;
+  `startFpsMeter` and the timeline clock both return stop handles.
+- The live singletons are COUNTED, not asserted about: `Viewport.live`,
+  `InputRouter.attached` and `AudioBank.open` are static sets, and
+  `__dash.hmr` reports `{ mounts, viewports, inputRouters, audioContexts,
+  clocks }`. Every count is 1 on a healthy page however many times the app has
+  mounted.
+- `__dashApi.remount()` is the same path a hot update takes, and
+  `tests/smoke/smoke-nxe.mjs` drives it: after a remount the counts must still
+  be 1, the DOM must hold the same number of description, queue and panel
+  elements as the first mount, and one synthetic ArrowRight must move the panel
+  cursor by exactly one - two attached routers would move it by two.
 
 ## What is honestly not implemented
 

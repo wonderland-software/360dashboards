@@ -64,14 +64,66 @@ export const HEADER_TITLES: Readonly<Record<string, string>> = {
 export const LEGEND_ORDER = ['AButton', 'BButton', 'XButton', 'YButton'] as const;
 export const LEGEND_ICON_W = 32;
 export const LEGEND_TEXT_X = 36;
-export const LEGEND_GAP = 24;
-/** INFERRED: the caption advance we cannot measure without laying out text. */
+/**
+ * The gap between one entry's caption and the next entry's icon.
+ *
+ * MEASURED on the Storage Devices legend row, which reads
+ * "(A) Select (B) Back (Y) Device Options" [FRAME nxe-9199-YrtwSj1f6aY/f0437].
+ * Ink runs along that row, in 1280x720 units: A icon 100..123, "Select"
+ * 133..183, B icon 207..231, "Back" 241..279, Y icon 304..327, "Device
+ * Options" 337..419. Caption end to next icon start is 202-183 = 19 and
+ * 299-279 = 20, and the icon-to-caption offset is 37 and 39 against the file's
+ * authored 36. So the gap is 20, not the 24 M4a guessed - which, with a
+ * per-character caption width, put the B icon 7 px right of the frame.
+ */
+export const LEGEND_GAP = 20;
+/**
+ * The fallback caption advance, per character.
+ *
+ * It used to be the mechanism, and as a mechanism it is indefensible: a
+ * per-character constant against a proportional face is wrong by a different
+ * amount for every caption, and it put the B icon several pixels out on the
+ * Console Settings still. The layout now measures the caption that was
+ * ACTUALLY LAID OUT - the runtime has already rendered the glyphs by then, so
+ * its own ink width is there for the asking - and this number is only reached
+ * when the DOM cannot answer (a detached node, a font that never loaded).
+ */
 export const LEGEND_CHAR_W = 8.6;
+
+/**
+ * The INK width of a rendered caption, in design px, or null.
+ *
+ * A `Range` over the paint box measures the glyphs, not the box: the box is
+ * the control's authored width (420 px here) and tells you nothing. Measured
+ * this way "Select" comes out 51 px against 50 on the frame [FRAME Yrt f0437].
+ */
+function captionWidth(label: NodeRecord): number | null {
+  const paint = label.el.matches('[data-xui-paint="text"]')
+    ? label.el
+    : label.el.querySelector('[data-xui-paint="text"]');
+  if (!paint) return null;
+  try {
+    // A Range over the BOX measures the box (512 px here, the control's own
+    // width); a Range over a TEXT NODE measures the glyphs. Take the widest
+    // line, which for a one-line legend caption is the caption.
+    const walker = document.createTreeWalker(paint, NodeFilter.SHOW_TEXT);
+    const r = document.createRange();
+    let w = 0;
+    while (walker.nextNode()) {
+      r.selectNodeContents(walker.currentNode);
+      w = Math.max(w, r.getBoundingClientRect().width);
+    }
+    r.detach?.();
+    return w > 0 ? w : null;
+  } catch {
+    return null;
+  }
+}
 
 export interface LegendReport {
   scene: string;
   /** group -> the caption hoisted into it, in layout order. */
-  buttons: { group: string; from: string; text: string; x: number; enabled: boolean }[];
+  buttons: { group: string; from: string; text: string; x: number; enabled: boolean; width: number | null }[];
   /** The page title and which title group it went into. */
   title: string;
   titleGroup: string | null;
@@ -80,6 +132,10 @@ export interface LegendReport {
   /** Scopes parked on the END of their Bind/Show range, with the frame. */
   settled: { scope: string; frame: number }[];
 }
+
+/** A legend caption the shell supplies rather than reading off a parked
+ *  control. `from` says where it came from, for the report. */
+export interface SuppliedCaption { group: string; from: string; text: string }
 
 export interface HoistOpts {
   assets: AssetIndex;
@@ -95,6 +151,35 @@ export interface HoistOpts {
   source: NodeRecord | null;
   /** Filled with the groups that need settling once timelines are bound. */
   pending: NodeRecord[];
+  /** Handed the mounted LegendScene root, so the shell can rebind it later
+   *  without remounting the scene. */
+  mounted?: (root: NodeRecord) => void;
+  /** Captions the shell supplies (the home page's A, from the slot helptext). */
+  supplied?: readonly SuppliedCaption[];
+}
+
+/**
+ * Re-lay the legend row once the groups are on screen and their glyphs have
+ * been laid out.
+ *
+ * `bindLegend` runs while the groups are still parked on frame 0 of their
+ * `Show` range - i.e. invisible - so a `Range` over the caption measures
+ * nothing and the layout falls back to the per-character estimate. Once
+ * `settleLegend` has put them on the last frame the ink is real, so the row is
+ * laid out again from the widths the renderer actually produced.
+ */
+export function relayoutLegend(root: NodeRecord, report: LegendReport): void {
+  let x = 0;
+  for (const b of report.buttons) {
+    const node = find(root, b.group);
+    if (!node) continue;
+    b.x = x;
+    node.overrides.set('Position', { x, y: 0, z: 0 });
+    updateNode(node, ['Position']);
+    const label = find(node, 'Text');
+    b.width = label ? captionWidth(label) : null;
+    x += LEGEND_TEXT_X + (b.width ?? b.text.length * LEGEND_CHAR_W) + LEGEND_GAP;
+  }
 }
 
 /**
@@ -148,9 +233,25 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
   o.host.el.appendChild(el);
   const root = o.nodes.all[before];
   if (!root) return null;
+  o.mounted?.(root);
+  return bindLegend(root, o.source, o.pending, o.supplied ?? []);
+}
 
+/**
+ * Re-read the captions out of whatever page the shell is showing now.
+ *
+ * The legend is a SHELL service, so it survives every navigation and only its
+ * contents change: moving the panel cursor, pushing a page and popping one all
+ * hand it a different source scene. Remounting `LegendScene.xur` for each would
+ * throw away the `Show` ranges the groups are parked on.
+ */
+export function bindLegend(
+  root: NodeRecord, source: NodeRecord | null, pending: NodeRecord[],
+  supplied: readonly SuppliedCaption[] = [],
+): LegendReport {
   const report: LegendReport = { scene: LEGEND_SCENE, buttons: [], title: '', titleGroup: null, empty: [], settled: [] };
   const settle: NodeRecord[] = [];
+  const o = { source };
 
   // What the page parks, by id.
   const parked = new Map<string, XuObject>();
@@ -168,8 +269,12 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
   for (const group of LEGEND_ORDER) {
     const from = Object.keys(LEGEND_BUTTONS).find((k) => LEGEND_BUTTONS[k] === group)!;
     const ob = parked.get(from);
-    const text = ob ? String(propByName(ob, 'Text')?.value ?? '') : '';
-    const enabled = ob ? propByName(ob, 'Enabled')?.value !== false : false;
+    // A caption the SHELL supplies outranks a parked control, because on the
+    // home page there is no page to park one: the A caption is the focused
+    // slot's own `<onclick><helptext>` out of the channel XML (§4.1).
+    const given = supplied.find((c) => c.group === group);
+    const text = given ? given.text : ob ? String(propByName(ob, 'Text')?.value ?? '') : '';
+    const enabled = given ? true : ob ? propByName(ob, 'Enabled')?.value !== false : false;
     const node = find(root, group);
     if (!node) continue;
     if (!text) {
@@ -185,10 +290,15 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
     node.overrides.set('Position', { x, y: 0, z: 0 });
     updateNode(node, ['Show', 'Position']);
     const label = find(node, 'Text');
-    if (label) { label.overrides.set('Text', text); updateNode(label, ['Text']); }
+    let advance: number | null = null;
+    if (label) {
+      label.overrides.set('Text', text);
+      updateNode(label, ['Text']);
+      advance = captionWidth(label);
+    }
     settle.push(node);
-    report.buttons.push({ group, from, text, x, enabled });
-    x += LEGEND_ICON_W + (LEGEND_TEXT_X - LEGEND_ICON_W) + text.length * LEGEND_CHAR_W + LEGEND_GAP;
+    report.buttons.push({ group, from: given ? given.from : from, text, x, enabled, width: advance });
+    x += LEGEND_TEXT_X + (advance ?? text.length * LEGEND_CHAR_W) + LEGEND_GAP;
   }
 
   if (header) {
@@ -206,8 +316,18 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
       updateNode(node, ['Show']);
       settle.push(node);
     }
+  } else {
+    // No `Label_Head*` label on this page: the title groups stay hidden rather
+    // than keeping the previous page's caption.
+    for (const group of Object.values(HEADER_TITLES)) {
+      const node = find(root, group);
+      if (!node) continue;
+      node.overrides.set('Show', false);
+      updateNode(node, ['Show']);
+    }
   }
-  o.pending.push(...settle);
+  pending.length = 0;
+  pending.push(...settle);
   return report;
 }
 

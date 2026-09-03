@@ -61,6 +61,7 @@ export class AudioBank {
     const bank = new AudioBank([...urls.keys()]);
     for (const [k, v] of urls) bank.urls.set(k, v);
     bank.muted = muted;
+    AudioBank.open.add(bank);
     return bank;
   }
 
@@ -75,12 +76,39 @@ export class AudioBank {
     if (this.ctx || this.unlocking) return;
     const go = () => {
       this.unlocking = null;
+      this.cancelUnlock = null;
       for (const ev of ['pointerdown', 'keydown', 'gamepadconnected']) target.removeEventListener(ev, go);
       void this.start();
     };
     this.unlocking = go;
     for (const ev of ['pointerdown', 'keydown', 'gamepadconnected']) target.addEventListener(ev, go, { once: true });
+    this.cancelUnlock = () => {
+      this.unlocking = null;
+      this.cancelUnlock = null;
+      for (const ev of ['pointerdown', 'keydown', 'gamepadconnected']) target.removeEventListener(ev, go);
+    };
   }
+  private cancelUnlock: (() => void) | null = null;
+
+  /**
+   * Give up the AudioContext and the gesture listeners.
+   *
+   * A browser allows only a handful of AudioContexts per page, so a module
+   * reload that built a new bank without closing the old one eventually stops
+   * every cue. Counted as `__dash.hmr.audioContexts`.
+   */
+  close(): void {
+    this.cancelUnlock?.();
+    const ctx = this.ctx;
+    this.ctx = null;
+    this.buffers.clear();
+    AudioBank.open.delete(this);
+    if (ctx) void ctx.close().catch(() => { /* already closed */ });
+  }
+
+  /** Banks holding a live AudioContext, or waiting for the gesture that builds
+   *  one. Telemetry for the remount check, not a cache. */
+  static readonly open = new Set<AudioBank>();
 
   async start(): Promise<void> {
     if (this.ctx || this.muted) return;

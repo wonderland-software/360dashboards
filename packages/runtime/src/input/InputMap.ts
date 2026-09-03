@@ -84,8 +84,21 @@ export class InputRouter {
   private readonly keys = new Set<Button>();
   private readonly pad = new Set<Button>();
   private raf = 0;
+  private detachFn: (() => void) | null = null;
   /** Every press seen, newest last. The smoke suites read this. */
   readonly log: { button: Button; repeat: boolean; layer: string | null; t: number }[] = [];
+
+  /**
+   * Every router currently listening on the window.
+   *
+   * A router attaches a keydown/keyup pair and a requestAnimationFrame pad
+   * poll, and NOTHING removes them when the module that built it is replaced.
+   * Two attached routers means one key press drives two shells, which is what
+   * stacked the metapane's descriptions on a long-lived dev server. The count
+   * is reported as `__dash.hmr.inputRouters` and the smoke suite asserts it is
+   * 1 after a remount.
+   */
+  static readonly attached = new Set<InputRouter>();
 
   constructor(private readonly now: () => number = () => performance.now()) {}
 
@@ -114,12 +127,19 @@ export class InputRouter {
     target.addEventListener('keyup', up);
     const loop = () => { this.pollPad(); this.pumpRepeats(); this.raf = requestAnimationFrame(loop); };
     this.raf = requestAnimationFrame(loop);
-    return () => {
+    InputRouter.attached.add(this);
+    this.detachFn = () => {
+      if (!InputRouter.attached.delete(this)) return;
       target.removeEventListener('keydown', down);
       target.removeEventListener('keyup', up);
       cancelAnimationFrame(this.raf);
+      this.detachFn = null;
     };
+    return this.detachFn;
   }
+
+  /** Stop listening. Idempotent, and safe on a router that never attached. */
+  detach(): void { this.detachFn?.(); }
 
   /** The test hook: exactly one press, as if the pad had sent it. */
   press(b: Button, repeat = false): boolean {

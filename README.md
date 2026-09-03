@@ -74,8 +74,14 @@ a measured perspective. `&page=<pack>/<file>` hosts an 880x480 Blades-era page
 inside the NXE shell instead of the strip
 (`&page=consoles/dashSysCslSet.xur` is Console Settings, eight rows from the
 table at 0x92016a90). `&channel=<id>` picks another channel; `&hddvd`,
-`&mediaroom`, `&live` and `&nowelcome` flip the console-state predicates the
-`<condition>` elements ask about. NXE scenes are 1280x720 and land 1:1 on the
+`&mediaroom`, `&live`, `&nowelcome` and `&iptv` flip the console-state
+predicates the `<condition>` elements ask about. On that route the pad drives
+the strip: left/right move the panel cursor and up/down the channel cursor (the
+opposite axis assignment to Blades, and the file's own - `MobyPanelInput*` is
+the horizontal axis), A runs the focused slot's `<onclick>` and B pops the page
+stack. Navigation is a per-frame velocity integrator over the thirty constants
+in `controlp/Variables.xur`, stepped on the timeline's own 60 Hz clock, so
+`&manual` plus `__dashApi.stepFrames()` reproduces any position exactly. NXE scenes are 1280x720 and land 1:1 on the
 output, so the Blades view transform does not apply to them - measured, see
 `packages/runtime/README.md`.
 
@@ -112,8 +118,10 @@ The same chain runs for NXE with `--build 9199` (`extracted/9199/`,
 - `dashboards/nxe` — the same for NXE 9199, where there is much more of it:
   the XML channel manifest and its `<condition>` predicates, the Epix
   path -> scene binding, the strip constants, the `XuiPerspectiveScene`
-  projection, the `PanelScene` reflection rig, the `LegendScene` hoist and the
-  `LegacyControl` host.
+  projection, the velocity integrator and fold cascade the strip navigates on,
+  the eight navigation cues (played by the glue, not by a timeline), the
+  `PanelScene` reflection rig, the `LegendScene` hoist, the `DashBkgnd`/Aura
+  background and the `LegacyControl` page stack.
 - `tools/` — extraction and reverse-engineering tools (see LEARNINGS.md for
   what each one established).
 
@@ -164,10 +172,15 @@ hand-written 9199 XML and the 9199 binary disagree, the binary wins
   batch-run by `tools/xuihelper-convert.sh <build>`) on every scene it can
   read: `XUIDIFF_PASS`; the same with `extracted/9199/... --registry 9199`.
   Every normalisation the diff applies is documented in the tool.
-- `npm run smoke` runs eight headless suites serially, including
+- `npm run smoke` runs ten headless suites serially, including
   `smoke-gallery` (both builds: 263 + 311 scenes, zero unknown classes) and
-  `smoke-nxe` (the composed NXE home page and one hosted legacy page, each
-  measured against its reference still with the same detector run over both).
+  `smoke-nxe`, which measures the composed NXE home page and a hosted legacy
+  page against their reference stills with the same detector run over both,
+  re-derives the perspective fit from its own thirty-two landmarks, drives a
+  scripted navigation path a 60 Hz frame at a time (Right/Left, Up/Down, A into
+  System Settings, A into Console Settings, B twice) printing the cue ticks and
+  the panel depths per tick, and mounts the app twice to prove the teardown
+  leaves exactly one viewport, one input router, one clock and one audio bank.
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.

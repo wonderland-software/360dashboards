@@ -78,6 +78,17 @@ interface Owner {
    * three to six CRLFs - the value block sits in that gap [SCENE].
    */
   slots?: Map<number, string>;
+  /**
+   * The SECONDARY IMAGE slots, keyed by DataAssociation, exactly as `slots` is
+   * for text. `slots/TraySlotScene.xur`'s `imgIcon` is association 20 and
+   * `reflection` is 21: two channels the console's slot class fills with the
+   * slot's icon, distinct from the primary `ImagePath` that carries the slot's
+   * background. Filling the primary into them is what painted the 420x320
+   * background a second time, stretched into a 208x342 box (build.ts's
+   * `gateImageDataAssociation`); leaving them empty is what made the glue draw
+   * the icon by hand and get its size and origin wrong.
+   */
+  imageSlots?: Map<number, string>;
 }
 
 interface Opts {
@@ -362,7 +373,7 @@ export function contentFor(
   switch (kind) {
     case 'figure': return renderFigure(p, rect.w, rect.h, ctx);
     case 'image': case 'imagePresenter':
-      return renderImage(p, rect.w, rect.h, ctx, owner?.imagePath ?? null, kind === 'image');
+      return renderImage(p, rect.w, rect.h, ctx, owner?.imagePath ?? null, kind === 'image', owner?.imageSlots);
     case 'ninegrid': return renderNineGrid(p, rect.w, rect.h, ctx);
     case 'text': case 'textPresenter': {
       const t: TextOwner | null = owner ? { text: owner.text, pointSize: owner.pointSize, slots: owner.slots } : null;

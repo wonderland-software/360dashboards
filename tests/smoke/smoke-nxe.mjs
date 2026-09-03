@@ -38,17 +38,53 @@ const ok = (cond, msg) => { if (!cond) fails.push(msg); };
 // [FRAME nxe-9199-YrtwSj1f6aY/f0483]. Ten landmarks on three panels, in 1280x720
 // units; the same list dashboards/nxe/projection.ts fitted the projection to.
 const HOME_FRAME = `${FRAMES}/nxe-9199-YrtwSj1f6aY/f0483.png`;
+// Panel indices are 0-BASED here and in dashboards/nxe/projection.ts. The
+// numbers are the refit's own measurements (32 landmarks over two frames); the
+// M4a list carried panel 1's top as 284.0 where this detector reads 281.7.
 const HOME_LANDMARKS = [
-  { name: 'panel1 left', kind: 'v', at: 95.3, band: [430, 470] },
-  { name: 'panel1 right', kind: 'v', at: 515.6, band: [430, 470] },
-  { name: 'panel1 top', kind: 'h', at: 248.0, band: [300, 450] },
-  { name: 'panel1 bottom', kind: 'h', at: 568.0, band: [150, 450] },
-  // Below panel 3's foot (492), so the band crosses panel 2's plain lower
+  { name: 'panel0 left', kind: 'v', at: 95.7, band: [430, 470] },
+  { name: 'panel0 right', kind: 'v', at: 515.7, band: [430, 470] },
+  { name: 'panel0 top', kind: 'h', at: 247.7, band: [300, 450] },
+  { name: 'panel0 bottom', kind: 'h', at: 567.7, band: [150, 450] },
+  // Below panel 2's foot (492), so the band crosses panel 1's plain lower
   // body and the floor, and nothing of the gamer card's content.
-  { name: 'panel2 right', kind: 'v', at: 826.6, band: [497, 515] },
-  { name: 'panel2 top', kind: 'h', at: 284.0, band: [545, 600] },
-  { name: 'panel3 top', kind: 'h', at: 305.0, band: [850, 950] },
+  { name: 'panel1 right', kind: 'v', at: 827.0, band: [497, 515] },
+  // TOP EDGES carry their own tolerance, and the reason is measurable: a Moby
+  // slot's top rows are the bright end of the `mobyslot` gradient, so the
+  // strongest luma STEP sits a few pixels inside the geometric edge, and it
+  // sits further inside on our render than on the console's. The DOM boxes
+  // agree with the projection model to 0.1 px (panel 1's top is 282.9 in both),
+  // so this is a shading residual and not a placement one - which is why it is
+  // given a number here rather than hidden in a wider global tolerance.
+  { name: 'panel1 top', kind: 'h', at: 281.7, band: [545, 600], tol: 5 },
+  { name: 'panel2 top', kind: 'h', at: 305.0, band: [850, 950], tol: 5 },
+  { name: 'panel3 top', kind: 'h', at: 315.7, band: [1015, 1090], tol: 5 },
 ];
+
+/** The thirty-two landmarks dashboards/nxe/projection.ts was fitted to.
+ *  Duplicated here on purpose: a suite that imports the value it is checking
+ *  checks nothing. */
+const LANDMARKS = [
+  { panel: 0, edge: 'right', measured: 515.7 }, { panel: 0, edge: 'top', measured: 247.7 },
+  { panel: 0, edge: 'bottom', measured: 567.7 }, { panel: 0, edge: 'left', measured: 95.7 },
+  { panel: 1, edge: 'right', measured: 827.0 }, { panel: 1, edge: 'top', measured: 281.7 },
+  { panel: 1, edge: 'bottom', measured: 519.7 }, { panel: 2, edge: 'right', measured: 1010.3 },
+  { panel: 2, edge: 'top', measured: 305.0 }, { panel: 2, edge: 'bottom', measured: 491.7 },
+  { panel: 3, edge: 'top', measured: 315.7 }, { panel: 3, edge: 'bottom', measured: 472.3 },
+  { panel: 4, edge: 'top', measured: 327.0 }, { panel: 4, edge: 'bottom', measured: 458.3 },
+  { panel: 5, edge: 'top', measured: 333.7 }, { panel: 5, edge: 'bottom', measured: 449.0 },
+  { panel: 0, edge: 'right', measured: 515.7 }, { panel: 0, edge: 'top', measured: 247.0 },
+  { panel: 0, edge: 'bottom', measured: 568.3 }, { panel: 0, edge: 'left', measured: 93.7 },
+  { panel: 1, edge: 'right', measured: 827.7 }, { panel: 1, edge: 'top', measured: 281.7 },
+  { panel: 1, edge: 'bottom', measured: 520.3 }, { panel: 2, edge: 'right', measured: 1012.3 },
+  { panel: 2, edge: 'top', measured: 304.3 }, { panel: 2, edge: 'bottom', measured: 491.7 },
+  { panel: 3, edge: 'top', measured: 314.3 }, { panel: 3, edge: 'bottom', measured: 472.3 },
+  { panel: 4, edge: 'top', measured: 327.0 }, { panel: 4, edge: 'bottom', measured: 459.0 },
+  { panel: 5, edge: 'top', measured: 333.7 }, { panel: 5, edge: 'bottom', measured: 449.7 },
+];
+
+/** The channel queue: which row carries ink, and how bright it is. */
+const QUEUE_ROW_Y = { Next4: 24, Next3: 60, Next2: 96, Next1: 132, Current: 168, Prev1: 204 };
 
 // Console Settings, the eight rows of the 0x92016a90 table, with the metapane
 // on the right. NOTE: NXE_GLUE_SPEC §5 and reference/frames/nxe-README.md both
@@ -66,15 +102,16 @@ const LEGACY_FRAME = `${FRAMES}/nxe-9199-Kparblu6r14/f0381.png`;
 // border, not a placement error, and the list-pitch measurement below is the
 // landmark that is free of it.
 const LEGACY_LANDMARKS = [
-  { name: 'page left', kind: 'v', at: 192.5, band: [200, 500] },
-  { name: 'page top', kind: 'h', at: 109.7, band: [700, 1000] },
-  { name: 'page bottom', kind: 'h', at: 593.7, band: [700, 1000] },
+  { name: 'framed left', kind: 'v', at: 192.3, band: [200, 500] },
+  { name: 'framed right', kind: 'v', at: 1085.7, band: [200, 500], win: 6 },
+  { name: 'framed top', kind: 'h', at: 109.7, band: [700, 1000] },
+  { name: 'framed bottom', kind: 'h', at: 593.7, band: [700, 1000] },
 ];
 
 /* ------------------------------------------------------------- the detector */
 
 /** Strongest |gradient| of a mean-luma profile, within +-win of `at`. */
-function edgeNear(im, kind, at, band, win = 12) {
+function edgeNear(im, kind, at, band, win = 8) {
   const k = im.w / 1280;
   const p = kind === 'v'
     ? rowProfile(im, 0, im.w, Math.round(band[0] * k), Math.round(band[1] * k))
@@ -127,9 +164,17 @@ try {
     ok(byId.XBOX360 === 'My Xbox', `XBOX360 is named "${byId.XBOX360}"`);
     ok(byId.WELCOME === 'Welcome', `WELCOME is named "${byId.WELCOME}"`);
 
-    console.log(`  queue: ${n.queue.map((q) => `${q.row}="${q.text}"`).join(' ')}`);
+    // The queue runs UPWARD and WRAPS: Next_n is the channel n places after the
+    // current one in file order, Prev1 is empty at rest, and the rows above fade
+    // with distance [FRAME Kpa f0048, Yrt f0483 - QUEUE_ROWS' header].
+    console.log(`  queue: ${n.queue.map((q) => `${q.row}="${q.text}"@${q.dim}`).join(' ')}`);
     ok(n.queue.find((q) => q.row === 'Current')?.text === 'My Xbox', 'Queue\\Current is not "My Xbox"');
-    ok(n.queue.find((q) => q.row === 'Prev1')?.text === 'Welcome', 'Queue\\Prev1 is not "Welcome"');
+    ok(n.queue.find((q) => q.row === 'Prev1')?.text === '', 'Queue\\Prev1 is not empty at rest');
+    ok(n.queue.find((q) => q.row === 'Next1')?.text === 'Game Marketplace', 'Queue\\Next1 is not "Game Marketplace"');
+    ok(n.queue.find((q) => q.row === 'Next2')?.text === 'Video & Music Marketplace', 'Queue\\Next2 is not the second channel after My Xbox');
+    ok(n.queue.find((q) => q.row === 'Next6')?.text === 'Welcome', 'the queue does not wrap past the end of the channel list');
+    const dims = n.queue.filter((q) => q.text).map((q) => q.dim);
+    ok(dims[0] === 1 && dims.every((d, i) => i === 0 || d < dims[i - 1]), `the queue rows do not fade upward: ${dims.join(',')}`);
 
     console.log(`  panels: ${n.panels.length} slots, ${n.panels.filter((p) => p.mounted).length} mounted, counter "${n.counter}"`);
     for (const p of n.panels) console.log(`    z=${String(p.z).padStart(5)}  ${p.mounted ? 'mounted ' : 'culled  '} ${String(p.name).padEnd(22)} ${p.path} -> ${p.scene ?? '-'}`);
@@ -142,8 +187,39 @@ try {
     ok(n.strip.defaultSpacing === 505, `MobyDefaultSpacing ${n.strip.defaultSpacing}`);
     ok(n.strip.frontPosition.x === 96 && n.strip.frontPosition.y === 570, 'MobyFrontPosition is not (96,570,0)');
     ok(n.variablesMissing.length === 0, `Variables.xur is missing ${n.variablesMissing.join(',')}`);
-    ok(n.physics.length > 0, 'the physics honesty list is empty');
+    ok(n.physics.length > 0, 'the honesty list is empty');
     console.log(`  projection: f=${n.projection.focal} centre=(${n.projection.centreU}, ${n.projection.centreV})`);
+
+    // The three input axes, read out of controlp/Variables.xur.
+    console.log(`  axes: channel ${n.strip.channel.acceleration}/${n.strip.channel.deceleration}/${n.strip.channel.maxVelocity}  panel ${n.strip.panel.acceleration}/${n.strip.panel.deceleration}/${n.strip.panel.maxVelocity}`);
+    ok(n.strip.panel.acceleration === 40 && n.strip.panel.deceleration === 30 && n.strip.panel.maxVelocity === 20, 'MobyPanelInput* is not 40/30/20');
+    ok(n.strip.channel.acceleration === 50 && n.strip.channel.deceleration === 40 && n.strip.channel.maxVelocity === 10, 'MobyChannelInput* is not 50/40/10');
+    // The unit's own evidence: the channel axis closes at exactly 0.3 s.
+    console.log(`  one step: channel ${n.motion.stepSeconds.channel.toFixed(4)} s, panel ${n.motion.stepSeconds.panel.toFixed(4)} s`);
+    ok(Math.abs(n.motion.stepSeconds.channel - 0.3) < 1e-6, `the channel axis closes at ${n.motion.stepSeconds.channel}, not 0.300000 s - the evidence for the unit`);
+
+    // The four SceneTransitions/* entries, which NXE_GLUE_SPEC §10.4 lists as
+    // unresolved: they are XuiVariables in the same Variables.xur.
+    console.log(`  sceneTransitions: ${n.sceneTransitions.map((t) => `${t.name}=${t.value ?? 'unset'}`).join(' ')}`);
+    ok(n.sceneTransitions.length === 4, 'the four SceneTransitions/* entries did not resolve');
+    ok(n.sceneTransitions[0].value === 1 && n.sceneTransitions[2].value === null,
+      'TransitionScene/TransitionChannel are not 1/unset');
+
+    // The background: DashBkgnd with AuraScene mounted where the ImagePath is.
+    ok(n.aura, 'no Aura background');
+    if (n.aura) {
+      console.log(`  aura: ${n.aura.scene} -> ${n.aura.auraScene} (${n.aura.auraImagePath})`);
+      console.log(`    AuraControl: ThemeImageIndex=${n.aura.control?.themeImageIndex} SurfaceSphere=${n.aura.control?.surfaceSphere} BackgroundImage="${n.aura.control?.backgroundImage}"`);
+      ok(n.aura.errors.length === 0, `aura errors: ${n.aura.errors.join(' | ')}`);
+      ok(n.aura.scene === 'dashmain/DashBkgnd.xur', 'the background is not DashBkgnd.xur');
+      ok(n.aura.auraScene === 'controlp/AuraScene.xur', 'AuraScene is not mounted where the ImagePath is');
+      ok(n.aura.control?.themeImageIndex === 1, 'homepage.xur AuraControl.ThemeImageIndex is not 1');
+      ok(n.aura.control?.backgroundImage === '', 'AuraControl.BackgroundImage is set - a theme would be downloaded content');
+      ok(n.aura.placeholders.length >= 4, 'the Aura placeholder list is empty');
+    }
+
+    // The projection, re-derived from its own landmarks rather than trusted.
+    checkProjection(n.projection);
   }
 
   await home.page.screenshot({ path: `${OUT}/nxe-home.png` });
@@ -194,7 +270,141 @@ try {
   listPitch(`${OUT}/nxe-legacy.png`, LEGACY_FRAME);
   await legacy.page.close();
 
-  /* ------------------------------------------------ 3. Blades is untouched */
+  /* ------------------------------------------ 3. the scripted navigation */
+
+  // One page, one scripted path, driven a 60 Hz frame at a time so every number
+  // below is countable: boot, Right/Left through the My Xbox panels, Up/Down
+  // through the channels, A into System Settings, A into Console Settings, B
+  // back twice. `&manual` hands the clock to stepFrames(), so the strip's
+  // position at tick N is the same in the browser, under ?frame= and here.
+  const nav = await load(`${BASE}/?build=9199&mute&manual`);
+  ok(nav.pageErrors.length === 0, `nav js errors: ${nav.pageErrors.join(' | ')}`);
+  const path = await nav.page.evaluate(async () => {
+    const api = window.__dashApi, s = api.nxeShell;
+    const steps = [];
+    const run = async (label, act, frames) => {
+      const before = api.nxe();
+      const cues0 = before.cues.length;
+      await act();
+      const positions = [];
+      for (let i = 0; i < frames; i++) {
+        api.stepFrames(1);
+        const r = api.nxe();
+        positions.push({ t: r.motion.frames, p: +r.motion.panel.cursor.toFixed(4), c: +r.motion.channel.cursor.toFixed(4), z: +(r.panels[0]?.z ?? 0).toFixed(1) });
+      }
+      await s.idle();
+      for (let i = 0; i < 20; i++) api.stepFrames(1);
+      await s.idle();
+      const r = api.nxe();
+      steps.push({
+        label, positions,
+        cues: r.cues.slice(cues0).map((c) => ({ name: c.name, tick: c.tick, evidence: c.evidence })),
+        panel: +r.motion.panel.cursor.toFixed(3), channel: +r.motion.channel.cursor.toFixed(3),
+        fold: r.motion.fold.phase, page: r.legacy?.scene ?? null,
+        pages: r.pages.map((q) => `${q.scene} (${q.form}/${q.curve})`),
+        legend: r.legend?.buttons.map((b) => `${b.group}="${b.text}"@${Math.round(b.x)}`).join(' ') ?? '',
+        rows: r.legacy?.rows ?? [],
+        focus: r.legacy?.focusId ?? null,
+      });
+    };
+    await run('Right', () => s.right(), 30);
+    await run('Left', () => s.left(), 30);
+    await run('Up (channel)', () => s.up(), 60);
+    await run('Down (channel)', () => s.down(), 60);
+    for (let i = 0; i < 7; i++) { s.right(); for (let j = 0; j < 30; j++) api.stepFrames(1); await s.idle(); }
+    await run('A -> System Settings', () => s.press(), 60);
+    await run('A -> Console Settings', () => s.press(), 60);
+    await run('B', () => s.back(), 60);
+    await run('B (home)', () => s.back(), 90);
+    const r = api.nxe();
+    return { steps, unbound: r.unboundCommands, errors: r.errors, cues: r.cues };
+  });
+  ok(path.errors.length === 0, `nav shell errors: ${path.errors.join(' | ')}`);
+  for (const st of path.steps) {
+    const moved = st.positions.filter((p, i) => i === 0 || p.p !== st.positions[i - 1].p || p.c !== st.positions[i - 1].c).length;
+    console.log(`  ${st.label.padEnd(22)} panel ${String(st.panel).padStart(5)}  channel ${String(st.channel).padStart(5)}  fold ${st.fold.padEnd(9)} ${st.page ?? '(home)'}`);
+    console.log(`      cues: ${st.cues.map((c) => `${c.name}@${c.tick}${c.evidence === 'inferred' ? '*' : ''}`).join(' ') || '(none)'}`);
+    console.log(`      panel0 z per tick: ${st.positions.slice(0, 24).map((p) => p.z.toFixed(0)).join(' ')}${st.positions.length > 24 ? ' ...' : ''}  (${moved} ticks moved)`);
+  }
+  const step = (label) => path.steps.find((x) => x.label === label);
+  ok(step('Right').panel === 1, 'Right did not move the panel cursor one place');
+  ok(step('Left').panel === 0, 'Left did not move it back');
+  ok(step('Right').cues.some((c) => c.name === 'SoundPanelRight'), 'Right played no SoundPanelRight');
+  ok(step('Left').cues.some((c) => c.name === 'SoundPanelLeft'), 'Left played no SoundPanelLeft');
+  ok(step('Up (channel)').cues.some((c) => c.name === 'SoundChannelUp'), 'Up played no SoundChannelUp');
+  ok(step('Up (channel)').cues.some((c) => c.name === 'SoundPanelFold'), 'a channel change did not fold the strip');
+  ok(step('Down (channel)').channel === 6, `Down did not return to My Xbox (channel ${step('Down (channel)').channel})`);
+  const sys = step('A -> System Settings');
+  ok(sys.page === 'consoles/SystemScene.xur', `A on the Settings slot opened ${sys.page}`);
+  ok(sys.rows.length === 7, `System Settings has ${sys.rows.length} rows, expected 7 (navIPTVSettings hidden)`);
+  ok(sys.rows[0] === 'Console Settings' && sys.rows[6] === 'Initial Setup', `System Settings rows: ${sys.rows.join(' | ')}`);
+  ok(sys.pages[0]?.includes('plain'), `the first page should take the PLAIN curve (the fold covers it): ${sys.pages.join(', ')}`);
+  ok(sys.cues.some((c) => c.name === 'SoundButtonSelect'), 'A played no SoundButtonSelect');
+  ok(sys.fold === 'folded', 'the strip did not fold away behind the page');
+  const cs = step('A -> Console Settings');
+  ok(cs.page === 'consoles/dashSysCslSet.xur', `A on Console Settings opened ${cs.page}`);
+  ok(cs.rows.length === 8 && cs.rows[0] === 'Display' && cs.rows[7] === 'System Info', `Console Settings rows: ${cs.rows.join(' | ')}`);
+  ok(cs.pages[1]?.includes('ex'), `a legacy page over a legacy page should take the ...Ex curve: ${cs.pages.join(', ')}`);
+  ok(cs.legend.includes('AButton="Select"') && cs.legend.includes('BButton="Back"'), `Console Settings legend: ${cs.legend}`);
+  const back1 = path.steps.filter((x) => x.label === 'B')[0];
+  ok(back1.page === 'consoles/SystemScene.xur', `B did not pop back to System Settings (${back1.page})`);
+  ok(back1.cues.some((c) => c.name === 'SoundButtonBack'), 'B played no SoundButtonBack');
+  const back2 = step('B (home)');
+  ok(back2.page === null, 'the second B did not return to the home strip');
+  ok(back2.cues.some((c) => c.name === 'SoundPanelUnfold'), 'returning home did not unfold the strip');
+  console.log(`  unbound commands: ${path.unbound.length ? path.unbound.join(' | ') : '(none)'}`);
+  await nav.page.screenshot({ path: `${OUT}/nxe-nav-home.png` });
+  await nav.page.close();
+
+  /* --------------------------------------------- 4. the mount is disposable */
+
+  // The dev-server leak: a hot update re-runs app/main.ts, and without a
+  // teardown the page ends up with two viewports, two input routers and two
+  // clocks - one key press driving two shells, both still in the document.
+  // Mounting twice here is the same path a hot update takes.
+  const twice = await load(`${BASE}/?build=9199&mute`);
+  const before = await twice.page.evaluate(() => ({
+    hmr: window.__dash.hmr,
+    viewports: document.querySelectorAll('.xui-viewport').length,
+    descriptions: document.querySelectorAll('[data-xui-id="Description"]').length,
+    slots: document.querySelectorAll('.nxe-panel').length,
+    queue: document.querySelectorAll('[data-xui-id="Current"]').length,
+  }));
+  const after = await twice.page.evaluate(async () => {
+    await window.__dashApi.remount();
+    return {
+      hmr: window.__dash.hmr,
+      viewports: document.querySelectorAll('.xui-viewport').length,
+      descriptions: document.querySelectorAll('[data-xui-id="Description"]').length,
+      slots: document.querySelectorAll('.nxe-panel').length,
+      queue: document.querySelectorAll('[data-xui-id="Current"]').length,
+      errors: window.__dash.errors,
+    };
+  });
+  console.log(`  first mount : ${JSON.stringify(before)}`);
+  console.log(`  after remount: ${JSON.stringify(after)}`);
+  ok(after.hmr.mounts === 2, `remount() did not run main() again (mounts ${after.hmr.mounts})`);
+  ok(after.hmr.viewports === 1, `${after.hmr.viewports} live viewports after a remount, expected 1`);
+  ok(after.hmr.inputRouters === 1, `${after.hmr.inputRouters} attached input routers after a remount, expected 1`);
+  ok(after.hmr.audioContexts === 1, `${after.hmr.audioContexts} audio banks after a remount, expected 1`);
+  ok(after.hmr.clocks === 1, `${after.hmr.clocks} timeline clocks after a remount, expected 1`);
+  ok(after.viewports === 1, `${after.viewports} .xui-viewport elements in the document`);
+  ok(after.descriptions === before.descriptions, `the "%d of %d" description stacked: ${before.descriptions} -> ${after.descriptions}`);
+  ok(after.queue === before.queue, `the channel queue stacked: ${before.queue} -> ${after.queue}`);
+  ok(after.slots === before.slots, `the panel strip stacked: ${before.slots} -> ${after.slots}`);
+  ok(after.errors.length === 0, `errors after a remount: ${after.errors.join(' | ')}`);
+  // One press must reach exactly one shell.
+  const oneHandler = await twice.page.evaluate(() => {
+    const before = window.__dash.nxe.motion.panel.target;
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowRight', bubbles: true }));
+    return { before, after: window.__dashApi.nxe().motion.panel.target, log: window.__dashApi.input.log.length };
+  });
+  ok(oneHandler.after - oneHandler.before === 1,
+    `one ArrowRight moved the panel target by ${oneHandler.after - oneHandler.before}, not 1 - a second shell is still listening`);
+  console.log(`  one ArrowRight moved the panel target ${oneHandler.before} -> ${oneHandler.after}`);
+  await twice.page.close();
+
+  /* ------------------------------------------------ 5. Blades is untouched */
 
   const blades = await load(`${BASE}/?blade=4&mute`);
   ok(blades.dash.build === '6770', `default route serves build ${blades.dash.build}`);
@@ -213,6 +423,50 @@ console.log('SMOKE_PASS');
 
 /* ------------------------------------------------------------------ helpers */
 
+/**
+ * Re-derive the projection's fit from its own thirty-two landmarks.
+ *
+ * The point is not to re-run the fit but to prove the SHIPPED numbers are the
+ * ones the landmarks choose: a grid search around them must not find anything
+ * better by more than a tenth of a pixel, and the M4a numbers must be worse.
+ */
+function checkProjection(p) {
+  const FRONT = { x: 96, y: 570 }, BACK = { x: 1184, y: 590, z: 1000 };
+  const SPACING = 505, W = 420, H = 320, SURFACE = -2;
+  const box = (m, k) => {
+    const z = k * SPACING;
+    const t = z / BACK.z;
+    const px = FRONT.x + (BACK.x - FRONT.x) * t;
+    const py = FRONT.y + (BACK.y - FRONT.y) * t + SURFACE;
+    const s = 1 / (1 + z / m.f);
+    return {
+      left: m.cu + (px - m.cu) * s, right: m.cu + (px + W - m.cu) * s,
+      bottom: m.cv + (py - m.cv) * s, top: m.cv + (py - H - m.cv) * s,
+    };
+  };
+  const rms = (m) => Math.sqrt(LANDMARKS.reduce((a, l) => a + (box(m, l.panel)[l.edge] - l.measured) ** 2, 0) / LANDMARKS.length);
+  const mine = { f: p.focal, cu: p.centreU, cv: p.centreV };
+  const ours = rms(mine);
+  let best = { ...mine, r: ours };
+  for (let df = -40; df <= 40; df += 2) {
+    for (let du = -6; du <= 6; du += 0.5) {
+      for (let dv = -6; dv <= 6; dv += 0.5) {
+        const c = { f: mine.f + df, cu: mine.cu + du, cv: mine.cv + dv };
+        const r = rms(c);
+        if (r < best.r) best = { ...c, r };
+      }
+    }
+  }
+  const worst = Math.max(...LANDMARKS.map((l) => Math.abs(box(mine, l.panel)[l.edge] - l.measured)));
+  const m4a = rms({ f: 1428, cu: 154.5, cv: 356.5 });
+  console.log(`    fit over ${LANDMARKS.length} landmarks on 2 frames: rms ${ours.toFixed(3)} px, worst ${worst.toFixed(2)} px`);
+  console.log(`    best on this grid: f=${best.f} Cu=${best.cu} Cv=${best.cv} rms ${best.r.toFixed(3)}   (M4a 1428/154.5/356.5 -> rms ${m4a.toFixed(3)})`);
+  ok(ours - best.r < 0.05, `the shipped projection is not the fit: rms ${ours.toFixed(3)} against ${best.r.toFixed(3)} at ${best.f}/${best.cu}/${best.cv}`);
+  ok(ours < m4a - 0.3, `the refit did not beat M4a's numbers (${ours.toFixed(3)} against ${m4a.toFixed(3)})`);
+  ok(worst < 3, `worst projection residual ${worst.toFixed(2)} px`);
+}
+
+
 async function load(url) {
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
@@ -224,7 +478,21 @@ async function load(url) {
   return { page, dash, pageErrors };
 }
 
-/** Mean spacing of the eight list rows, measured the same way in both. */
+/**
+ * The list's row pitch, measured the same way in both.
+ *
+ * The pitch is the landmark no border offset can shift, so it is what settles
+ * whether the list runs at Blades' 45 or at the 46 the spec reads off
+ * `SystemScene`'s hand-placed nav buttons.
+ *
+ * THE DETECTOR IS A FIT, NOT EIGHT PICKS. Taking the eight strongest rising
+ * steps and averaging their gaps is what M4a did, and Judge F caught it locking
+ * onto non-separators for two of the eight - which makes the "mean pitch" the
+ * distance between the first and last thing it happened to pick, divided by
+ * seven. Instead: score every (pitch, origin) pair by the total rising-step
+ * response at the eight positions it predicts, and take the best. A comb of
+ * eight teeth cannot be dragged off by one strong impostor.
+ */
 function listPitch(ourPath, framePath) {
   if (!existsSync(framePath)) return;
   const rows = (path) => {
@@ -233,33 +501,28 @@ function listPitch(ourPath, framePath) {
     // The list is 420 wide at design x ~218..628; take its middle so the
     // separators are the only thing that spans the band.
     const p = colProfile(im, Math.round(240 * k), Math.round(600 * k), 0, im.h);
-    const lo = Math.round(140 * k), hi = Math.round(500 * k);
-    const cands = [];
-    for (let i = lo; i <= hi; i++) cands.push({ i, d: p[i] - p[i - 1] });
-    // One step per row: take the strongest rising step, then suppress a
-    // 20-design-px neighbourhood and repeat, eight times.
-    const picked = [];
-    const used = new Set();
-    for (let n = 0; n < 8; n++) {
-      let best = null;
-      for (const c of cands) {
-        if (used.has(c.i)) continue;
-        if (!best || c.d > best.d) best = c;
+    const step = (y) => {
+      const i = Math.round(y * k);
+      if (i < 1 || i >= p.length) return 0;
+      return Math.max(0, p[i] - p[i - 1]);
+    };
+    let best = { pitch: 0, origin: 0, score: -1 };
+    for (let pitch = 40; pitch <= 50; pitch += 0.02) {
+      for (let origin = 140; origin <= 200; origin += 0.25) {
+        let score = 0;
+        for (let n = 0; n < 8; n++) score += step(origin + n * pitch);
+        if (score > best.score) best = { pitch, origin, score };
       }
-      if (!best) break;
-      picked.push(best.i / k);
-      for (let j = best.i - Math.round(20 * k); j <= best.i + Math.round(20 * k); j++) used.add(j);
     }
-    picked.sort((a, b) => a - b);
-    const gaps = picked.slice(1).map((v, ix) => v - picked[ix]);
-    const mean = gaps.reduce((a, b) => a + b, 0) / (gaps.length || 1);
-    return { picked, mean };
+    const picked = [];
+    for (let n = 0; n < 8; n++) picked.push(best.origin + n * best.pitch);
+    return { picked, mean: best.pitch, origin: best.origin };
   };
   const a = rows(framePath), b = rows(ourPath);
   console.log(`    row pitch: frame ${a.mean.toFixed(2)}  ours ${b.mean.toFixed(2)}  d ${(b.mean - a.mean).toFixed(2)}`);
-  console.log(`    row tops:  frame ${a.picked.map((v) => v.toFixed(0)).join(' ')}`);
-  console.log(`               ours  ${b.picked.map((v) => v.toFixed(0)).join(' ')}`);
+  console.log(`    row 0 top: frame ${a.origin.toFixed(1)}  ours ${b.origin.toFixed(1)}  d ${(b.origin - a.origin).toFixed(2)}`);
   if (Math.abs(b.mean - a.mean) > 0.75) fails.push(`legacy row pitch ${b.mean.toFixed(2)} against the frame's ${a.mean.toFixed(2)}`);
+  if (Math.abs(b.origin - a.origin) > 4) fails.push(`the list's first row is ${(b.origin - a.origin).toFixed(1)} px off the frame's`);
 }
 
 /**
@@ -276,13 +539,14 @@ function measure(label, ourPath, framePath, landmarks, tolerance) {
   console.log(`  ${label}: landmark            frame    ours     d`);
   let worst = 0;
   for (const m of landmarks) {
-    const a = edgeNear(ref, m.kind, m.at, m.band);
-    const b = edgeNear(ours, m.kind, m.at, m.band);
+    const a = edgeNear(ref, m.kind, m.at, m.band, m.win);
+    const b = edgeNear(ours, m.kind, m.at, m.band, m.win);
     if (!a || !b) { fails.push(`${label} ${m.name}: no edge found`); continue; }
     const d = b.at - a.at;
     worst = Math.max(worst, Math.abs(d));
     console.log(`    ${m.name.padEnd(22)} ${a.at.toFixed(1).padStart(7)} ${b.at.toFixed(1).padStart(7)} ${d.toFixed(2).padStart(6)}`);
-    if (Math.abs(d) > tolerance) fails.push(`${label} ${m.name}: ${d.toFixed(2)} px off the frame (tolerance ${tolerance})`);
+    const tol = m.tol ?? tolerance;
+    if (Math.abs(d) > tol) fails.push(`${label} ${m.name}: ${d.toFixed(2)} px off the frame (tolerance ${tol})`);
   }
   console.log(`    worst |d| = ${worst.toFixed(2)} px`);
 }

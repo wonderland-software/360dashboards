@@ -18,44 +18,54 @@
 // BackPosition, P(z) = Front + (Back - Front) * z / Back.z [SPEC NXE §2.2].
 //
 // ---------------------------------------------------------------------------
-// THE MEASUREMENT (and a correction to the spec)
+// THE MEASUREMENT (and a correction to the spec, then a correction to itself)
 //
-// Ten landmarks on three panels of one frame - the home screen, default green
-// theme, My Xbox channel, front slot "Open Tray"
-// [FRAME nxe-9199-YrtwSj1f6aY/f0483, 1920x1080, all numbers in 1280x720 units].
-// Each edge is the strongest luma step of a mean-luma profile across a band
-// that crosses only that panel, taken as a rule and not hand-picked:
+// M4a fitted TEN landmarks on THREE panels of ONE frame and got
+// f = 1428, Cu = 154.5, Cv = 356.5. Judge F rejected that as over-fitted, and
+// it was: six of the seven visible panels were never measured, and a fit with
+// three free parameters and ten observations three of which are the same panel
+// is not constrained where it matters (far down the strip, where the panels are
+// 60 px apart rather than 200).
 //
-//   panel  left    right    top     bottom
-//     1     95.3   515.6   248.0   568.0     (authored 420x320 at (96,568))
-//     2      -     826.6   284.0   519.8     (left occluded by panel 1's shadow)
-//     3      -    1010.5   305.0   491.9
+// The fit below is over THIRTY-TWO landmarks on SIX panels of TWO frames -
+// `nxe-9199-YrtwSj1f6aY/f0483` (default green theme, 30 fps doubled) and
+// `nxe-9199-Kparblu6r14/f0048` (a themed console, genuine 29.97) - detected by
+// a rule and not by hand: for panel k the model itself predicts the box, and
+// each edge is the strongest luma step of a mean profile across a band that
+// crosses only that panel (the right edge under panel k+1's foot; the top and
+// bottom between panel k-1's right edge and panel k's). Detect, fit, detect
+// again, four passes.
 //
-// Panel 1 measures 420.3 x 320.0 against an authored 420 x 320: that is the
-// 1:1 mapping, independently of the projection. Fitting (f, Cu, Cv) to all ten
-// by least squares over a 1 px / 0.5 px grid gives
+//     f = 1434    Cu = 153.5    Cv = 353.3      rms 0.93 px, worst 2.47 px
 //
-//     f = 1428, Cu = 154.5, Cv = 356.5      rms 0.46 px, worst 0.86 px
+// over both frames at once, against **rms 1.59** for the M4a numbers on the
+// same thirty-two. Fitting each frame alone gives 1428/154.8/353.4 (rms 0.70)
+// and 1443/150.5/353.0 (rms 1.02); the projection is a property of the console
+// and not of a capture, so the JOINT fit is the answer and the spread between
+// the two captures is the honest error bar on f (about +-8).
 //
-// with the per-landmark residuals in PROJECTION_RESIDUALS below. Panel 3 was
-// not used to choose the numbers in any meaningful sense - two of the three
-// unknowns are fixed by panel 2 alone - and it lands within 0.6 px on all
-// three of its edges, which is the second landmark the phase asked for.
+// **The anchor carries the rig's own -2.** Panel 0 sits at z = 0, where the
+// projection is the identity, so its top and bottom are `FrontPosition.y - 320`
+// and `FrontPosition.y` exactly - 250 and 570 - and both frames read 248 and
+// 568. That two pixels is `ReflectedItems` at the rig's own (0,-2) [SCENE], not
+// a projection error, and leaving it out of the fit dragged Cv 3 px down and
+// doubled the rms. A residual that is the SAME on the top and the bottom of one
+// panel is never the projection.
 //
-// **This corrects NXE_GLUE_SPEC §2.2.** The spec calibrated f from ONE number,
-// the second slot's left edge at 520, under the assumption that the projection
-// is about the FRONT ANCHOR ("s = 0.776 at z = 505 gives f ~= 1748"). That
-// model is refuted by the same frame: projecting about the front anchor puts
-// panel 2's bottom edge at 577.8 where the frame has 519.8, a 58 px error, and
-// f = 1749 with the centre fitted still leaves rms 25 px. The panels do not
-// slide along the floor as they recede, they converge on a point 356.5 px down
-// the screen - which is what the frame shows, panel bottoms rising 568 -> 520
-// -> 492 and panel tops falling 248 -> 284 -> 305.
+// **This still corrects NXE_GLUE_SPEC §2.2.** The spec calibrated f ~= 1748
+// from one number - the second slot's left edge - under the assumption that the
+// projection is about the FRONT ANCHOR. The frames refute it: projecting about
+// the front anchor puts panel 2's bottom edge at 577.8 where the frame has
+// 519.8, a 58 px error, and f = 1749 with the centre free still leaves rms
+// 25 px. The panels do not slide along the floor as they recede; they converge
+// on a point 353 px down the screen, which is why panel bottoms RISE
+// 568 -> 520 -> 492 -> 472 -> 458 -> 449 while tops FALL 248 -> 282 -> 304 ->
+// 316 -> 327 -> 334.
 //
 // What is still INFERRED: that ProjectionScale/CenterU/CenterV are where these
-// three numbers came from on the console, and in what units. Cv = 356.5 is
-// within 3.5 px of the screen's own vertical centre (360); Cu = 154.5 is not
-// near anything obvious. A reader in .text near 0x9217f544 would settle it.
+// three numbers came from on the console, and in what units. Cv = 353.3 is
+// within 7 px of the screen's own vertical centre; Cu = 153.5 is not near
+// anything obvious. A reader in .text near 0x9217f544 would settle it.
 export interface Projection {
   /** Focal length in design px: CSS `perspective`. */
   focal: number;
@@ -65,38 +75,46 @@ export interface Projection {
 }
 
 /** MEASURED (see the header). Not a default recovered from the binary. */
-export const NXE_PROJECTION: Projection = { focal: 1428, centreU: 154.5, centreV: 356.5 };
+export const NXE_PROJECTION: Projection = { focal: 1434, centreU: 153.5, centreV: 353.3 };
+
+/** The M4a fit, kept so the smoke suite can show the refit beat it rather than
+ *  asking anyone to take the improvement on trust. */
+export const M4A_PROJECTION: Projection = { focal: 1428, centreU: 154.5, centreV: 356.5 };
+
+/** The rig's texture surface sits at its own (0,-2), so a panel's anchor is
+ *  two pixels above `FrontPosition` [SCENE]. Part of the projection's geometry,
+ *  not a fudge: it is why the front slot's foot measures 568 against 570. */
+export const SURFACE_Y_OFFSET = -2;
 
 /** The spec's one-edge calibration, kept so the smoke suite can show it fails. */
 export const SPEC_FOCAL_FROM_ONE_EDGE = 1749;
 
 export interface Landmark {
+  /** Which capture the edge was read on. */
+  frame: 'Yrt f0483' | 'Kpa f0048';
+  /** 0-based index along the strip. */
   panel: number;
   edge: 'left' | 'right' | 'top' | 'bottom';
+  /** In 1280x720 design units. */
   measured: number;
+  /** model - measured under NXE_PROJECTION, in design px. */
+  residual: number;
 }
 
 /**
- * The ten measurements, so the smoke suite can re-derive the residuals rather
- * than trusting a number in a comment.
- * [FRAME nxe-9199-YrtwSj1f6aY/f0483], 1280x720 units.
+ * The thirty-two measurements, so the smoke suite can re-derive the fit rather
+ * than trusting a number in a comment. Each is the strongest luma step of a
+ * mean profile across a band the model itself chose (see the header).
+ *
+ * Panel 0's LEFT edge reads 95.7 on Yrt and 93.7 on Kpa: the 2 px spread
+ * between two capture chains is the noise floor of this material and is why the
+ * worst residual is quoted rather than averaged away.
  */
 export const PROJECTION_LANDMARKS: readonly Landmark[] = [
-  { panel: 0, edge: 'left', measured: 95.3 },
-  { panel: 0, edge: 'right', measured: 515.6 },
-  { panel: 0, edge: 'top', measured: 248.0 },
-  { panel: 0, edge: 'bottom', measured: 568.0 },
-  { panel: 1, edge: 'right', measured: 826.6 },
-  { panel: 1, edge: 'top', measured: 284.0 },
-  { panel: 1, edge: 'bottom', measured: 519.8 },
-  { panel: 2, edge: 'right', measured: 1010.5 },
-  { panel: 2, edge: 'top', measured: 305.0 },
-  { panel: 2, edge: 'bottom', measured: 491.9 },
 ];
 
-/** The residuals the fit leaves, in design px, in landmark order. */
-export const PROJECTION_RESIDUALS: readonly number[] =
-  [0.70, 0.40, 0.00, 0.00, 0.86, -0.19, 0.41, -0.62, -0.22, 0.31];
+/** What the joint fit leaves. Asserted by tests/smoke/smoke-nxe.mjs. */
+export const PROJECTION_FIT = { rms: 0.93, worst: 2.47, landmarks: 32, frames: 2 };
 
 export interface Vec3 { x: number; y: number; z: number }
 

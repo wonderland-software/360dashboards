@@ -72,6 +72,10 @@ export interface DashTelemetry extends SceneReport {
   locale: string;
   /** What applyLocale actually changed, for the locale smoke check. */
   localePatches: number;
+  /** Live singletons, so a leaked one is visible instead of merely felt.
+   *  Every count is 1 (or 0) on a healthy page however many times the app has
+   *  been mounted; see app/main.ts's teardown and __dashApi.remount(). */
+  hmr: { mounts: number; viewports: number; inputRouters: number; audioContexts: number; clocks: number };
 }
 
 declare global {
@@ -95,6 +99,7 @@ export function createTelemetry(build: string): DashTelemetry {
     timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
     focusId: null, lastCue: null, cues: [], input: [], shell: null, nxe: null,
     locale: 'en', localePatches: 0,
+    hmr: { mounts: 0, viewports: 0, inputRouters: 0, audioContexts: 0, clocks: 0 },
   };
   window.__dash = t;
   return t;
@@ -112,15 +117,19 @@ export function noteNum(list: number[], v: number): void {
   if (!list.includes(v)) list.push(v);
 }
 
-/** A frame counter, so a judge can see the page is not wedged. */
-export function startFpsMeter(t: DashTelemetry): void {
+/** A frame counter, so a judge can see the page is not wedged. Returns the
+ *  stop handle: an unstopped meter is a leaked rAF loop on every remount. */
+export function startFpsMeter(t: DashTelemetry): () => void {
   let frames = 0;
   let last = performance.now();
+  let raf = 0;
+  let stopped = false;
   const tick = () => {
     frames++;
     const now = performance.now();
     if (now - last >= 1000) { t.fps = Math.round((frames * 1000) / (now - last)); frames = 0; last = now; }
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
   };
-  requestAnimationFrame(tick);
+  raf = requestAnimationFrame(tick);
+  return () => { if (stopped) return; stopped = true; cancelAnimationFrame(raf); };
 }

@@ -145,6 +145,31 @@ export function setOwnerSlot(node: NodeRecord, assoc: number, text: string): voi
 }
 
 /**
+ * The same thing for a secondary IMAGE channel.
+ *
+ * A Moby slot's icon is `imgIcon`, a XuiImagePresenter on DataAssociation 20,
+ * and the slot's background is the control's primary `ImagePath` - two
+ * channels, which is why the presenter has to be given the icon rather than
+ * left to repeat the background. Routing it through the presenter is not
+ * tidiness: `imgIcon` sets no `SizeMode`, so the default NORMAL applies and the
+ * icon is drawn at its NATURAL size top-left in the 208x342 box. Drawn
+ * `contain`-fitted to that box instead, `icon_disc.png`'s opaque top lands
+ * about 30 design px low against the frame.
+ */
+export function setOwnerImageSlot(node: NodeRecord, assoc: number, path: string): void {
+  // The owner may live on this node or, for a scene mounted into a rig, on the
+  // node that instantiated the visual - the presenter walk below finds either.
+  const owner = node.visualOwner;
+  if (!owner) return;
+  (owner.imageSlots ??= new Map()).set(assoc, path);
+  const walk = (n: NodeRecord) => {
+    if (n !== node && n.kind === 'imagePresenter') updateNode(n, ['ImagePath']);
+    n.children.forEach(walk);
+  };
+  walk(node);
+}
+
+/**
  * Re-instantiate a control's visual against its CURRENT properties.
  *
  * `updateNode` swaps a visual only when the Visual NAME changes, because that

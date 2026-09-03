@@ -584,3 +584,90 @@ in behaviour (64 tests, 8 smoke suites, all green).
 - **zsh does not word-split an unquoted variable.** `set -- $b` inside a loop
   hands the whole string to `$1`, which silently turned two measurement
   arguments into `NaN` and printed a table of NaNs rather than failing.
+
+## NXE 9199 shell, M4b: the strip moves (2026-09-03)
+
+The home strip navigates, folds, plays its cues and hosts a page stack; the
+background is drawn. Blades 6770 is byte-identical in behaviour (64 tests, all
+10 smoke suites green).
+
+- **A constant with no unit has to be refuted, not chosen.**
+  `MobyPanelInputAcceleration 40` is 40 of something the file never says. In z
+  units one panel step takes 25 seconds; per 60 Hz frame it takes 0.9 ms. Only
+  INDEX UNITS PER SECOND survives - and the channel axis then closes at
+  `sqrt(2(50+40)/(50*40))` = **exactly 0.300 000 s**. Two numbers that are not
+  round producing a round three tenths is the evidence for the unit; the two
+  refutations are what make it more than a preference.
+- **"A held direction accelerates toward a cap" cannot be the whole model.**
+  Read literally, a one-frame tap reaches 0.67 panels/s and coasts 0.007 of a
+  panel. The console moves exactly one panel on a tap, so the cursor is servoed
+  to an integer TARGET and holding re-targets. The spec's sentence describes the
+  feel, not the mechanism.
+- **A braking rule written as a switch loses the tail.** "Accelerate until the
+  braking distance, then decelerate" overshoots on a discrete step and the
+  arrival clamp eats what is left: 17 frames against a closed form of 20.5, a
+  12 % error with no visible symptom. Written as a SPEED CEILING -
+  `|v| <= sqrt(2 d e)` - the integrator lands within a frame of its own closed
+  form.
+- **A cascade gate must be read off the previous frame's progress.** Read off
+  the array being written, panel 0 advances, panel 1 sees the advanced value,
+  passes its `NextRange` gate and advances in the same pass, and a seven-panel
+  fold finishes in two frames. A stagger of one frame is not a stagger, and
+  nothing in the code says so - the only tell is the cue log, where
+  `SoundPanelFold` and `SoundPanelUnfold` land two ticks apart.
+- **Screen displacement is not cursor displacement, and comparing them makes a
+  good fit look bad.** The strip is projected, so a constant cursor rate is an
+  accelerating screen rate near the front and a crawl at the back. The model's
+  velocity centroid is 0.48 in cursor units and 0.428 once projected onto a
+  panel edge; the two captures measure 0.446 and 0.410. Push the model through
+  the same projection before comparing, or the skew looks like an error.
+- **`SceneTransitions/*` is not a fifth namespace** (NXE_GLUE_SPEC §10.4 lists
+  it open). All four entries of the code's 43-name table resolve by their TAIL
+  as ordinary `XuiVariable`s in the same `controlp/Variables.xur`:
+  `TransitionScene` 1, `TransitionSubElements` 1, `TransitionChannel` and
+  `TransitionPanel` unset. Read as switches that says a Trans* curve runs on a
+  scene change and not on a cursor move - which is what the strip physics needs.
+- **The `…Ex` transition pair is measured, not inferred any more.** §2.4 leaves
+  the choice open. A legacy page replacing another legacy page measures a
+  0.501 s burst, a quiet 0.43 s and a 0.234 s burst [FRAME Kpa t = 190.1 s];
+  `LegacyFromEx` is 0.500 s, its hold 0.250 s and its fade 0.250 s. The plain
+  pair cannot make a half-second outgoing fade.
+- **An `EcNavTo*` command's destination is code, not a table.** The 35 command
+  NAMES are a real `{char*, u32}` array at `.rdata` 0x920288a0
+  (`EcNavToSettings` = 4), but nothing in the image references the
+  `SystemScene.xur` literal at 0x920291a4 - same shape as the slot artwork.
+  One row is bound and marked inferred; the rest are refused and listed.
+- **The channel queue runs UPWARD and WRAPS.** `Prev1` is authored BELOW
+  `Current` (y 190 against 154), so the stack above the current channel is
+  `Next1..Next6`, carrying the channels that FOLLOW it in file order and
+  wrapping past the end - which is what [FRAME Kpa f0048] shows above "My Xbox",
+  the last channel in `emb_homepage.xml`. Nothing is drawn below the current row
+  at rest. Getting this backwards drew one name in the wrong place at full
+  brightness and looked like a spacing bug.
+- **A mask inside a `Scale.y = -1` element runs the other way.** The
+  reflection's ramp is applied in LOCAL coordinates, before the flip, so local
+  v = 100 % is the floor line and v = 0 is 512 px below it. Written `to bottom`
+  the mirror is absent where it belongs (a column mean of 0 at every row under
+  the panel) and present as detached slabs far below - a failure that reads as
+  a missing asset, not as an inverted gradient.
+- **Sweeping a parameter that does not move the number is the finding.** 35
+  (alpha, fade) pairs for the reflection all land within 3 MAD of each other
+  against the frame's floor. With the reflection off entirely the same rows are
+  still 30-90 luma dark, so the Aura's own floor is the error and the mirror is
+  not. Tuning the mirror to close it would have hidden the real gap.
+- **A per-character caption width is not a layout.** The legend row was laid out
+  with `LEGEND_CHAR_W = 8.6` against a proportional face, which put the B icon
+  7 px out. The renderer has already drawn the glyphs, so a `Range` over the
+  paint box's TEXT NODES gives the real ink width ("Select" 51.9 against the
+  frame's 50) - but a Range over the BOX gives the box (512 px), and the
+  measurement has to happen after the legend groups are settled onto the last
+  frame of their `Show` range, because an invisible element measures zero.
+- **The dev-server leak was N shells, not one shell accumulating.** `main()`
+  runs at module scope; a hot update re-ran it and left the old viewport, input
+  router, clock and AudioContext alive. The metapane was not stacking
+  descriptions - there were several metapanes. Fixed with a disposer list wired
+  to `import.meta.hot.dispose`, static live-counts on `Viewport`, `InputRouter`
+  and `AudioBank`, and a smoke check that mounts twice and asserts one of each.
+- **`?page=` and A are the same push.** Making the `?page=` route call the same
+  `pushPage` the A button takes, with the transition and the cue suppressed,
+  is what keeps a debugging route from drifting away from the real one.
