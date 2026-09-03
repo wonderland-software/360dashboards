@@ -47,6 +47,21 @@ try {
   await tv.shot('.xui-stage', `${OUT}/boot-1080.png`);
   await tv.close();
 
+  // 3. The compositor budget at a Retina laptop window. The driven dashboard
+  //    once put 99 GPU layers (522 MB of tiles at 2000x1196@2x) on screen: every
+  //    Z rotation was a rotate3d, which Chrome promotes to its own layer, and
+  //    the overlaps cascaded. Over the tile budget Chrome evicts tiles and
+  //    paints black where they were - the "black boxes flickering" Tag saw on
+  //    2026-09-03. Headless never shows it (a screenshot waits for raster), so
+  //    the gate is the layer tree itself, read over CDP.
+  const home = await load(browser, `${BASE}/?boot=none`, 2000, 1196, 2);
+  const layers = await home.layers();
+  const mb = layers.reduce((s, l) => s + l.width * l.height, 0) * 4 * 4 / 1e6;
+  console.log(`  compositor at 2000x1196@2x: ${layers.length} layers, ~${mb.toFixed(0)} MB of tiles`);
+  check(layers.length <= 24, `${layers.length} compositor layers at the home blade (budget 24; was 99 when the tiles went black)`);
+  check(mb <= 260, `~${mb.toFixed(0)} MB of tiles at 2000x1196@2x (budget 260; was 522 when the tiles went black)`);
+  await home.close();
+
   if (d) console.log(`  ${d.objects} objects, ${d.controls} controls, build ${d.build}`);
   console.log(`  wrote ${OUT}/boot.png (1120x770 design) and ${OUT}/boot-1080.png (1920x1080 console view)`);
 } catch (err) {
@@ -58,9 +73,9 @@ try {
 if (fails.length) { for (const f of fails) console.error('  FAIL ' + f); console.log('SMOKE_FAIL'); process.exit(1); }
 console.log('SMOKE_PASS');
 
-async function load(browser, url, width, height) {
+async function load(browser, url, width, height, deviceScaleFactor = 1) {
   const page = await browser.newPage();
-  await page.setViewport({ width, height, deviceScaleFactor: 1 });
+  await page.setViewport({ width, height, deviceScaleFactor });
   const pageErrors = [];
   const consoleErrors = [];
   page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -71,6 +86,14 @@ async function load(browser, url, width, height) {
   return {
     dash, pageErrors, consoleErrors,
     shot: async (sel, path) => { const el = await page.$(sel); if (el) await el.screenshot({ path }); },
+    // The compositor's layer list (CSS px sizes), from the DevTools protocol.
+    layers: async () => {
+      const client = await page.target().createCDPSession();
+      await client.send('LayerTree.enable');
+      const layers = await new Promise((res) => client.once('LayerTree.layerTreeDidChange', (e) => res(e.layers)));
+      await client.detach();
+      return layers;
+    },
     close: () => page.close(),
   };
 }

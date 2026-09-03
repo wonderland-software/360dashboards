@@ -440,7 +440,21 @@ function transform(rect: Rect, p: PropBag, scale: { x: number; y: number; z: num
     const len = Math.hypot(q.x, q.y, q.z);
     const angle = 2 * Math.atan2(len, q.w);
     if (len > 1e-6 && Math.abs(angle) > 1e-6) {
-      parts.push(`rotate3d(${fmt(q.x / len)}, ${fmt(q.y / len)}, ${fmt(q.z / len)}, ${fmt((angle * 180) / Math.PI)}deg)`);
+      const deg = (angle * 180) / Math.PI;
+      // A rotation about Z alone is a 2D rotate(): the same matrix as
+      // rotate3d(0,0,1,a), but Chrome promotes ANY rotate3d to its own GPU
+      // layer ("Trivial3DTransform"), and 55 such layers plus the overlaps they
+      // force put the Blades page over the tile-memory budget at Retina window
+      // sizes, which Chrome shows as black tiles flickering in and out.
+      if (Math.abs(q.x) < 1e-6 * len && Math.abs(q.y) < 1e-6 * len) parts.push(`rotate(${fmt(Math.sign(q.z) * deg)}deg)`);
+      else if (activeBuild().flatten3d) {
+        // The orthographic projection of the unit quaternion's rotation
+        // matrix: CSS matrix(a,b,c,d) = (R00, R10, R01, R11). See build.ts.
+        const n = Math.hypot(q.x, q.y, q.z, q.w) || 1;
+        const x = q.x / n, y = q.y / n, z = q.z / n, w = q.w / n;
+        const f6 = (v: number) => Math.round(v * 1e6) / 1e6;
+        parts.push(`matrix(${f6(1 - 2 * (y * y + z * z))}, ${f6(2 * (x * y + z * w))}, ${f6(2 * (x * y - z * w))}, ${f6(1 - 2 * (x * x + z * z))}, 0, 0)`);
+      } else parts.push(`rotate3d(${fmt(q.x / len)}, ${fmt(q.y / len)}, ${fmt(q.z / len)}, ${fmt(deg)}deg)`);
       needed = true;
     }
   }

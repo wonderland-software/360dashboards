@@ -9,6 +9,7 @@ import * as E from '../xuiEnums';
 import { applyAnchor, childDelta, NO_DELTA, type Delta } from './anchor';
 import { authoredRect, PropBag, type Rect } from './props';
 import { containerCss, contentFor, mountVisual, type Kind, type Owner, type RenderCtx } from './DomRenderer';
+import { updateGradientStops } from './controls/figure';
 
 export interface NodeRecord {
   obj: XuObject;
@@ -48,6 +49,8 @@ export interface NodeSink {
 const CONTENT_KEYS = /^(Fill|Stroke|Points|Text|TextColor|DropShadowColor|PointSize|TextStyle|Font|LineSpacingAdjust|ImagePath|SizeMode|File)\b/;
 /** Keys that resize the element, so the children have to be laid out again. */
 const LAYOUT_KEYS = /^(Width|Height|Anchor|Position)$/;
+/** Gradient stop overrides, "Fill.Gradient.StopPos#7" and "...StopColor#7". */
+const STOP_KEYS = /^Fill\.Gradient\.Stop(Pos|Color)#\d+$/;
 
 /** Re-apply one node after its overrides changed. */
 export function updateNode(node: NodeRecord, keys?: Iterable<string>): void {
@@ -84,6 +87,13 @@ export function updateNode(node: NodeRecord, keys?: Iterable<string>): void {
     }
   }
 
+  // A figure whose only change is its gradient stops keeps its SVG and has
+  // the <stop>s rewritten (see updateGradientStops); anything else rebuilds.
+  const stopsOnly = touched !== null && touched.length > 0 && touched.every((k) => STOP_KEYS.test(k));
+  if (stopsOnly && !resized && node.kind === 'figure' && node.content && updateGradientStops(node.content, p)) {
+    if (wantsLayout) relayout(node);
+    return;
+  }
   if (wantsContent || resized) {
     const next = contentFor(node.kind, p, rect, node.ctx, node.owner);
     if (node.content) node.content.remove();

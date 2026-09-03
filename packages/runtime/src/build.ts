@@ -39,6 +39,18 @@ export interface BuildProfile {
   view: { sx: number; sy: number; ox: number; oy: number };
   /** Vertical counter-scale on text, see the header. */
   glyphAspect: number;
+  /**
+   * Emit the 13 real 3D tilts as the exact 2D affine of their orthographic
+   * projection instead of a CSS rotate3d. TRUE on 6770: nothing in Blades has
+   * a perspective, so the projection IS orthographic and the matrix is what
+   * Chrome would resolve anyway (verified against DOMMatrix to 1e-6), but a
+   * rotate3d forces its own GPU layer and drags every overlapping sibling
+   * into one too - at Retina window sizes that put the page over the tile
+   * budget (black tiles flickering). FALSE on 9199: the home page is a
+   * XuiPerspectiveScene under a CSS perspective, where a 3D rotate is not
+   * affine.
+   */
+  flatten3d: boolean;
   /** The shared visual bank. Both builds ship it at the same path. */
   skin: string;
   /** Human label for the telemetry and the gallery header. */
@@ -70,6 +82,7 @@ export const BUILD_PROFILES: Readonly<Record<BuildId, BuildProfile>> = {
     canvas: { width: E.DASHBOARD_CANVAS.width, height: E.DASHBOARD_CANVAS.height },
     view: E.VIEW_TRANSFORM,
     glyphAspect: E.GLYPH_ASPECT,
+    flatten3d: true,
     skin: 'dashuisk/skin.xur',
     label: 'Blades 6770',
     renderNineGrid: false,
@@ -82,6 +95,7 @@ export const BUILD_PROFILES: Readonly<Record<BuildId, BuildProfile>> = {
     canvas: { width: E.FRAMEBUFFER.width, height: E.FRAMEBUFFER.height },
     view: { sx: 1, sy: 1, ox: 0, oy: 0 },
     glyphAspect: 1,
+    flatten3d: false,
     skin: 'dashuisk/skin.xur',
     label: 'NXE 9199',
     renderNineGrid: true,

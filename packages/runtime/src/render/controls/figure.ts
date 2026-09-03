@@ -130,9 +130,6 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     const grad = fill.compound('Gradient');
     if (!grad) { path.setAttribute('fill', 'none'); return; }
     const radial = grad.bool('Radial', false) || type === E.FillType.RADIAL_GRADIENT;
-    const colours = (grad.indexed('StopColor') ?? []) as { a: number; r: number; g: number; b: number }[];
-    const stops = (grad.indexed('StopPos') ?? []) as number[];
-    const n = Math.max(grad.num('NumStops', colours.length), colours.length);
     const id = `grd${uid++}`;
     const g = document.createElementNS(SVG, radial ? 'radialGradient' : 'linearGradient');
     g.setAttribute('id', id);
@@ -147,23 +144,9 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
       g.setAttribute('x2', '1'); g.setAttribute('y2', '0.5');
     }
     g.setAttribute('gradientTransform', matrixCss(mul(scaleM(w, h), radial ? mul(fillMatrix(fill, w, h), radialBase(w, h)) : fillMatrix(fill, w, h))));
-    const mod = modulation(fill, E.MODULATE_GRADIENT_BY_FILLCOLOR);
-    const authored: Stop[] = [];
-    for (let i = 0; i < n; i++) {
-      const c = colours[i]; if (!c) continue;
-      authored.push({
-        off: clamp01(stops[i] ?? (n > 1 ? i / (n - 1) : 0)),
-        r: mod ? Math.round(c.r * mod.r) : c.r,
-        g: mod ? Math.round(c.g * mod.g) : c.g,
-        b: mod ? Math.round(c.b * mod.b) : c.b,
-        a: (c.a / 255) * (mod ? mod.a : 1),
-      });
-    }
-    for (const st of resample(authored, E.GRADIENT_TRANSFORM.stopSpace)) {
+    for (const st of gradientStops(fill, grad)) {
       const s = document.createElementNS(SVG, 'stop');
-      s.setAttribute('offset', String(st.off));
-      s.setAttribute('stop-color', `rgb(${st.r},${st.g},${st.b})`);
-      s.setAttribute('stop-opacity', st.a.toFixed(4));
+      setStop(s, st);
       g.appendChild(s);
     }
     if (E.GRADIENT_TRANSFORM.stopSpace === 'linearRGB-attr') g.setAttribute('color-interpolation', 'linearRGB');
@@ -175,6 +158,54 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
   // A FillType we have never seen. Draw nothing and say so.
   note(ctx.report.unknownClasses, `XuiFigureFill.FillType=${type}`);
   path.setAttribute('fill', 'none');
+}
+
+/** The stops a gradient emits: authored, FillColor-modulated, resampled. */
+function gradientStops(fill: PropBag, grad: PropBag): Stop[] {
+  const colours = (grad.indexed('StopColor') ?? []) as { a: number; r: number; g: number; b: number }[];
+  const stops = (grad.indexed('StopPos') ?? []) as number[];
+  const n = Math.max(grad.num('NumStops', colours.length), colours.length);
+  const mod = modulation(fill, E.MODULATE_GRADIENT_BY_FILLCOLOR);
+  const authored: Stop[] = [];
+  for (let i = 0; i < n; i++) {
+    const c = colours[i]; if (!c) continue;
+    authored.push({
+      off: clamp01(stops[i] ?? (n > 1 ? i / (n - 1) : 0)),
+      r: mod ? Math.round(c.r * mod.r) : c.r,
+      g: mod ? Math.round(c.g * mod.g) : c.g,
+      b: mod ? Math.round(c.b * mod.b) : c.b,
+      a: (c.a / 255) * (mod ? mod.a : 1),
+    });
+  }
+  return resample(authored, E.GRADIENT_TRANSFORM.stopSpace);
+}
+
+function setStop(s: Element, st: Stop): void {
+  s.setAttribute('offset', String(st.off));
+  s.setAttribute('stop-color', `rgb(${st.r},${st.g},${st.b})`);
+  s.setAttribute('stop-opacity', st.a.toFixed(4));
+}
+
+/**
+ * Re-write a rendered figure's gradient stops in place after a StopPos /
+ * StopColor override changed, instead of rebuilding the whole SVG. The skin's
+ * ambient swirl figures (thing1..3 in the blade background) animate their
+ * StopPos on every frame, and rebuilding five full-canvas SVGs sixty times a
+ * second is DOM churn the console never paid for. Returns false when the
+ * emitted stop count would change (a hard stop appearing or vanishing), and the
+ * caller rebuilds.
+ */
+export function updateGradientStops(svg: Element, p: PropBag): boolean {
+  const fill = p.compound('Fill');
+  const grad = fill?.compound('Gradient');
+  if (!fill || !grad) return false;
+  const g = svg.querySelector('linearGradient, radialGradient');
+  if (!g) return false;
+  const next = gradientStops(fill, grad);
+  const cur = g.children;
+  if (cur.length !== next.length) return false;
+  for (let i = 0; i < next.length; i++) setStop(cur[i]!, next[i]!);
+  return true;
 }
 
 /* ------------------------------------------------ gradient stop colour space
