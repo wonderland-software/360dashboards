@@ -128,4 +128,17 @@ each is closed with what changed.
   Display page shows the XuiTool caption; (8) Marketplace focus text wrong;
   (9) option lists are code-built from hardware queries (addresses given),
   not tables. Tab-stack residual attributed to the wing's rotated gradient
-  fill. Fixes in progress.
+  fill.
+- Closed after round 1 (commit follows): LIVE blade offline content
+  (default banners, TrayScene, dashStrings labels), Sign Out disabled with
+  no profile, Console Settings 9-row scrolling window with chevrons via
+  ScrollMore, locale on the driven route (62 patches under de-de), Guide
+  placeholder logged, Display page tokens cleared and Current Setting drawn
+  where the frames give a value, Marketplace focus text fixed, option lists
+  recovered from the code's own tables (Display, Language, Locale, Time
+  Zone, Passcode Hint, Remote Control; ratings decoded, not wired) and
+  disclosed as code-built. Also: TransBackFrom now plays before a pop, the
+  tab-stack residual halved (the wing's opaque radial stop), LIVE arrival
+  focus evidenced from DashLiveSignedOut, and a provenance correction: the
+  basefile is flat-mapped, so every .text address the tools printed was
+  0x200 high; tools fixed and both registries regenerated.

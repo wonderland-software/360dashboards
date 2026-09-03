@@ -388,3 +388,55 @@ XUR_PASS 311/311, `xur2xui --diff` is XUIDIFF_PASS 308 identical, and every
   (AuraScene, PanelScene: reflection.uxfx with EffectParams animated),
   XuiVariable, XuiVideo, MediaScene, XuiTabScene one each; 3D rotation
   with an X/Y component on 19 elements; 15,856 keyframes with 570 Ease.
+
+## The extracted `basefile.exe` is flat-mapped, and its section headers lie
+
+`tools/ppc-dis.ts` prints `.text` VAs **0x200 too high**. `basefile.exe` is a
+rebuilt PE whose section headers disagree with the image the code was linked
+for: the code, the relocations and `.pdata` all use the flat mapping
+`raw = VA - 0x92000000`, while the headers put `.text` +0x200 and `.data`
++0x1200 off that. The check that settles it is `.pdata`: of 1,200 sampled
+`BeginAddress` entries, **1,191 land on a function prologue under the flat
+mapping and 82 under the header mapping**. The same skew is why a `.data` table
+read at its header-mapped offset comes back all zeroes — the time-zone table's
+code-materialised base 0x927bf680 is file offset 0x7bf680, not 0x7be480.
+
+So: `.rdata` addresses printed by the tools are right (the two mappings agree
+below `.pdata`), `.text` addresses printed by `ppc-dis` are 0x200 high, and
+every address written into `dashboards/blades/*.ts` is flat-mapped. Cross-check
+a suspicious address by disassembling both and seeing which one starts on a
+prologue.
+
+## A control with no `Visual` wears the visual named after its class
+
+Not a convention we assumed — `dashuisk/skin.xur` is explicit about it. The file
+carries a literal separator child
+`Id="---------------Default-----------------------------"`, and immediately
+after it a block of visuals named exactly for the classes: `XuiLabel`,
+`XuiLabelCenterJustify`, `XuiLabelRightJustify`, `XuiButton`,
+`XuiButton_Multiline`, `XuiBackButton`, `XuiCheckbox`, `XuiEdit`, `XuiList`,
+`XuiRadioButton`, `XuiRadioGroup`, `XuiProgressBar`, `XuiGamerCard`,
+`XuiBOTDContainer`, `XuiScene`.
+
+The rule is invisible on most controls, because `XuiScene`'s default is an empty
+300x300 visual and most controls name a visual of their own. It is decisive on
+`XuiLabel`, whose default is a single `XuiTextPresenter`: a `XuiLabel` derives
+from `XuiControl`, NOT from `XuiText`, so it paints nothing itself and the
+presenter inside its visual is the only thing that draws its `Text`. Without the
+fallback, every `XuiLabel` in the build that named no `Visual` rendered as an
+empty box — including `botd/defaultbanner0.xur`'s `label_Body`, the whole
+"Games. Tournaments. Entertainment…" paragraph on the Xbox LIVE blade. Lists are
+the one exclusion: `ListView` instantiates the `XuiList` default itself because
+it needs that visual's `control_ListItem` template and its two `XuiScrollEnd`s.
+
+## Enabled is chosen when a visual is instantiated, not when it is drawn
+
+`mountVisual` picks the disabled artwork from the flag it is handed at
+instantiation, and a `XuiTextPresenter` draws its OWNER's text, captured at the
+same moment. So a control that becomes disabled or loses its caption AFTER its
+first render keeps both until the visual is re-instantiated. That is why the Y
+and X legend glyphs painted at full strength with a "Sign Out" caption on a
+console with no profile, where the frames show them desaturated and blank. Two
+writes are needed, not one: `setOwnerText` for the caption and `remountVisual`
+for the artwork.
+

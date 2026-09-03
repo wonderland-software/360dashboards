@@ -204,8 +204,16 @@ export function fillMatrix(fill: PropBag, w: number, h: number): M {
   const R = rotateM(model.rotation * r);
   const S = scaleM(s.x || 1e-6, s.y || 1e-6);
   // The composite applied to a point of the box, in the texture direction:
-  // 'SRT' scales first, then rotates, then translates.
-  const applied = model.order === 'SRT' ? mul(T, mul(R, S)) : mul(S, mul(R, T));
+  // 'SRT' scales first, then rotates, then translates - so Scale acts along
+  // the BOX's axes and a rotation carries the scaled box into gradient space.
+  // 'RST' rotates first, which is what "the scale acts along the gradient's
+  // own axis" would mean; 'TRS' translates first. Only SRT survives the wing
+  // measurement in GRADIENT_TRANSFORM, and only a rotated, non-uniformly
+  // scaled fill can tell the three apart.
+  const applied =
+    model.order === 'SRT' ? mul(T, mul(R, S)) :
+    model.order === 'RST' ? mul(T, mul(S, R)) :
+    mul(S, mul(R, T));
   const about = model.origin === 'centre' ? translateM(0.5, 0.5) : I;
   const m = mul(about, mul(applied, invert(about)));
   // Texture direction maps box -> gradient; SVG wants gradient -> box.

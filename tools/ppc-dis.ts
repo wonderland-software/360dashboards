@@ -17,7 +17,7 @@ let rdata = { va: 0, raw: 0, size: 0 };
 for (let i = 0; i < numSections; i++) {
   const o = secTab + i * 40;
   const name = buf.toString('ascii', o, o + 8).replace(/\0.*$/, '');
-  const s = { va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 20), size: buf.readUInt32LE(o + 8) };
+  const s = { va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 12) /* flat: xex1tool writes each section at its RVA; the header's PointerToRawData is 0x200 low for .text (LEARNINGS: section headers lie) */, size: buf.readUInt32LE(o + 8) };
   if (name === '.text') text = s;
   if (name === '.rdata') rdata = s;
 }

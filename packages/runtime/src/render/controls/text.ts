@@ -33,6 +33,8 @@ export interface TextOwner {
   text: string;
   /** XuiControl.PointSize, -1 when the control defers to the visual. */
   pointSize: number;
+  /** Secondary text channels by DataAssociation; see Owner in DomRenderer. */
+  slots?: Map<number, string>;
 }
 
 export function renderText(
@@ -54,7 +56,11 @@ export function renderText(
     noteNum(ctx.report.dataAssociationsSeen, assoc);
   }
   const secondary = !ownText && assoc !== E.DATA_ASSOCIATION_PRIMARY;
-  const text = ownText ? p.str('Text') : (secondary ? '' : (owner?.text ?? ''));
+  // A secondary presenter shows its own channel when the glue has filled one
+  // and NOTHING otherwise - never the primary text, which is what made
+  // btn_1line_icon draw every nav caption twice.
+  const text = ownText ? p.str('Text')
+    : (secondary ? (owner?.slots?.get(assoc) ?? '') : (owner?.text ?? ''));
   // XuiControl.PointSize wins over the visual's when the control sets it.
   const ownerSize = owner && owner.pointSize !== E.POINT_SIZE_INHERIT ? owner.pointSize : null;
   const points = ownerSize ?? p.num('PointSize', E.DEFAULT_POINT_SIZE);

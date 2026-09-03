@@ -1,7 +1,11 @@
 // One scripted session, end to end, on the real dashboard.
 //
 //   boot -> RB x3 to System -> A into Console Settings -> down to Locale
-//        -> B back out -> LB x4 back to Marketplace
+//        -> on to System Info (the list scrolls) -> B back out
+//        -> LB x4 back to Marketplace
+//   then a SECOND path on a fresh page: System -> Console Settings -> Display
+//        -> B -> Audio -> Digital Output -> B -> B, reading the rows at each
+//        level, and the same walk once more under &locale=de-de.
 //
 // Every assertion is a number the data or the footage supplies: the range each
 // press plays and how many timeline frames it is, the exact cue sequence with
@@ -160,6 +164,35 @@ try {
   await (await p.$('.xui-stage')).screenshot({ path: still });
   compareToF0060(still);
 
+  /* ------------------------------- 4b. on to System Info: the list scrolls */
+
+  // f0060 and f0066 are the same page nine rows apart. The list frame is 423x435
+  // at a 45 px pitch, so it holds floor(435/45) = 9 rows; past row 8 the console
+  // scrolls by one and pins the selection to the bottom visible slot, and at
+  // System Info (row 10 of 11) the window has moved by two [FRAME hi f0060,
+  // f0066]. metaScene_1line authors only 1To2..8To9, which is the same nine, so
+  // the metapane index has to be the VISIBLE slot and not the table row.
+  for (let i = 6; i <= 10; i++) {
+    await press('Down');
+    await p.evaluate(() => window.__dashApi.shell.idle());
+    d = await dash();
+    check(d.shell?.focusId === `lstSettings_item${i}`, `Down should reach row ${i}, got ${d.shell?.focusId}`);
+    check(d.shell?.metaIndex === Math.min(i, 8),
+      `row ${i} sits in visible slot ${Math.min(i, 8)}, got ${d.shell?.metaIndex}`);
+    await step(21);
+  }
+  const window9 = await p.evaluate(() =>
+    [...document.querySelectorAll('[data-xui-class="XuiListItem"]')]
+      .filter((el) => el.style.display !== 'none').map((el) => el.textContent));
+  check(String(window9) === String(['Themes', 'Language', 'Clock', 'Locale', 'Startup',
+    'Shutdown', 'Screen Saver', 'Remote Control', 'System Info']),
+    `at System Info the nine-row window starts at Themes (scrolled by two); got ${JSON.stringify(window9)}`);
+  d = await dash();
+  check(d.shell?.metaText?.startsWith('\r\n\r\n\r\nView your console'),
+    `row 10's metapane text is still the TABLE row's, xus[305]; got ${JSON.stringify(d.shell?.metaText?.slice(0, 30))}`);
+  check(d.errors.length === 0, `scrolling past row 8 must not ask for a range that is not authored: ${d.errors.join(' | ')}`);
+  await noteFocus();
+
   /* ------------------------------------------------------------ 5. B out */
 
   const beforeBack = (await cues()).length;
@@ -175,8 +208,19 @@ try {
     `the pushed scene is destroyed on the way out, stack is ${JSON.stringify(d.shell?.stack)}`);
   check(d.shell?.level === 0 && d.shell?.tabsLocked === false, 'back at the blade, unlocked');
   check(d.shell?.focusId === 'navSettings', `focus is restored to navSettings, got ${d.shell?.focusId}`);
+  // The popped scene is NOT destroyed on the press. Its own TransBackFrom
+  // ("FadeOut" in dashuisk/skin.xur, Opacity 1 -> 0 and Show true -> false over
+  // frames 0..5) runs first and the teardown waits for it, which is the order
+  // the console used. Measured on the footage: the page is still at full
+  // contrast one presented frame after the press lands (f02159, list-frame ink
+  // sd 21.69, minimum 14.6, unchanged from f02153) and entirely gone on the next
+  // (f02161, sd 5.22, minimum 118.7) - a disappearance bounded at two 60 Hz
+  // frames, inside FadeOut's five [FRAME 6717-60fps].
+  const during = await p.evaluate(() => document.querySelectorAll('[data-xui-scene="consoles/dashSysCslSet.xur"]').length);
+  check(during === 1, `the popped scene must still be in the document while its TransBackFrom runs, found ${during}`);
+  await step(5);
   const gone = await p.evaluate(() => document.querySelectorAll('[data-xui-scene="consoles/dashSysCslSet.xur"]').length);
-  check(gone === 0, `the popped scene must leave no DOM behind, found ${gone}`);
+  check(gone === 0, `and must be destroyed when FadeOut ends 5 frames later, found ${gone}`);
   await noteFocus();
   await step(RANGES['5Close'][1] - RANGES['5Close'][0]);
 
@@ -204,7 +248,15 @@ try {
 
   /* ------------------------------------------------------------ the ledger */
 
-  check(String(focusPath) === String([null, 'navSettings', 'lstSettings_item0', 'lstSettings_item5', 'navSettings', 'scnBanner']),
+  // The first entry is Xbox LIVE's arrival focus. live/liveSignedOutUI.xur has
+  // no DefaultFocus and no PanelSettings, so it falls back to the head of its
+  // own authored chain - fakeGamerCard, the only focusable control with no
+  // NavUp - which is the control wearing the silver focus gradient in f0078, an
+  // arrival frame (f0077 is Games, f0079 Marketplace: one sideways sweep, no
+  // vertical input). The last is Marketplace's, and that one IS authored:
+  // blademp/marketplaceSignedOut.xur declares DefaultFocus="scnBanner".
+  check(String(focusPath) === String(['fakeGamerCard', 'navSettings', 'lstSettings_item0',
+    'lstSettings_item5', 'lstSettings_item10', 'navSettings', 'scnBanner']),
     `focus path is ${JSON.stringify(focusPath)}`);
   check(d.errors.length === 0, `__dash.errors: ${d.errors.join(' | ')}`);
   check(pageErrors.length === 0, `page errors: ${pageErrors.join(' | ')}`);
@@ -216,6 +268,116 @@ try {
   console.log(`  cues: ${all.map((c) => `${c.cue}@${c.tick}`).join(' ')}`);
   console.log(`  still: ${still}`);
   await p.close();
+
+  /* ------------------------- 7. a second path: Display, then Audio, en and de */
+
+  for (const locale of ['en', 'de-de']) {
+    const q = locale === 'en' ? '' : `&locale=${locale}`;
+    const page = await browser.newPage();
+    const errs = [];
+    page.on('pageerror', (e) => errs.push(e.message));
+    await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+    await page.goto(`${BASE}/?blade=5&zoom=1.5&mute&manual${q}`, { waitUntil: 'networkidle0', timeout: 90000 });
+    await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+
+    const A = async () => {
+      await page.evaluate(() => window.__dashApi.shell.press());
+      await page.evaluate(() => window.__dashApi.shell.idle());
+      await page.evaluate(() => window.__dashApi.stepFrames(60));
+    };
+    const B = async () => {
+      await page.evaluate(() => window.__dashApi.shell.back());
+      await page.evaluate(() => window.__dashApi.stepFrames(60));
+    };
+    const Down = async () => {
+      await page.evaluate(() => window.__dashApi.shell.move('Down'));
+      await page.evaluate(() => window.__dashApi.shell.idle());
+      await page.evaluate(() => window.__dashApi.stepFrames(21));
+    };
+    // Scoped to the TOP scene: a pushed page sits inside the same document as
+    // the one it covers, so an unscoped query reads Console Settings' own rows
+    // as well as the page's.
+    const rowsOf = () => page.evaluate(() => {
+      const id = window.__dash.shell.stack.at(-1);
+      const scenes = [...document.querySelectorAll(`[data-xui-scene="${id}"]`)];
+      const host = scenes[scenes.length - 1] ?? document;
+      return [...host.querySelectorAll('[data-xui-class="XuiListItem"]')]
+        .filter((el) => el.style.display !== 'none').map((el) => el.textContent);
+    });
+    const shell = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__dash.shell)));
+    const at = () => page.evaluate(() => window.__dash.shell.stack.at(-1));
+    const tag = `[${locale}] `;
+
+    // ---- Display. dashSysCslSetDisplay.xur's lstSettings carries ItemsText="",
+    // and the console filled it from a 4 x 16-byte table in .data at 0x927bfff0
+    // - (u32 label, u32 wide scene, u32 present, u32 enabled) - rewritten on
+    // every visit by 0x921c6650 because two of the four rows are gated on
+    // hardware. On an NTSC console with an HD AV pack, which is the state
+    // f01580 shows ("1080p / Widescreen / Standard"), PAL Settings is absent and
+    // three rows remain [CODE].
+    await A();
+    check(await at() === 'consoles/dashSysCslSet.xur', `${tag}A on navSettings opens Console Settings, got ${await at()}`);
+    await A();
+    check(await at() === 'consoles/dashSysCslSetDisplay.xur', `${tag}row 0 opens the Display page, got ${await at()}`);
+    const display = await rowsOf();
+    const DISPLAY_EN = ['HDTV Settings', 'Screen Format', 'Reference Levels'];
+    if (locale === 'en') {
+      check(String(display) === String(DISPLAY_EN),
+        `${tag}Display's three code-table rows are ${JSON.stringify(display)}`);
+    } else {
+      check(display.length === 3 && String(display) !== String(DISPLAY_EN),
+        `${tag}the same three rows must arrive translated, got ${JSON.stringify(display)}`);
+    }
+    let sh = await shell();
+    check(sh.codeFilled.some((c) => c.startsWith('lstSettings x3 from 0x927bfff0')),
+      `${tag}the Display list must say which table filled it: ${JSON.stringify(sh.codeFilled)}`);
+    check(sh.missingStrings.length === 0, `${tag}Display: ${JSON.stringify(sh.missingStrings)}`);
+    await B();
+    check(await at() === 'consoles/dashSysCslSet.xur', `${tag}B returns to Console Settings, got ${await at()}`);
+
+    // ---- Audio. This page is NOT a code list: it authors two XuiNavButtons
+    // with PressPaths, and its child dashSysCslSetAudioDigital.xur authors its
+    // three options in ItemsText. So the assertion is that we read the DATA and
+    // add nothing to it.
+    await Down();
+    check((await shell()).focusId === 'lstSettings_item1', `${tag}Down reaches Audio`);
+    await A();
+    check(await at() === 'consoles/dashSysCslSetAudio.xur', `${tag}row 1 opens the Audio page, got ${await at()}`);
+    sh = await shell();
+    check(sh.focusId === 'btnDigital',
+      `${tag}Audio has no DefaultFocus and no list; PanelSettings[0] is btnDigital, got ${sh.focusId}`);
+    check(await rowsOf().then((x) => x.length) === 0, `${tag}the Audio page has no list at all`);
+    await A();
+    check(await at() === 'consoles/dashSysCslSetAudioDigital.xur', `${tag}btnDigital's PressPath opens Digital Output, got ${await at()}`);
+    const digital = await rowsOf();
+    const DIGITAL_EN = ['Digital Stereo', 'Dolby Digital 5.1', 'Dolby Digital with WMA Pro'];
+    if (locale === 'en') {
+      check(String(digital) === String(DIGITAL_EN),
+        `${tag}Digital Output's rows are its own ItemsText: ${JSON.stringify(digital)}`);
+    } else {
+      check(digital.length === 3, `${tag}Digital Output still has three rows, got ${JSON.stringify(digital)}`);
+    }
+    await B(); await B();
+    check(await at() === 'consoles/dashSysCslSet.xur', `${tag}two Bs land back on Console Settings, got ${await at()}`);
+
+    sh = await shell();
+    check(sh.locale === locale, `${tag}the shell reports locale ${sh.locale}`);
+    if (locale === 'en') {
+      check(sh.localePatches === 0, `${tag}en is the literal in the .xur, so nothing is patched; got ${sh.localePatches}`);
+    } else {
+      // Every scene the shell composes is patched, not just dashmain: the
+      // panels, the offline banners, the tray strip and every pushed page.
+      check(sh.localePatches > 40, `${tag}a real locale must reach every composed scene; only ${sh.localePatches} patches`);
+    }
+    check(sh.containersMissing.length === 0, `${tag}containers: ${JSON.stringify(sh.containersMissing)}`);
+    check(sh.missingStrings.length === 0, `${tag}missing strings: ${JSON.stringify(sh.missingStrings)}`);
+    const errs2 = await page.evaluate(() => window.__dash.errors);
+    check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);
+    check(errs.length === 0, `${tag}page errors: ${errs.join(' | ')}`);
+    console.log(`  ${tag}display rows: ${JSON.stringify(display)}`);
+    console.log(`  ${tag}digital rows: ${JSON.stringify(digital)}  localePatches ${sh.localePatches}`);
+    await page.close();
+  }
 } catch (err) {
   fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {

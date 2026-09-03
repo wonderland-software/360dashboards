@@ -14,6 +14,8 @@
 // and read membership off the scene's own PanelSettings. That was wrong twice:
 // the scene's 9-entry PanelSettings names no control that exists in the file
 // (they are logical row ids), and Remote Control was missing entirely.
+/** The scene the eleven-row table fills. */
+export const CONSOLE_SETTINGS_SCENE = 'consoles/dashSysCslSet.xur';
 export const CONSOLE_SETTINGS_PACK = 'consoles';
 export const CONSOLE_SETTINGS_TABLE = 'dashCSettingsStrings.xus';
 
@@ -54,11 +56,59 @@ export const CONSOLE_SETTINGS_FOCUS = 5;
  */
 export const METAPANE_TEXT_COMES_FROM_TABLE = true;
 
+/**
+ * The "Current Setting" block above the description - the console's own state,
+ * not scene data and not a string table.
+ *
+ * The metapane's visual metaScene_1line carries TWO text presenters: Pane_txt
+ * (DataAssociation 0), which draws the description above, and
+ * Pane_txtCurrentSetting (DataAssociation 4), a 383x173 block at y=33 [SCENE].
+ * That is what the leading CRLFs in every description string are for: xus [297]
+ * (Display) starts with six, [299] (Locale) with three, [305] (System Info)
+ * with three, and the value block sits in exactly that gap.
+ *
+ * The values are HARDWARE STATE - the console's video mode, its locale, its
+ * dashboard version. This build cannot query any of them, so the only honest
+ * source is the reference console itself, and only for the rows the footage
+ * actually focuses. Every other row is left EMPTY rather than invented; that is
+ * why this table has three entries and not eleven. PLACEHOLDERS.md records it.
+ */
+export const CURRENT_SETTING_ASSOC = 4;
+
+export interface CurrentSetting {
+  /** Index into CONSOLE_SETTINGS_ROWS. */
+  row: number;
+  /** Exactly what the reference console shows, newlines included. */
+  value: string;
+  /** The still it was read off. */
+  frame: string;
+}
+
+export const CONSOLE_SETTINGS_CURRENT: readonly CurrentSetting[] = [
+  // 1080p / Widescreen / Standard - resolution, aspect, reference level.
+  { row: 0, value: '1080p\r\nWidescreen\r\nStandard', frame: '6717-60fps/f01580' },
+  { row: 5, value: 'United Kingdom', frame: '6717/f0060' },
+  { row: 10, value: 'Dashboard: 2.0.6717.0', frame: '6717/f0066' },
+];
+
+/**
+ * A caption the AUTHORING TOOL left behind, not a caption the console drew.
+ *
+ * 168 controls across the corpus ship a Text that is nothing but an
+ * angle-bracket token - "<setting>" on every Console Settings page's current
+ * setting line, "<servicename>" on the IPTV rows, "<game title>", "<free
+ * space>", "<MAC Addr>". Each is a slot the console filled from device or Live
+ * state before the control was ever shown, so painting the token is strictly
+ * wrong: the console never displayed one. They are cleared and counted, and the
+ * ones we can fill from the footage are filled above.
+ */
+export const AUTHORING_PLACEHOLDER = /^\s*<[^<>\r\n]{1,40}>\s*$/;
+
 /** Scenes whose list the glue fills from a code table rather than scene data. */
 export const CODE_TABLE_LISTS: Readonly<Record<string, {
   pack: string; table: string; rows: readonly SettingsRow[]; focus: number;
 }>> = {
-  'consoles/dashSysCslSet.xur': {
+  [CONSOLE_SETTINGS_SCENE]: {
     pack: CONSOLE_SETTINGS_PACK, table: CONSOLE_SETTINGS_TABLE,
     rows: CONSOLE_SETTINGS_ROWS, focus: CONSOLE_SETTINGS_FOCUS,
   },

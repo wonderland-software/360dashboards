@@ -139,8 +139,15 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   const nodes = new NodeIndex();
   const engine = new TimelineEngine();
   const strings = new Strings(assets);
+  // ?locale= belongs to the SHELL, not to one scene: the driven dashboard is a
+  // dozen files (dashmain, five blade panels, the banners, the tray strip and
+  // every page a press opens) and a locale applied only to the first would
+  // leave the rest in English. BladeShell.loadLocalized patches each one before
+  // it renders and counts the patches, so `localePatches` is assertable.
+  const locale = params.get('locale') ?? DEFAULT_LOCALE;
+  t.locale = locale;
   const shell = await BladeShell.mount({
-    assets, skin, nodes, engine, report, host: viewport.canvas, strings,
+    assets, skin, nodes, engine, report, host: viewport.canvas, strings, locale,
     state: {
       ...OFFLINE,
       signedIn: params.has('signedin'),
@@ -219,6 +226,7 @@ function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank
       else if (b === Button.Down) { shell.moveFocus('Down'); void shell.idle().then(() => syncShell(t, shell, audio)); }
       else if (b === Button.A) void shell.press().then(() => shell.idle()).then(() => syncShell(t, shell, audio));
       else if (b === Button.B) shell.back();
+      else if (b === Button.Guide) noteGuide(t);
       else return;
       syncShell(t, shell, audio);
     },
@@ -227,10 +235,24 @@ function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank
   return router;
 }
 
+/**
+ * The Guide button. PLACEHOLDERS.md says it is a no-op that records itself, so
+ * it has to actually record itself: the guide panel is drawn by the console's
+ * system software (xam.xex / xshell, in system flash) and no scene in the 29
+ * packs or shrdres names it, so there is nothing in this archive to show.
+ * Recorded once, not once per press, so a held button cannot flood the list.
+ */
+const GUIDE_PLACEHOLDER = 'Guide button: the guide panel is xam.xex/xshell, not in the dashboard archive - no-op';
+function noteGuide(t: DashTelemetry): void {
+  if (!t.placeholders.includes(GUIDE_PLACEHOLDER)) t.placeholders.push(GUIDE_PLACEHOLDER);
+}
+
 function syncShell(t: DashTelemetry, shell: BladeShell, audio: AudioBank): void {
   const r = shell.report();
   t.shell = r;
   t.focusId = r.focusId;
+  t.locale = r.locale;
+  t.localePatches = r.localePatches;
   t.input = window.__dashApi?.input.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer })) ?? t.input;
   t.cues = audio.log.slice(-40).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
   t.lastCue = audio.log.length ? audio.log[audio.log.length - 1]!.cue : t.lastCue;
@@ -270,7 +292,7 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
   audio.attach(engine);
-  const filled = await populateLists(scene, ctx, nodes, engine, strings);
+  const filled = await populateLists(scene, ctx, nodes, engine, strings, locale);
   const lists = filled.lists;
   if (lists.length) {
     // The still route reproduces f0060, where the operator had scrolled to
@@ -354,6 +376,7 @@ function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetr
   router.push({
     id: 'scene',
     onButton: (b) => {
+      if (b === Button.Guide) { noteGuide(t); return; }
       const list = lists[0];
       if (!list) return;
       // Every cue below comes out of a visual's own File track: the row's

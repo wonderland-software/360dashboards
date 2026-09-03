@@ -281,6 +281,43 @@ export class TimelineEngine {
     this.applies.delete(id);
   }
 
+  /**
+   * Run `fn` on the frame a play-once scope finishes on, and not before.
+   *
+   * The console tears a popped scene down AFTER its TransBackFrom visual has
+   * run (§2/§3: Trans* name FadeOut/FadeIn in dashuisk/skin.xur, and FadeOut is
+   * a five-frame curve), so the shell needs a deterministic "when that curve
+   * ends" - deterministic meaning counted in 60 Hz steps, never in wall clock,
+   * or ?frame= and the smoke suites' stepFrames would disagree with the browser.
+   *
+   * A scope that is not registered has already finished, so the callback fires
+   * at once rather than being lost. `flush` runs every waiter immediately: the
+   * shell calls it when a second press would otherwise leave two scenes in the
+   * document at the same time.
+   */
+  whenFinished(scopeId: string, fn: () => void): void {
+    const s = this.scopes.get(scopeId);
+    if (!s || s.finished) { fn(); return; }
+    this.waiters.push({ scopeId, fn });
+  }
+  flushWaiters(): void {
+    const pending = this.waiters.splice(0, this.waiters.length);
+    for (const w of pending) w.fn();
+  }
+  private readonly waiters: { scopeId: string; fn: () => void }[] = [];
+  private drainWaiters(): void {
+    if (!this.waiters.length) return;
+    const ready: (() => void)[] = [];
+    for (let i = this.waiters.length - 1; i >= 0; i--) {
+      const w = this.waiters[i]!;
+      const s = this.scopes.get(w.scopeId);
+      if (s && !s.finished) continue;
+      ready.push(w.fn);
+      this.waiters.splice(i, 1);
+    }
+    for (const fn of ready.reverse()) fn();
+  }
+
   add(scope: TimelineScope, apply: ScopeApply): TimelineScope {
     this.scopes.set(scope.id, scope);
     this.applies.set(scope.id, apply);
@@ -361,6 +398,7 @@ export class TimelineEngine {
       s.step();
       this.applyNow(s);
     }
+    this.drainWaiters();
   }
 
   applyNow(s: TimelineScope): void {

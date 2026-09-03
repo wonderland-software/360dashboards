@@ -30,7 +30,7 @@ for (let i = 0; i < numSections; i++) {
     vsize: buf.readUInt32LE(o + 8),
     va: imageBase + buf.readUInt32LE(o + 12),
     rawSize: buf.readUInt32LE(o + 16),
-    raw: buf.readUInt32LE(o + 20),
+    raw: buf.readUInt32LE(o + 12) /* flat: xex1tool writes each section at its RVA; the header's PointerToRawData is 0x200 low for .text (LEARNINGS: section headers lie) */,
   });
 }
 if (!grep) for (const s of sections) console.log(`section ${s.name.padEnd(8)} va=${s.va.toString(16)} size=${s.vsize.toString(16)} raw=${s.raw.toString(16)}`);

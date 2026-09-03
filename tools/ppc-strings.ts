@@ -23,7 +23,7 @@ const secTab = peOff + 24 + optSize;
 const secs: { name: string; va: number; size: number; raw: number }[] = [];
 for (let i = 0; i < numSections; i++) {
   const o = secTab + i * 40;
-  secs.push({ name: buf.toString('ascii', o, o + 8).replace(/\0.*$/, ''), size: buf.readUInt32LE(o + 8), va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 20) });
+  secs.push({ name: buf.toString('ascii', o, o + 8).replace(/\0.*$/, ''), size: buf.readUInt32LE(o + 8), va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 12) /* flat: xex1tool writes each section at its RVA; the header's PointerToRawData is 0x200 low for .text (LEARNINGS: section headers lie) */ });
 }
 const rdata = secs.find((s) => s.name === '.rdata')!;
 const text = secs.find((s) => s.name === '.text')!;

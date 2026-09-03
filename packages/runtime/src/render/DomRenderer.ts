@@ -40,7 +40,21 @@ const RUNTIME_DRIVEN = new Set([
   'XuiBOTDOfflineContainer', 'XuiBOTDOfflineScene', 'XuiFall07BOTDScene',
 ]);
 
-interface Owner { text: string; pointSize: number; imagePath: string }
+interface Owner {
+  text: string;
+  pointSize: number;
+  imagePath: string;
+  /**
+   * The SECONDARY text slots, keyed by DataAssociation. 0 is `text` above;
+   * anything else is a channel only the console's code could fill, and
+   * metaScene_1line proves they are real and separate: it carries Pane_txt
+   * (association 0, the description) AND Pane_txtCurrentSetting (association 4,
+   * the "Current Setting" value block at y=33), which is exactly why every
+   * Console Settings description string in dashCSettingsStrings.xus starts with
+   * three to six CRLFs - the value block sits in that gap [SCENE].
+   */
+  slots?: Map<number, string>;
+}
 
 interface Opts {
   overrides: Overrides;
@@ -198,7 +212,7 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
       pointSize: p.num('PointSize', E.POINT_SIZE_INHERIT),
       imagePath: p.str('ImagePath'),
     };
-    const visualName = p.str('Visual');
+    const visualName = p.str('Visual') || defaultVisualFor(o.className, ctx);
     if (visualName) {
       const wrap = mountVisual(visualName, ctx, rect, childOwner, !p.bool('Enabled', true), record, id);
       if (wrap) el.appendChild(wrap);
@@ -318,7 +332,7 @@ export function contentFor(
     case 'image': case 'imagePresenter':
       return renderImage(p, rect.w, rect.h, ctx, owner?.imagePath ?? null, kind === 'image');
     case 'text': case 'textPresenter': {
-      const t: TextOwner | null = owner ? { text: owner.text, pointSize: owner.pointSize } : null;
+      const t: TextOwner | null = owner ? { text: owner.text, pointSize: owner.pointSize, slots: owner.slots } : null;
       return renderText(p, rect.w, rect.h, ctx, t, kind === 'text');
     }
     default: return null;
@@ -406,6 +420,38 @@ function noteCodeDriven(v: XuObject, ctx: RenderCtx, state: string, frame: numbe
       ctx.report.codeDrivenStates.push({ visual: id, state, frame, hidden, total });
     }
   }
+}
+
+/**
+ * The visual a control wears when it names none: the one in the skin whose Id
+ * IS its class name.
+ *
+ * dashuisk/skin.xur says so itself. It carries a literal separator child
+ * `Id="---------------Default-----------------------------"`, and immediately
+ * after it a block named exactly for the classes: XuiLabel, XuiButton,
+ * XuiButton_Multiline, XuiBackButton, XuiCheckbox, XuiEdit, XuiList,
+ * XuiRadioButton, XuiRadioGroup, XuiProgressBar, XuiGamerCard,
+ * XuiBOTDContainer, XuiScene, XuiLabelCenterJustify, XuiLabelRightJustify
+ * [SCENE]. `XuiLabel` is one XuiTextPresenter and `XuiScene` is empty, which is
+ * why the rule is invisible on most controls and decisive on a few: without it
+ * a XuiLabel that names no Visual has nothing to paint its Text with, and
+ * botd/defaultbanner0.xur's `label_Body` - the "Games. Tournaments.
+ * Entertainment. All the rewards..." paragraph the footage shows on the Xbox
+ * LIVE blade [FRAME hi f0026, f0078] - drew as an empty box.
+ *
+ * The walk is up the registry hierarchy, so a class with no default of its own
+ * inherits its base's, and the FIRST name the skin actually defines wins.
+ *
+ * Lists are excluded: ListView instantiates the XuiList default itself, because
+ * it needs that visual's control_ListItem template and its two XuiScrollEnds,
+ * and mounting it here as well would paint the template row twice.
+ */
+export function defaultVisualFor(className: string, ctx: RenderCtx): string {
+  if (isA(className, 'XuiList')) return '';
+  for (const c of xuiRegistry().hierarchy(className)) {
+    if (ctx.visuals.resolve(c.name)) return c.name;
+  }
+  return '';
 }
 
 export function classify(className: string): Kind {

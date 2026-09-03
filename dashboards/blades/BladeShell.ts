@@ -15,8 +15,9 @@
 import { idOf, propByName, type XuObject } from '@xur/index';
 import {
   loadScene, renderElement, indexVisuals, VisualScope, Skin, loadBladeSkin,
-  bindTimelines, refreshVisibility, updateNode, setOwnerText, pathOf,
+  bindTimelines, refreshVisibility, updateNode, setOwnerText, setOwnerSlot, remountVisual, pathOf,
   NO_DELTA, PropBag, NO_OVERRIDES, authoredRect, DEFAULT_DASH_STYLE,
+  isNativeLocale, DEFAULT_LOCALE, xuiRegistry,
   type AssetIndex, type RenderCtx, type NodeIndex, type NodeRecord, type Strings,
   type TimelineEngine, type SceneReport, type LoadedScene, type ListView,
 } from '@runtime/index';
@@ -25,8 +26,10 @@ import { IPTV_ROW, resolvePress } from './nav';
 import { panelEntries, entryForFocus, metaRange, metaPressRange, type PanelEntry } from './panels';
 import { FocusModel, type NavDirection } from './focus';
 import { populateLists } from './lists';
-import { playTransition, transitionId, type TransitionProp } from './transitions';
+import { AUTHORING_PLACEHOLDER, CONSOLE_SETTINGS_CURRENT, CONSOLE_SETTINGS_SCENE, CURRENT_SETTING_ASSOC } from './consoleSettings';
+import { playTransition, transitionId, type TransitionProp, type RunningTransition } from './transitions';
 import { BOOT_RANGES, DEFAULT_BOOT } from './boot';
+import { fillContainers, DASH_STRINGS_PACK, DASH_STRINGS_TABLE, type FillHost } from './containers';
 
 export const DASHMAIN = 'dashmain/dashmain.xur';
 export const ROOT_SCENE = 'RootScene';
@@ -110,6 +113,22 @@ export interface ShellReport {
   /** PressPaths that named no scene in the manifest, and code paths taken. */
   unresolvedPresses: string[];
   codePaths: string[];
+  /** The locale in force and how many strings it actually replaced across the
+   *  whole composed dashboard - dashmain plus every panel, banner, tray scene,
+   *  metapane sub-scene and pushed page. Zero on a real locale is a failure. */
+  locale: string;
+  localePatches: number;
+  /** "botdBillboard -> botd/defaultbanner0.xur" per container the console
+   *  filled at runtime, and anything that could not be filled. */
+  containersFilled: string[];
+  containersMissing: string[];
+  /** Authoring-tool captions cleared because the console filled them from
+   *  device state ("<setting>", "<servicename>"), one per control. */
+  hardwareState: string[];
+  /** Lists a scene declared empty that a recovered code table filled, and the
+   *  ones that stay empty with the reason. */
+  codeFilled: string[];
+  codeUnfilled: string[];
   /** Strings a code table named that its .xus does not carry, plus panel
    *  entries with no description. Nothing on screen may be invented, so a
    *  non-empty list is a failure, not a warning. */
@@ -129,6 +148,12 @@ export class BladeShell {
   private readonly unresolvedPresses: string[] = [];
   private readonly codePaths: string[] = [];
   private readonly missingStrings: string[] = [];
+  private readonly containersFilled: string[] = [];
+  private readonly containersMissing: string[] = [];
+  private readonly hardwareState: string[] = [];
+  private readonly codeFilled: string[] = [];
+  private readonly codeUnfilled: string[] = [];
+  private localePatches = 0;
   private booted: string | null = null;
   /** Loads in flight, so a test can wait for the metapane's sub-scene instead
    *  of sleeping. */
@@ -145,15 +170,23 @@ export class BladeShell {
     readonly host: HTMLElement,
     readonly state: ShellState,
     readonly strings: Strings,
+    readonly locale: string,
   ) {}
 
   static async mount(opts: {
     assets: AssetIndex; skin: Skin; nodes: NodeIndex; engine: TimelineEngine;
     report: SceneReport; host: HTMLElement; state?: Partial<ShellState>; strings: Strings;
+    /** ?locale=. Applied to EVERY scene the shell composes, not just the first:
+     *  the dashboard is a dozen files and a locale that reached only dashmain
+     *  would leave the pages it pushes in English. */
+    locale?: string;
     render: (root: XuObject, ctx: RenderCtx) => HTMLElement;
   }): Promise<BladeShell> {
     const state: ShellState = { ...OFFLINE, ...opts.state };
+    const locale = opts.locale ?? DEFAULT_LOCALE;
     const dashmain = await loadScene(opts.assets, DASHMAIN);
+    const rootPatches = isNativeLocale(locale) ? [] : await opts.strings.applyLocale(
+      dashmain.root, xuiRegistry(), dashmain.pack, dashmain.path, locale);
     // Three visual layers, resolved in order and never pre-merged: scene-local,
     // then the blade skin (a THEME overlay the console only registers for a
     // signed-in dash user with a non-zero DashStyle), then the base skin.
@@ -166,8 +199,9 @@ export class BladeShell {
     opts.host.replaceChildren(el);
 
     const shell = new BladeShell(
-      opts.assets, dashmain, opts.skin, theme, ctx, opts.nodes, opts.engine, el, state, opts.strings,
+      opts.assets, dashmain, opts.skin, theme, ctx, opts.nodes, opts.engine, el, state, opts.strings, locale,
     );
+    shell.localePatches += rootPatches.length;
     await shell.parentPanels();
     shell.applyIptv();
     shell.applySignInState();
@@ -196,13 +230,76 @@ export class BladeShell {
       const host = this.nodeByPath(blade.container);
       if (!host) { this.ctx.report.errors.push(`no container ${blade.container} in dashmain`); continue; }
       try {
-        const panel = await loadScene(this.assets, scene);
-        this.renderInto(host, panel);
+        const panel = await this.loadLocalized(scene);
+        const node = this.renderInto(host, panel);
         this.parented.set(blade.tab, panel);
+        if (node) await this.fill(node);
       } catch (err) {
         this.ctx.report.errors.push(`panel ${scene}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
+  }
+
+  /**
+   * Load a scene and patch its strings from its own sibling .xus BEFORE it is
+   * rendered, which is the only order that works: a locale table addresses
+   * objects by their postorder position in the PARSED tree, and English is the
+   * literal already in the .xur, so a rendered scene has nothing to patch.
+   */
+  private async loadLocalized(sceneId: string): Promise<LoadedScene> {
+    const scene = await loadScene(this.assets, sceneId);
+    if (isNativeLocale(this.locale)) return scene;
+    const patches = await this.strings.applyLocale(
+      scene.root, xuiRegistry(), scene.pack, scene.path, this.locale);
+    this.localePatches += patches.length;
+    return scene;
+  }
+
+  /**
+   * Fill the containers the console filled at runtime - the offline banners,
+   * the tray strip and DashLiveSignedOut's two labels. See containers.ts: every
+   * one of them names its own content in the scene data or in the executable.
+   */
+  private async fill(node: NodeRecord): Promise<void> {
+    const host: FillHost = {
+      load: async (parent, sceneId) => {
+        try {
+          const sub = await this.loadLocalized(sceneId);
+          const rec = this.renderInto(parent, sub);
+          bindTimelines(this.nodes, this.engine);
+          return rec;
+        } catch (err) {
+          this.ctx.report.errors.push(`container ${sceneId}: ${err instanceof Error ? err.message : String(err)}`);
+          return null;
+        }
+      },
+      resolve: (basename) => this.assets.findByBasename(basename) ?? null,
+      dashStrings: () => this.strings.stringsByIndex(DASH_STRINGS_PACK, DASH_STRINGS_TABLE, this.locale),
+      signedIn: this.state.signedIn,
+    };
+    const out = await fillContainers(node, host);
+    for (const f of out.filled) if (!this.containersFilled.includes(f)) this.containersFilled.push(f);
+    for (const m of out.missing) if (!this.containersMissing.includes(m)) this.containersMissing.push(m);
+  }
+
+  /**
+   * Clear the authoring tool's angle-bracket captions - "<setting>",
+   * "<servicename>", "<free space>". See AUTHORING_PLACEHOLDER: each is a slot
+   * the console filled from device or Live state before the control was shown,
+   * so the token itself was never on screen. Cleared, counted in
+   * `hardwareState`, and never replaced with a guess.
+   */
+  private discloseHardwareState(level: Level): void {
+    const walk = (n: NodeRecord) => {
+      const text = propString(n.obj, 'Text');
+      if (text && AUTHORING_PLACEHOLDER.test(text)) {
+        setOwnerText(n, '');
+        const entry = `${level.id}:${idOf(n.obj) || n.obj.className} ${text.trim()}`;
+        if (!this.hardwareState.includes(entry)) this.hardwareState.push(entry);
+      }
+      n.children.forEach(walk);
+    };
+    walk(level.node);
   }
 
   /**
@@ -269,9 +366,15 @@ export class BladeShell {
     if (this.state.signedIn) return;
     for (const id of ['legend_x', 'legend_y']) {
       for (const node of this.nodes.byId.get(id) ?? []) {
-        node.overrides.set('Text', '');
         node.overrides.set('Enabled', false);
-        updateNode(node, ['Text', 'Enabled', 'Visual']);
+        // Two writes, and BOTH are needed. The caption is painted by a
+        // XuiTextPresenter inside legend_Y, which reads the OWNER's text, not
+        // the control's property, so a bare override left "Sign Out" on screen;
+        // and mountVisual picks the disabled artwork when it INSTANTIATES the
+        // visual, so a control disabled after its first render kept the enabled
+        // glyph. setOwnerText fixes the first, remountVisual the second.
+        setOwnerText(node, '');
+        remountVisual(node);
       }
     }
   }
@@ -457,14 +560,47 @@ export class BladeShell {
    * on "Create Gamer Profile" no matter which row you look at, which is
    * PanelSettings[0] = fakeGamerCard focused by default [SCENE + FRAME hi
    * f0042, f0047]. So a DashScene with no DefaultFocus falls back to entry 0.
-   * A scene with neither - live/liveSignedOutUI is a plain XuiScene whose rows
-   * are handled entirely in DashLiveSignedOut - gets no focus and says so.
+   * A scene with NEITHER falls back to the head of its own authored
+   * NavUp/NavDown chain - the one focusable control with no NavUp. That is not
+   * a convenience: it is what the two blades that have neither actually show.
+   *
+   *  - Xbox LIVE, live/liveSignedOutUI.xur (a plain XuiScene,
+   *    ClassOverride="DashLiveSignedOut"): the chain is fakeGamerCard ->
+   *    btnJoinXbox -> btnUseExistingTag -> btn_AdBanner -> TrayScene, so the
+   *    head is fakeGamerCard, and f0078 - an ARRIVAL frame, with f0077 on Games
+   *    and f0079 on Marketplace, so a continuous sideways sweep with no vertical
+   *    input - shows the "Create Profile" card wearing the silver-to-transparent
+   *    focus gradient while btnJoinXbox and btnUseExistingTag are plain [FRAME].
+   *    Confirmed at 60 fps on f02310, where the panel is still fading in and the
+   *    card is already lit. The class itself (registered 0x9228f060, bound at
+   *    0x9228f478) fetches five children and calls the string helper; it makes
+   *    no SetFocus call, so focus here is the XUI runtime's own default [CODE].
+   *  - Marketplace, blademp/marketplaceSignedOut.xur, needs no fallback at all:
+   *    its ScriptScene root DECLARES DefaultFocus="scnBanner" [SCENE], and
+   *    blademp/marketplace.scb has only four onpress handlers and never touches
+   *    focus [CODE]. f00920 and f02352, both arrival frames, show the banner
+   *    tile filled white/silver and the rows plain [FRAME].
    */
   private arrivalFocus(level: Level): string | null {
     const declared = level.focus.defaultFocus;
     if (declared) return declared;
     const first = level.entries[0];
-    return first && findById(level.node, first.id) ? first.id : null;
+    if (first && findById(level.node, first.id)) return first.id;
+    return this.chainHead(level);
+  }
+
+  /** The one focusable control in the scene with no NavUp: where a plain
+   *  XuiScene's authored chain starts. Null when the scene has no chain. */
+  private chainHead(level: Level): string | null {
+    let head: string | null = null;
+    const walk = (o: XuObject) => {
+      const id = idOf(o);
+      if (head === null && id && propByName(o, 'NavDown') && !propByName(o, 'NavUp')
+        && findById(level.node, id)) head = id;
+      o.children.forEach(walk);
+    };
+    walk(level.scene);
+    return head;
   }
 
   /**
@@ -555,16 +691,32 @@ export class BladeShell {
     let text = '';
     let scenePath = '';
     if (list && level.descriptions.length) {
-      index = list.focusIndex;
-      text = level.descriptions[index] ?? '';
+      // TWO different indices, and mixing them up is what filled __dash.errors
+      // with "no range 9To10". The metapane is driven by the VISIBLE row, the
+      // slot inside the list's nine-row window: metaScene_1line authors only
+      // 1To2 .. 8To9 and their End frames, and a list of eleven rows scrolled
+      // to the bottom is on visible slot 8, not on row 10 [SCENE, and f0066
+      // shows the System Info highlight in the bottom slot with the window
+      // scrolled by two]. The TEXT is still the table row: row 10's description
+      // is xus [305] wherever it happens to be sitting.
+      index = list.visibleIndex;
+      text = level.descriptions[list.focusIndex] ?? '';
     } else {
       const entry = entryForFocus(level.entries, level.focus.chain());
       index = entry ? entry.index : -1;
       text = entry?.description ?? '';
       scenePath = entry?.scenePath ?? '';
-      // A row with neither a description nor a scene has nothing to show; the
-      // console would have had one, so it is recorded rather than left blank.
-      if (entry && !text && !scenePath) {
+      // A row with neither a description nor a scene has nothing to show - but
+      // only when the SCENE uses the per-row mechanism at all. Some DashScenes
+      // declare PanelSettings and leave every PanelStrings entry empty because
+      // their metapane body is a static authored label instead:
+      // dashSysCslSetAudio.xur names btnDigital and btnSoundEffects, ships
+      // PanelStrings "\0" (two empty entries), and draws labMetaBody with the
+      // whole "Select Digital Output to change..." paragraph in the file. That
+      // is not a missing string, so only a scene with SOME per-row text and a
+      // hole in it is reported.
+      const perRow = level.entries.some((e) => e.description || e.scenePath);
+      if (entry && perRow && !text && !scenePath) {
         const m = `${level.id}: PanelStrings[${entry.index}] (${entry.id}) is empty`;
         if (!this.missingStrings.includes(m)) this.missingStrings.push(m);
       }
@@ -581,6 +733,19 @@ export class BladeShell {
     if (scenePath) this.track(this.loadMetaScene(level, scenePath));
 
     setOwnerText(level.meta, text);
+    // The "Current Setting" block, DataAssociation 4 (Pane_txtCurrentSetting in
+    // metaScene_1line). Console state, not scene data: only the rows the
+    // reference console was actually focused on have a value, the rest stay
+    // empty rather than invented. PLACEHOLDERS.md carries the reason.
+    if (level.id === CONSOLE_SETTINGS_SCENE) {
+      // The TABLE row, not the visible slot: which setting the value describes
+      // does not change when the window scrolls.
+      const row = list ? list.focusIndex : index;
+      const cur = CONSOLE_SETTINGS_CURRENT.find((c) => c.row === row);
+      setOwnerSlot(level.meta, CURRENT_SETTING_ASSOC, cur?.value ?? '');
+      const gap = `${level.id}: row ${row} "Current Setting" is console state we cannot query`;
+      if (!cur && row >= 0 && !this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+    }
 
     const prev = level.metaIndex;
     level.metaIndex = index;
@@ -684,9 +849,14 @@ export class BladeShell {
    */
   async push(sceneId: string, from = this.top): Promise<Level | null> {
     if (!from) return null;
+    // A second press while a pop's fade is still running would leave two scenes
+    // in the document at once. The console cannot get into that state - it is
+    // single-threaded through the scene manager - so flush the pending teardown
+    // rather than let ours diverge.
+    this.engine.flushWaiters();
     let loaded: LoadedScene;
     try {
-      loaded = await loadScene(this.assets, sceneId);
+      loaded = await this.loadLocalized(sceneId);
     } catch (err) {
       this.ctx.report.errors.push(`push ${sceneId}: ${err instanceof Error ? err.message : String(err)}`);
       return null;
@@ -700,10 +870,14 @@ export class BladeShell {
 
     const ctx: RenderCtx = { ...this.ctx, pack: loaded.pack, visuals };
     bindTimelines(this.nodes, this.engine);
-    const filled = await populateLists(loaded, ctx, this.nodes, this.engine, this.strings);
+    const filled = await populateLists(loaded, ctx, this.nodes, this.engine, this.strings, this.locale);
     for (const m of filled.missingStrings) if (!this.missingStrings.includes(m)) this.missingStrings.push(m);
+    for (const c of filled.codeFilled) if (!this.codeFilled.includes(c)) this.codeFilled.push(c);
+    for (const c of filled.codeUnfilled) if (!this.codeUnfilled.includes(c)) this.codeUnfilled.push(c);
     const level = this.makeLevel(loaded.id, scene, sceneNode, host, loaded, loaded.pack, visuals,
       filled.descriptions, filled.navPaths, filled.lists, node);
+    await this.fill(node);
+    this.discloseHardwareState(level);
 
     // The range first: the console plays it from SetPanelLevel before the new
     // scene has focus, and the incoming fade rides on top of it.
@@ -737,13 +911,24 @@ export class BladeShell {
     else if (findById(under.node, 'legend_b')) this.setState(under, 'legend_b', 'Press');
 
     this.playClose();
-    this.transition(level, under, 'TransBackFrom', 'TransBackTo');
+    const back = this.transition(level, under, 'TransBackFrom', 'TransBackTo');
     this.levels.pop();
     if (level.rootNode !== under.rootNode) {
-      for (const id of this.nodes.removeSubtree(level.rootNode)) this.engine.remove(id);
-      // A transition scope holds a NodeRecord, so it has to go with the node.
-      const sceneId = idOf(level.scene) || level.scene.className;
-      for (const role of ['out', 'in']) this.engine.remove(transitionId(role, sceneId));
+      // The console runs the popped scene's TransBackFrom and tears the scene
+      // down AFTER it, so the teardown waits for that curve to finish instead
+      // of removing the node under a running fade. The wait is counted in 60 Hz
+      // engine steps, never in wall clock: ?frame=, ?manual and the smoke
+      // suites' stepFrames all drive the same clock, and a setTimeout would
+      // make the three disagree.
+      const destroy = () => {
+        for (const id of this.nodes.removeSubtree(level.rootNode)) this.engine.remove(id);
+        // A transition scope holds a NodeRecord, so it has to go with the node.
+        const sceneId = idOf(level.scene) || level.scene.className;
+        for (const role of ['out', 'in']) this.engine.remove(transitionId(role, sceneId));
+        refreshVisibility(this.host, this.ctx.report);
+      };
+      if (back.out) this.engine.whenFinished(back.out.id, destroy);
+      else destroy();
     }
     if (under.savedFocus) {
       // InitFocus, not Focus: btn_1line_icon's Focus frame carries
@@ -768,26 +953,56 @@ export class BladeShell {
    * its TransTo what the incoming plays; coming back, the popped scene's
    * TransBackFrom and TransBackTo do the same job. Every second-level scene in
    * this build names FadeOut / FadeIn / FadeOut / FadeIn.
+   *
+   * BOTH halves run in BOTH directions. On the way back the outgoing scene is
+   * the one being destroyed, so the caller holds the returned scope and only
+   * tears the node down when that curve ends.
+   *
+   * Measured against the console, on the settings pages [FRAME, 6717-60fps;
+   * the capture is 30 fps frame-doubled, so distinct images are two indices
+   * apart and one step is two 60 Hz frames]:
+   *  - Back out of Console Settings. f02157 is the page; f02159 has the System
+   *    Info row's highlight cleared (list-frame mean 153.5 -> 108.5, sd 46.3 ->
+   *    26.4) while the row labels, the metapane and the legend are untouched to
+   *    a hundredth (label sd 21.69, ink minimum 14.6, both identical to f02153);
+   *    f02161 has ALL of it gone at once (label sd 5.22 / min 118.7, metapane sd
+   *    8.84, legend sd 3.53). So the page is at full opacity for at least one
+   *    presented frame after the press lands and is entirely gone on the next:
+   *    the disappearance is bounded at two 60 Hz frames, which is inside
+   *    FadeOut's five and is all a 30 fps capture can resolve of an 83 ms ramp.
+   *  - Coming back in. The System blade's own content returns on the same
+   *    curve as TransBackTo=FadeIn (13 frames hidden, then 0 -> 1 over 17):
+   *    its list region is flat at sd 5.3 through f02179, breaks at f02181
+   *    (10.48), and settles at f02189 (30.49, unchanged thereafter) - 33 frames
+   *    after the press, against FadeIn's 30 [FRAME f02161-f02189].
+   *  - The same pair on the way IN is resolvable and agrees: on the push into
+   *    Console Settings the System panel's metapane goes sd 24.02 -> 6.42 in one
+   *    presented frame (f01546 -> f01548), and the incoming page ramps sd 6.79
+   *    -> 12.33 -> 19.28 -> 26.90 -> 29.94 -> 31.69 over f01568-f01578 and then
+   *    holds, a visible cross-fade, not a cut [FRAME].
    */
-  private transition(outgoing: Level, incoming: Level, fromProp: TransitionProp, toProp: TransitionProp): void {
-    const source = fromProp === 'TransFrom' ? incoming.scene : outgoing.scene;
+  private transition(
+    outgoing: Level, incoming: Level, fromProp: TransitionProp, toProp: TransitionProp,
+  ): { out: RunningTransition | null; in: RunningTransition | null } {
+    // The properties belong to the scene being navigated to on the way in and
+    // to the scene being left on the way back, and each resolves its visual
+    // through its OWN scope. FadeIn/FadeOut live in dashuisk/skin.xur, so both
+    // scopes find them; naming the right one is what makes the read checkable.
+    const forward = fromProp === 'TransFrom';
+    const owner = forward ? incoming : outgoing;
     const named = (prop: TransitionProp): string => {
-      const v = propByName(source, prop)?.value;
+      const v = propByName(owner.scene, prop)?.value;
       return typeof v === 'string' ? v : '';
     };
-    const play = (name: string, target: Level, role: 'out' | 'in') => {
-      if (!name) return;
-      if (!playTransition(this.engine, incoming.visuals, name, target.node, role)) {
-        this.ctx.report.errors.push(`transition visual "${name}" (${source && idOf(source)}.${role}) is not in the skin`);
+    const play = (name: string, target: Level, role: 'out' | 'in'): RunningTransition | null => {
+      if (!name) return null;
+      const run = playTransition(this.engine, owner.visuals, name, target.node, role);
+      if (!run) {
+        this.ctx.report.errors.push(`transition visual "${name}" (${idOf(owner.scene)}.${role}) is not in the skin`);
       }
+      return run;
     };
-    // Going back, the outgoing scene is destroyed in this same call, so its
-    // TransBackFrom has nothing left to fade. Reported here rather than played
-    // into a detached node: the console tears the scene down after the
-    // transition finishes and we tear it down at once, which is the one place
-    // this differs from it.
-    if (fromProp === 'TransFrom') play(named(fromProp), outgoing, 'out');
-    play(named(toProp), incoming, 'in');
+    return { out: play(named(fromProp), outgoing, 'out'), in: play(named(toProp), incoming, 'in') };
   }
 
   /* --------------------------------------------------------------------- boot */
@@ -839,6 +1054,13 @@ export class BladeShell {
       metaScene: this.top?.metaSubId ?? null,
       unresolvedPresses: [...this.unresolvedPresses],
       codePaths: [...this.codePaths],
+      locale: this.locale,
+      localePatches: this.localePatches,
+      containersFilled: [...this.containersFilled],
+      containersMissing: [...this.containersMissing],
+      hardwareState: [...this.hardwareState],
+      codeFilled: [...this.codeFilled],
+      codeUnfilled: [...this.codeUnfilled],
       missingStrings: [...this.missingStrings],
       booted: this.booted,
     };

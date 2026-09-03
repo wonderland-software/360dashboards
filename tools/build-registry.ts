@@ -212,8 +212,9 @@ if (BUILD === '6770') {
     'Id': 'XuiEffect', 'Text': 'XuiHtmlElement', 'DataAssociation': 'XuiHtmlPresenter', 'GrayAmount': 'XuiGrayscaleEffect', 'ColorFactor': 'XuiRecolorEffect', 'Threshold': 'XuiBrightPassEffect',
   };
   for (const [s, cls] of Object.entries(expect)) if (sig(bound.get(cls)?.props.map((p) => p.name) ?? []) !== s) throw new Error(`6770 binding regression: ${cls} should own ${s}`);
+  // Flat-mapped VAs (the header-mapped values Judge B read were 0x200 high).
   const blur = ['XuiHVBlurEffect', 'XuiHBlurEffect', 'XuiVBlurEffect'].map((c) => classes.find((k) => k.name === c)!.source);
-  if (!(blur[0]!.endsWith('921405cc') && blur[1]!.endsWith('92140784') && blur[2]!.endsWith('921408d4'))) throw new Error('6770 binding regression: blur effects');
+  if (!(blur[0]!.endsWith('921403cc') && blur[1]!.endsWith('92140584') && blur[2]!.endsWith('921406d4'))) throw new Error(`6770 binding regression: blur effects (${blur.join(', ')})`);
 }
 
 // --- 6. write, then compare with XuiTool's XML ------------------------------

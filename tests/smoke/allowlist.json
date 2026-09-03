@@ -1,8 +1,8 @@
 {
   "_comment": "Everything the smoke suites are allowed to report. One entry per fact, each with the reason it cannot be fixed by rendering harder. Anything not listed here fails the suite.",
   "unresolvedVisuals": {
-    "XuiScrollEnd": "Named by a XuiControl inside dashuisk/skin.xur itself and by nothing else in the build. No skin in Blades 6770 defines a XuiVisual with this Id, so the console had nothing to draw either.",
-    "XuiScrollEndUp": "Same: referenced only from within dashuisk/skin.xur, defined nowhere in the build.",
+    "XuiScrollEnd": "The Visual named by dashuisk/skin.xur's own XuiEdit/ScrollDown, and by nothing else: a byte search of all 263 scenes for UTF-16 'ScrollEnd' finds only skin.xur, arcade/250x_CompareAchievementsScene (XuiScrollEndRight/Left) and music/1003_IndividualDevice (scr_ScrollEndDownWrap). No skin in Blades 6770 defines a XuiVisual with this Id, so the edit box's down arrow is what goes undrawn. This says NOTHING about a list's scroll chevrons: XuiList names scr_ScrollEndUp / scr_ScrollEndDown outright, both are defined, and both are drawn - see ListView.updateEnds and reference/frames/6717/f0060.png, f0066.png.",
+    "XuiScrollEndUp": "Same, for skin.xur's XuiEdit/ScrollUp. Referenced only from within dashuisk/skin.xur, defined nowhere in the build.",
     "txt_Starting": "network/Status.xur asks for it and no skin in the build defines it. The only unresolved visual named by a real scene; recorded, never substituted."
   },
   "missingImages": {

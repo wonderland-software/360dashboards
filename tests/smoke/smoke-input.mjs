@@ -39,29 +39,42 @@ try {
   const rows = await page.p.evaluate(() =>
     [...document.querySelectorAll('[data-xui-class="XuiListItem"]')].map((el) => ({
       id: el.dataset.xuiId, xy: window.__xy(el), text: el.textContent,
+      shown: el.style.display !== 'none',
     })));
   // Eleven rows, in the order of the 11-entry code table at VA 0x920143d0 -
   // NOT the scene's own 9-entry PanelSettings, which names no control that
-  // exists in the file.
+  // exists in the file. All eleven exist; only nine are inside the window the
+  // list frame can hold (435 / 45), and the two outside it are not drawn.
   check(rows.length === 11, `expected 11 Console Settings rows, got ${rows.length}`);
+  check(rows.filter((r) => r.shown).length === 9,
+    `the window holds 9 of them, got ${rows.filter((r) => r.shown).length}`);
   const LABELS = ['Display', 'Audio', 'Themes', 'Language', 'Clock', 'Locale',
     'Startup', 'Shutdown', 'Screen Saver', 'Remote Control', 'System Info'];
+  // Focus is on row 5 (the f0060 moment), so the window has not scrolled and
+  // row k sits in slot k for the nine that are drawn.
   rows.forEach((r, k) => {
     check(r.text === LABELS[k], `row ${k} is "${r.text}", expected "${LABELS[k]}"`);
+    if (!r.shown) return;
     const want = `0,${ROW_TOP + ROW_PITCH * k}`;
     check(r.xy === want, `row ${k} at ${r.xy}, expected ${want}`);
   });
 
   const ends = await page.p.evaluate(() =>
     [...document.querySelectorAll('[data-xui-class="XuiScrollEnd"]')].map((el) => ({
-      id: el.dataset.xuiId, xy: window.__xy(el), visibility: el.style.visibility,
+      id: el.dataset.xuiId, xy: window.__xy(el),
+      range: el.querySelector('[data-xui-range]')?.dataset.xuiRange ?? null,
     })));
   check(ends.length === 2, `expected both ScrollEnds from the XuiList template, got ${ends.length}`);
   const down = ends.find((e) => e.id === 'control_ScrollDown');
   const up = ends.find((e) => e.id === 'control_ScrollUp');
-  // 10 rows in a 435-tall list shows 9, so there is more below and nothing above.
-  check(down?.visibility === 'visible', 'the down arrow must show while rows sit below the fold');
-  check(up?.visibility === 'hidden', 'the up arrow must be hidden at the top of the list');
+  // A chevron is a STATE, not a visibility flag. scr_ScrollEndDown's children
+  // carry Show=false across its Normal range (frames 0..1) and Show=true from
+  // frame 2, which is the start of ScrollMore (2..3) - so the console drew an
+  // arrow by putting the scroll end into ScrollMore, and drew none by leaving it
+  // in Normal [SCENE dashuisk/skin.xur]. Eleven rows in a 435-tall list show
+  // nine, so at the top there is more below and nothing above.
+  check(down?.range === 'ScrollMore..EndScrollMore', `the down arrow must be in ScrollMore while rows sit below, got ${down?.range}`);
+  check(up?.range === null || up?.range === 'Normal..EndNormal', `the up arrow must be off at the top, got ${up?.range}`);
   check(down?.xy === '386,409', `down arrow at ${down?.xy} (Anchor 12 from a 420x74 template into a 423x435 list)`);
 
   /* --------------------------------------------------------- focus and cues */

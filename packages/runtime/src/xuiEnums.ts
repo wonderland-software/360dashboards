@@ -161,7 +161,11 @@ export const SCALE_STROKE_WITH_FIGURE = true;
  *               height of the box over 2.
  *   translation 'box' - fractions of the box; 'design' - design pixels.
  *   order       the order the three are applied to a point in the box
- *               (texture direction): 'SRT' scale, rotate, translate.
+ *               (texture direction): 'SRT' scale, rotate, translate - so Scale
+ *               acts along the BOX's axes. 'RST' rotates first, which is what
+ *               "the scale acts along the gradient's own axis" means, and
+ *               'TRS' translates first. Only a fill that is rotated AND
+ *               non-uniformly scaled separates the three; see THE WING below.
  *
  * Stage 1 (40 candidates, translation=box, order=SRT), luma MAD / NCC of the
  * stack against the frame, summed over both blades (lower MAD is better):
@@ -213,16 +217,105 @@ export const SCALE_STROKE_WITH_FIGURE = true;
  * the outer edges, which would make the frame glow outwards on two sides and
  * inwards on the other two. So +1 is the only self-consistent reading.
  *
- * The residual after all of this is NOT a transform question and is not
- * claimed to be fixed. Re-measured on f0051 with the winning model, our tab
- * stack is uniformly lighter than the frame and the gap GROWS towards the
- * screen edge: mean RGB over a 40x300 column at x=60 is 161.6 on the frame and
- * 191.9 in our render (+30), at x=200 174.7 vs 186.6 (+12), at x=340 191.0 vs
- * 200.5 (+9). Both are neutral grey, so it is a missing darkening layer that
- * increases to the left - black_cover (BlendMode 2), grey_trans_fade, or the
- * blade-edge shadow - not a mis-placed gradient. Whole-blade numbers per blade
- * are printed by tests/smoke/smoke-blades.mjs, where the page BODY now agrees
- * to within 3-9 luma (frame -> ours: 150->141, 158->161, 135->142, 117->121,
+ * THE WING: what a ROTATED fill settles, and what it does not.
+ *
+ * Everything above was fitted on fills whose Rotation is 0 - blade_grey_left's
+ * inner2 and outer1 rings, which draw the tab edges, both carry Rotation 0 -
+ * and with R = I the three orders collapse (T*R*S and T*S*R are the same
+ * matrix). So no measurement here could say whether Scale acts along the BOX's
+ * axes or along the GRADIENT's own. Only a fill that is rotated AND scaled
+ * can; 166 of build 6770's gradient fills are, and the biggest is the wing.
+ *
+ * The fill, on the XuiFigure `wing` (117.023 x 770 at x=12) inside the 150x853
+ * `wing` visual of dashuisk/skin.xur - the visual dashmain's wing_left
+ * (140x853 at design x -15) wears. All three transform values sit on the
+ * XuiFigureFill compound, not on its Gradient and not on the element:
+ *   FillType 2 (linear), NumStops 4
+ *     0xffdcdcdc @ 0.039216    0xffdcdcdc @ 0.376471
+ *     0xffc8c8c8 @ 0.674510    0xfff0f0f0 @ 1.000000
+ *   Translation (-0.003280, -0.501485, 0)
+ *   Scale       ( 0.130000,  1.080000, 1)
+ *   Rotation    -90
+ * Twelve fills in the build carry those exact numbers (WingCover/wing and the
+ * dashskn1/2 copies); the blade faces are the same shape at Scale
+ * (0.12831, 1.18413), so this is a family, not one figure.
+ *
+ * Rotation -90 lays the gradient axis down the box's Y (Rotation 90 runs
+ * bottom-to-top, measured above), the box is 770 tall, so the gradient offset
+ * is an affine function of v = design_y / 770 and every order predicts a
+ * different one - the whole disagreement, in five lines:
+ *
+ *   order         offset(v)         spans           stop 0.3765  stop 0.6745
+ *   SRT           1.08 v - 0.0433   -0.043..1.037    y 299        y 512
+ *   RST           0.13 v + 0.4317    0.432..0.562    never        never
+ *   TRS           0.13 v + 0.3698    0.370..0.500    y 39         never
+ *   SRT topleft   1.08 v - 0.0033   -0.003..1.077    y 271        y 483
+ *   shape SRT     0.489 - 7.69 v     0.489..-7.204   y 11         never
+ *
+ * RST and TRS are the two readings in which Scale acts along the gradient's
+ * own axis: both then spend the whole 770-tall figure on 13% of the ramp, so
+ * both are MONOTONE over the entire wing - no plateau, no minimum, no climb.
+ * The console has all three. On f0051 the mean luma of the column x 3..34 at
+ * 1080p (design x 2..20, the wing's left flank), sampled every 2 design px
+ * down y 70..700, plateaus at 168.0, first falls 1 luma below that plateau at
+ * design y 322, bottoms at 144.6 at y 514 (flat within 1.5 luma over y
+ * 512..542) and climbs back to 169.1 by y 700 - flat 0xdc, down to 0xc8, up
+ * towards 0xf0, the authored ramp. Our render of the wing figure alone, same
+ * column and the same two detectors, plateaus at exactly 220.0 = 0xdc, breaks
+ * at y 314 and bottoms at 200.0 = 0xc8 at y 506: both landmarks within 8
+ * design px of the console's, with SRT's predicted 299 / 512 between the two.
+ *
+ * NCC of each order's predicted luma against the frame's profile over design
+ * y 430..700, the window that holds the minimum and the climb:
+ *   SRT 0.754    SRT topleft 0.606    RST -0.470    TRS -0.470    shape 0.000
+ * RST is ANTI-correlated - it keeps darkening where the console brightens. So
+ * SRT stands for rotated fills too: Scale is applied along the box's axes and
+ * the rotation then carries Scale.y, not Scale.x, onto the gradient axis. The
+ * 0.13 in Scale.x lands on the gradient's perpendicular, where a linear ramp
+ * cannot see it, and so does Translation.y = -0.501485; both are the tool's
+ * handle written out, not values the runtime reads. The wing re-settles
+ * origin=centre on its own, too: topleft puts the same two landmarks at y 271
+ * and 483, 30-40 design px early.
+ *
+ * tests/smoke/sweep-gradient.mjs wing is the gate; it re-measures those
+ * landmarks against f0051 on every run.
+ *
+ * THE LEFT-EDGE RESIDUAL IS NOT THE WING'S TRANSFORM. Re-measured on f0051,
+ * mean RGB of a 40x300 column at y 300..600: x=60 frame 166.4 / ours 194.1
+ * (+27.7), x=200 135.3 / 155.1 (+19.7), x=340 152.8 / 171.7 (+18.9). Only the
+ * x=60 column has a y-dependence, and all of it is one figure. Down that
+ * column (40 px wide) our excess runs +25.0, +26.6, +34.3, +39.6, +24.1 at
+ * 1080p rows y = 300, 450, 600, 750, 900; with the wing visual's `lines` group
+ * hidden it runs +12.7, +11.1, +12.3, +13.6, +11.3 - flat within 2.5 luma -
+ * and x=200 and x=340 do not move at all, that group's opaque disc ending at
+ * screen x 174 (design x 101.5, the last of the 225-wide rectangle it fills
+ * before the 0.929412 rim). In the
+ * full render that column's landmarks land at y 482 and y 632, 160 and 118
+ * design px late; with `lines` hidden they land at y 314 and 522, within 8 of
+ * the console's.
+ *
+ * `lines` is a XuiGroup in the wing visual holding one 225x945 rectangle whose
+ * radial fill is Translation (0.49, 0), Scale (1, 0.89), Rotation 0 with stops
+ * 0xffebebeb @ 0.929412, 0x00ebebeb @ 0.929412, 0xff505050 @ 0.956863,
+ * 0x000f0f0f @ 0.972549 - an OPAQUE interior out to 0.929412. Under every
+ * member of this model the disc's centre lands within 0.01 box widths of the
+ * box's left edge (texture) or its right edge (shape) while its 0.929412 rim
+ * is 0.465 box widths out, so about half the rectangle is filled opaque 0xeb
+ * and it covers the wing; that flat wash, not a mis-placed ramp, is what eats
+ * the wing's vertical gradient. The obvious escape - that XUI leaves the
+ * gradient texture transparent before the first stop instead of padding it -
+ * is refused by the same frame: dashuisk's blade_grey_left/back1 is a linear
+ * fill with stops from 0.263 to 0.886 and BOTH ends opaque, and f0051 draws
+ * that tab body solid top to bottom. 214 of the build's 1,854 gradient fills
+ * have an opaque first stop past 0.25, so whatever the rule is, it is not a
+ * one-figure special case. UNRESOLVED, and it is a stop-space question, not a
+ * transform one.
+ *
+ * What is left after that is a uniform lightness, +12 at x=60 and +19 at
+ * x=200 and x=340: a missing darkening layer - black_cover (BlendMode 2),
+ * grey_trans_fade, or the blade-edge shadow. Whole-blade numbers per blade are
+ * printed by tests/smoke/smoke-blades.mjs, where the page BODY agrees to
+ * within 3-9 luma (frame -> ours: 150->141, 158->161, 135->142, 117->121,
  * 120->116).
  */
 export interface GradientTransformModel {
@@ -231,7 +324,7 @@ export interface GradientTransformModel {
   rotation: 1 | -1;
   radial: 'axis' | 'max' | 'min' | 'width' | 'height';
   translation: 'box' | 'design';
-  order: 'SRT' | 'TRS';
+  order: 'SRT' | 'RST' | 'TRS';
 }
 export const GRADIENT_TRANSFORM: GradientTransformModel = {
   direction: 'texture', origin: 'centre', rotation: 1, radial: 'axis', translation: 'box', order: 'SRT',

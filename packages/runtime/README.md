@@ -309,16 +309,50 @@ TEMPLATE: `control_ListItem` (a `XuiListItem`, 420×**45**, Anchor 15,
 `Direction 1`). So the 45 px pitch, the row's look and where the arrows land
 are all data. Row *k* top = list y + 3 + 45*k*.
 
-A control with no `Visual` falls back to a visual named after its **class** —
-the skin defines `XuiList`, `XuiButton`, `XuiLabel`, `XuiCheckbox`,
-`XuiBackButton` by exactly those names. That also explains the only unresolved
-visuals in the build: `XuiScrollEnd` and `XuiScrollEndUp` are class-default
-names the skin never defines.
+A control with no `Visual` falls back to a visual named after its **class**, and
+this is now the general rule in `DomRenderer.defaultVisualFor`, not a
+list-only convenience. `dashuisk/skin.xur` says so itself: it carries a literal
+separator child `Id="---------------Default-----------------------------"` and
+then a block named exactly for the classes — `XuiLabel`, `XuiLabelCenterJustify`,
+`XuiLabelRightJustify`, `XuiButton`, `XuiButton_Multiline`, `XuiBackButton`,
+`XuiCheckbox`, `XuiEdit`, `XuiList`, `XuiRadioButton`, `XuiRadioGroup`,
+`XuiProgressBar`, `XuiGamerCard`, `XuiBOTDContainer`, `XuiScene`. The lookup
+walks the registry hierarchy and takes the first name the skin actually defines.
+It is invisible on most controls (`XuiScene`'s default is empty) and decisive on
+a few: `XuiLabel`'s default is a single `XuiTextPresenter`, and without it a
+`XuiLabel` that names no `Visual` had nothing to paint its `Text` with —
+`botd/defaultbanner0.xur`'s `label_Body`, the "Games. Tournaments…" paragraph on
+the Xbox LIVE blade, drew as an empty box. Lists are excluded because `ListView`
+instantiates the `XuiList` default itself (it needs the `control_ListItem`
+template), and mounting it twice would paint the template row twice. The rule
+also explains the only unresolved visuals in the build: `XuiScrollEnd` and
+`XuiScrollEndUp` are class-default names the skin never defines.
+
+**The window is nine rows.** `lstSettings` is 423×435 at a 45 px pitch, so it
+holds `floor(435/45) = 9`; rows outside the window are not drawn, and past the
+bottom the window slides by one and the selection pins to the last slot. At
+System Info (row 10 of 11) the window has moved by two — measured on `f0060` /
+`f0066`, whose row-label ink profiles cross-correlate at ncc 0.902 for a shift
+of two against 0.371 / 0.326 / 0.291 for 0 / 1 / 3. The metapane is indexed by
+the VISIBLE slot, not the table row: `metaScene_1line` authors `1To2`…`8To9` and
+nothing beyond, which is the same nine.
+
+**The chevron is a state, not a visibility flag.** `scr_ScrollEndDown`'s
+children carry `Show=false` across its `Normal` range (frames 0..1) and
+`Show=true` from frame 2, the start of `ScrollMore` (2..3); `Scrolling` is
+4..20. So the console drew an arrow by putting the scroll end into `ScrollMore`
+and drew none by leaving it in `Normal`. Background-subtracted glyph centroids,
+design px, reference vs our render: `f0060` down `(545.62, 572.83)` vs
+`(545.56, 573.01)`; `f0066` up `(521.66, 576.61)` vs `(521.88, 577.35)`.
 
 `ItemsText`/`ItemsImage`/`ItemsNavPath` are CRLF-separated (31 lists use them).
 `lstSettings` declares none, so its rows come from the positional table the
 console indexed, `consoles/dashCSettingsStrings.xus` — see
-`dashboards/blades/settingsList.ts` for the indices.
+`dashboards/blades/consoleSettings.ts` for the indices, and
+`dashboards/blades/codeLists.ts` for the six other lists now filled the same
+way. Those tables are localized like everything else: the row indices are read
+out of `consoles/<locale>/dashCSettingsStrings.xus` when a locale is in force,
+so `&locale=de-de` translates the code-filled rows too.
 
 **Overlay against `f0060`**, fitted by normalised cross-correlation of
 gradient-magnitude row profiles between our 1920×1080 console-view render and
@@ -487,6 +521,31 @@ Recorded per scene in `window.__dash`, never faked:
 - **`sceneTextures`** — an `ImagePath` naming a `.xur` (eleven scenes use
   `common://TitleMetadata.xur`). XUI renders a scene to a texture; M1 has no
   offscreen target. The file is present, so this is not a missing asset.
+- **The tab-stack residual is NOT a missing layer and NOT the gradient
+  transform.** Our render was too light on the blade stack at the System rest
+  frame — +30 luma at x=60, +12 at x=200, +9 at x=340 on `f0051` — and the
+  deficit grew with y, which pointed at the `wing` fill's −90° rotation
+  (Scale 0.13/1.08, Translation −0.5). It is not that: SRT, the order we
+  already render, is the one that reproduces the console's three landmarks
+  (plateau, minimum, climb). Down x 3..34 of `f0051` the profile plateaus at
+  168.0, breaks at design y 322, bottoms at 144.6 at y 514 and climbs to 169.1
+  by y 700; our wing figure alone plateaus, breaks at 314 and bottoms at 506 —
+  both within 8 design px, NCC 0.754 over y 430..700 against 0.606 for a
+  top-left origin and −0.470 for RST or TRS. RST would make the offset
+  `0.13v + 0.43`, monotone over the whole figure, so it cannot produce a
+  minimum at all. The wing also independently re-settles `origin=centre`.
+  What DOES cause the y-growing part is the `lines` group inside `wing_left`:
+  a 225×945 rectangle whose radial fill's first stop is an OPAQUE `0xffebebeb`
+  at 0.929412, so half the rectangle paints a flat 0xeb over the wing's
+  gradient. Excess down x=60 at 1080p y 300/450/600/750/900 is
+  +25.0 +26.6 +34.3 +39.6 +24.1 as it stands and +12.7 +11.1 +12.3 +13.6 +11.3
+  with `lines` hidden — the y-dependence is entirely that group. The remaining
+  flat ~+12 (and +19.7 at x=200, +18.9 at x=340) is a uniform lightness and is
+  still open; the `lines` radial has no model in this fill family that avoids
+  the opaque disc, and the obvious escape is refused by `blade_grey_left/back1`,
+  whose 0.263→0.886 opaque-ended linear fill `f0051` draws solid. The wing gate
+  in `tests/smoke/sweep-gradient.mjs` holds the order of operations, and that
+  suite is now on the `npm run smoke` board.
 - **`unverifiedBlendModes`** — `BlendMode` 1 is alpha (DOCUMENTED); 2–5 are
   guesses. They are **not** confined to `dashmain.xur` and the blade skins, as
   an earlier note here claimed: 2 is in `arcade/2500_LiveArcadeHome`,
@@ -511,26 +570,94 @@ Recorded per scene in `window.__dash`, never faked:
 - **`unresolvedVisuals` / `missingImages` / `deviceFiles` / `placeholders`** —
   see `tests/smoke/allowlist.json` for the three visuals and three paths the
   build itself cannot supply, each with its reason.
-- **Second-level option lists are empty.** `consoles/dashSysCslSetDisplay.xur`,
-  `…Audio`, `…Language` and their siblings declare a `XuiCommonList` or
-  `XuiList` with `ItemsText=""`: the console filled those rows from code tables
-  we have not decoded, the way it filled Console Settings' own eleven rows from
-  the table at 0x920143d0. Pressing A on Display therefore pushes the page and
-  draws its chrome with no options in it. `runtimeDrivenClasses` records the
-  list; nothing is invented to fill it.
-- **The Xbox LIVE blade has no focus.** `live/liveSignedOutUI.xur` is a plain
-  `XuiScene` with no `DefaultFocus` and no `PanelSettings`; its rows are handled
-  entirely inside `DashLiveSignedOut`, so there is nothing in the data that says
-  which row comes up focused. `shell.focusId` is null there and every other
-  blade has an answer. Same for Marketplace's rows, which `marketplace.scb`
-  drives.
-- **The outgoing scene's `TransBackFrom` does not get to run.** `back()`
-  destroys the popped scene in the same call so the pop is synchronous and
-  testable; the console tears it down after the transition finishes. The
-  incoming `TransBackTo` does run, and so do both halves of a push.
+- **Second-level option lists: seven filled, four still empty.** Of the 59
+  lists in the corpus that declare `ItemsText=""`, the ones reachable from
+  Console Settings offline are now filled from the recovered tables
+  (`dashboards/blades/codeLists.ts`, which cites the VA and record layout of
+  each): Display's three rows from the 4×16-byte table at 0x927bfff0, the 11
+  languages from 0x92016d8c + 0x92016dc0, the 37 locales from 0x92016eb8, the 75
+  time zones from 0x927bf680, the five passcode hints from 0x92015320, and the
+  two remote-control channels the code computes at 0x921c8d08. `__dash.shell.codeFilled`
+  names the table that filled each one. Four are still empty and
+  `__dash.shell.codeUnfilled` says why, one reason each: the HDTV mode list
+  prepends a row built from the attached display's native mode; the clock
+  spinners are `sprintf`'d ranges around the console clock; the family timer is
+  computed from a profile setting; and the parental rating list is selected by
+  the console's `XC_LOCALE` from 29 tables at 0x920163a0 that are decoded but
+  not yet wired to the locale pick. Nothing is invented to fill any of them.
+  Note for anyone reading addresses out of this repo: `tools/ppc-dis.ts` prints
+  `.text` VAs 0x200 HIGH, because `basefile.exe`'s section headers disagree with
+  the image the code was linked for (1,191 of 1,200 sampled `.pdata`
+  BeginAddress entries land on a prologue under the flat mapping
+  `raw = VA - 0x92000000`, against 82 under the header mapping). Addresses in
+  `dashboards/blades/*.ts` are flat-mapped.
+- **Hardware state is disclosed, not guessed.** 168 controls across the corpus
+  ship a `Text` that is nothing but an angle-bracket token — `<setting>`,
+  `<servicename>`, `<free space>`, `<MAC Addr>`. The console filled each from
+  device or Live state before the control was shown, so the token was never on
+  screen; the shell clears them and lists each one in
+  `__dash.shell.hardwareState`. The one place a value is supplied is the
+  Console Settings metapane's "Current Setting" block
+  (`Pane_txtCurrentSetting`, `DataAssociation` 4, a 383×173 presenter at y=33 in
+  `metaScene_1line` — which is what the three-to-six leading CRLFs in every
+  description string are for). Three rows have a value, each read off the
+  reference console and cited to its frame: Display "1080p / Widescreen /
+  Standard" (`6717-60fps/f01580`), Locale "United Kingdom" (`f0060`), System
+  Info "Dashboard: 2.0.6717.0" (`f0066`). The other eight rows stay blank and
+  are counted.
+- **Arrival focus, closed.** `live/liveSignedOutUI.xur` has no `DefaultFocus`
+  and no `PanelSettings`, and `DashLiveSignedOut` (registered 0x9228f060, bound
+  at 0x9228f478) fetches five children and makes no `SetFocus` call — so focus
+  there is the XUI runtime's own default, and the shell now falls back to the
+  head of the scene's authored chain, the one focusable control with no
+  `NavUp`. That is `fakeGamerCard`, and `f0078` — an arrival frame, with `f0077`
+  on Games and `f0079` on Marketplace, one sideways sweep and no vertical input
+  — shows the "Create Profile" card wearing the silver focus gradient while
+  `btnJoinXbox` and `btnUseExistingTag` are plain. Marketplace needed no
+  fallback: `blademp/marketplaceSignedOut.xur` DECLARES
+  `DefaultFocus="scnBanner"`, and `marketplace.scb` has four `onpress` handlers
+  and nothing else.
+- **`TransBackFrom` now runs before the teardown.** `back()` plays the popped
+  scene's `TransBackFrom` (`FadeOut`, opacity 1→0 over frames 0..5) and defers
+  the destroy until that scope finishes, counted in 60 Hz engine steps so
+  `?frame=`, `?manual` and `stepFrames` all agree. Measured on the footage
+  (30 fps frame-doubled, so distinct images are two 60 Hz frames apart): the
+  page is at full contrast one presented frame after the press lands (f02159,
+  list-frame ink sd 21.69, minimum 14.6, identical to f02153, while the focused
+  row's highlight has already cleared, 153.5 → 108.5) and entirely gone on the
+  next (f02161, sd 5.22, minimum 118.7; metapane sd 8.84, legend sd 3.53). So
+  the console's disappearance is bounded at two frames — inside `FadeOut`'s
+  five, and all a 30 fps capture can resolve of an 83 ms ramp. The incoming half
+  IS resolvable and agrees with `FadeIn`'s 30 frames: the System blade's list
+  region is flat at sd 5.3 through f02179, breaks at f02181 (10.48) and settles
+  at f02189 (30.49), 33 frames after the press.
+- **Offline content the data supplies is drawn, not left blank.** Every
+  `XuiBOTDOfflineContainer` loads the scene it names in its own
+  `DefaultBanner` property (the Xbox LIVE billboard is `botd/defaultbanner0.xur`,
+  the ad tile `defaultbanner1.xur`, Marketplace's
+  `defaultbanner_media_large.xur`; each canvas is exactly its container's size).
+  Every `TraySceneLoader` loads `dashcomm/TrayScene.xur` — the wide literal
+  `L"common://TrayScene.xur"` at 0x92013130, referenced once from 0x921b1e00 —
+  and `btn_Tray`'s caption is `dashStrings.xus[203]` "Open Tray", the
+  fall-through of the drive-state switch at 0x921b2054. `DashLiveSignedOut`'s
+  two labels are `dashStrings.xus[173]` "Create Profile" and `[52]` "No Profiles
+  Found". `__dash.shell.containersFilled` lists each.
+- **The Y / X legend glyphs really are disabled with no profile.** They were
+  painting at full strength because `mountVisual` picks the disabled artwork at
+  instantiation time and the caption is drawn by a `XuiTextPresenter` reading
+  the OWNER's text; `applySignInState` now calls `setOwnerText` and
+  `remountVisual`, and `f0026` shows the glyphs desaturated with no caption.
 - **`navSystemSetUp` and the Themes row are code paths, and stay code paths.**
   Neither has a `PressPath`: Initial Setup raises a confirmation dialog
   (0x92114a98) and runs the OOBE, and Themes' alt handler opens
   `Personalization.xur`, which is not in this archive. Both are recorded in
   `__dash.shell.codePaths` and press to nothing.
-- The Guide is not implemented and is not in the archive (PLACEHOLDERS.md).
+- The Guide is not implemented and is not in the archive (PLACEHOLDERS.md). The
+  button is a no-op that RECORDS itself: pressing it appends one line to
+  `__dash.placeholders` naming `xam.xex`/`xshell` as where the panel actually
+  lives, once per session rather than once per press.
+- **`?locale=` reaches every scene the shell composes**, not just `dashmain`:
+  `BladeShell.loadLocalized` patches each `.xur` from its sibling `.xus` before
+  it renders, and the positional code tables are read from the locale's own copy.
+  `__dash.shell.localePatches` counts them (62 for `de-de` on the walk the smoke
+  suite drives) and is 0 for `en`, which is the literal already in the files.

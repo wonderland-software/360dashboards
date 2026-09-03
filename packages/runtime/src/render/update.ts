@@ -120,6 +120,59 @@ export function setOwnerText(node: NodeRecord, text: string): void {
   walk(node);
 }
 
+/**
+ * Write one of a control's SECONDARY text channels - the slots a
+ * XuiTextPresenter selects with DataAssociation.
+ *
+ * metaScene_1line, the metapane's visual, carries two: Pane_txt
+ * (DataAssociation 0, the description, written by setOwnerText above) and
+ * Pane_txtCurrentSetting (DataAssociation 4, a 383x173 block at y=33). That
+ * second channel is the "Current Setting" value the footage shows above every
+ * Console Settings description - "United Kingdom" on Locale [FRAME hi f0060],
+ * "Dashboard: 2.0.6717.0" on System Info [FRAME hi f0066], "1080p /
+ * Widescreen / Standard" on Display [FRAME 6717-60fps f01580] - and it is why
+ * those description strings are padded with leading CRLFs.
+ */
+export function setOwnerSlot(node: NodeRecord, assoc: number, text: string): void {
+  const owner = node.visualOwner;
+  if (!owner) return;
+  (owner.slots ??= new Map()).set(assoc, text);
+  const walk = (n: NodeRecord) => {
+    if (n !== node && n.kind === 'textPresenter') updateNode(n, ['Text']);
+    n.children.forEach(walk);
+  };
+  walk(node);
+}
+
+/**
+ * Re-instantiate a control's visual against its CURRENT properties.
+ *
+ * `updateNode` swaps a visual only when the Visual NAME changes, because that
+ * is the only swap a timeline ever asks for (dashmain drives blade_1..5_bgcolor
+ * through one control). Enabled is different: `mountVisual` picks the disabled
+ * variant at instantiation time from the flag it is handed, so a control that
+ * becomes disabled AFTER its first render keeps the enabled artwork forever.
+ * That is what left the Y and X legend glyphs painting at full strength with no
+ * profile signed in, where f0026 shows them desaturated [FRAME].
+ *
+ * The owner is rebuilt from the live overrides too, so text cleared by the same
+ * state change does not come back with the new visual.
+ */
+export function remountVisual(node: NodeRecord): void {
+  if (node.visualWrap === undefined) return;
+  const p = PropBag.of(node.obj, node.overrides);
+  const name = p.str('Visual');
+  if (!name) return;
+  node.visualWrap?.remove();
+  const owner: Owner = node.visualOwner
+    ?? { text: p.str('Text'), pointSize: p.num('PointSize', E.POINT_SIZE_INHERIT), imagePath: p.str('ImagePath') };
+  owner.text = p.str('Text');
+  node.visualOwner = owner;
+  const wrap = mountVisual(name, node.ctx, node.rect, owner, !p.bool('Enabled', true), node, idOf(node.obj));
+  node.visualWrap = wrap ?? null;
+  if (wrap) node.el.insertBefore(wrap, node.el.firstChild);
+}
+
 /** A resized element hands a new delta to its children, exactly as the first
  *  render does; a visual root instead takes its host control's new size. */
 function relayout(node: NodeRecord): void {

@@ -16,6 +16,10 @@ const SUITES = [
   'tests/smoke/smoke-input.mjs',
   'tests/smoke/smoke-blades.mjs',
   'tests/smoke/smoke-nav.mjs',
+  // The gradient sweep is a suite like any other and has to run on the board:
+  // it now carries the wing gate, which is the only thing standing between the
+  // gradient transform's order of operations and a silent regression.
+  'tests/smoke/sweep-gradient.mjs',
 ];
 
 let server = null;

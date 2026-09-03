@@ -37,7 +37,7 @@ interface Sec { name: string; va: number; raw: number; size: number }
 const secs: Sec[] = [];
 for (let i = 0; i < numSections; i++) {
   const o = secTab + i * 40;
-  secs.push({ name: buf.toString('ascii', o, o + 8).replace(/\0.*$/, ''), va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 20), size: buf.readUInt32LE(o + 8) });
+  secs.push({ name: buf.toString('ascii', o, o + 8).replace(/\0.*$/, ''), va: imageBase + buf.readUInt32LE(o + 12), raw: buf.readUInt32LE(o + 12) /* flat: xex1tool writes each section at its RVA; the header's PointerToRawData is 0x200 low for .text (LEARNINGS: section headers lie) */, size: buf.readUInt32LE(o + 8) });
 }
 const text = secs.find((s) => s.name === '.text')!;
 const rdata = secs.find((s) => s.name === '.rdata')!;
