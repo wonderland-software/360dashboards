@@ -794,3 +794,27 @@ suite's own printout at this commit.
   completeness` / `=footage` run the walker and the frame-by-frame block
   alone; `smoke-launcher` and `smoke-gallery` PASS unchanged (they are the two
   other suites that load the 9199 route).
+- **2026-09-03, round 3 @ b274833: PASS** on all eight briefed items. The
+  judge's own cold-vite walker mounted 50 pages by input (the suite's 50),
+  pressed A on every row, found zero painted tokens on every page plus Sign
+  In, the four roots and the Rome strip; spot-read the decoded tables in the
+  image (locale count 0x25 @0x18d3c, hints @0x1a06c, Display records
+  @0x7f0ae0, language labels @0x18bfc, TZ record 0 @0x7f0130); Sign In within
+  1.17 px of Yrt f0268 and the counter top 579.0 vs 579.3; Games Library
+  within 0.83 px of Yrt f0396; X/Y as recorded; btn_Select on 50/50 pushes;
+  R1 closed (0.300 vs 0.267 s), R4 closed (0.333 vs 0.367 s), R2 accepted as
+  a disclosed, ungated shape residual (start of the unfold-behind ~0.3 s vs
+  ~0.6 s is its other half; UNFOLD_BEHIND_FRAME is inferred), R5 closed;
+  settle-on-pending never read a half-open shell; the unmounted remainder
+  carries a reason and case address per command. Findings: (F1) MEDIUM the
+  Display page draws HDTV2TVSwitch.png over rows 5-7 - the SwitchImage group
+  is authored under scnCurrentFormat (420x450 at 456,15) and belongs at
+  ~(788,366) in the right pane; ours applies no parent offset; (F2) LOW three
+  of 50 pops played snd_buttonback instead of legend_b's btn_Back,
+  nondeterministic (setPageState returning false after a child walk?); (F3)
+  LOW Recent Games' authored labEmpty ("You don't have any games in your
+  library.") is not raised though codeUnfilled says it is; (F4) LOW
+  2004_NetworkDetails' btn_IP/btn_DNS render blank with no codeUnfilled line.
+  Observation: the queue bullet is present on the signed-out frames (Kpa
+  f0048, Yv5 f0042) and absent on the signed-in ones; the Marker row should
+  state the rule. Fixes pending with M4f.
