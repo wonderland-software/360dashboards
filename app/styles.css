@@ -99,8 +99,8 @@ html, body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #050604;
-  color: #9aa095;
+  background: #f4f5f2;
+  color: #4a5044;
   font-family: ConvectionUI, "Segoe UI", system-ui, sans-serif;
   user-select: none;
   cursor: default;
@@ -112,12 +112,12 @@ html, body {
 .launcher-glow {
   position: absolute;
   left: 50%;
-  top: 54%;
+  top: 62%;
   width: 1560px;
   height: 1040px;
   margin: -520px 0 0 -780px;
   background: radial-gradient(closest-side,
-    rgba(140, 196, 59, 0.20), rgba(140, 196, 59, 0.055) 46%, rgba(140, 196, 59, 0) 72%);
+    rgba(140, 196, 59, 0.20), rgba(140, 196, 59, 0.06) 46%, rgba(140, 196, 59, 0) 72%);
   transform: translateX(-176px);
   transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -129,20 +129,23 @@ html, body {
 .launcher-halo {
   position: absolute;
   left: 50%;
-  top: -78px;
-  width: 680px;
-  height: 430px;
-  margin-left: -340px;
+  top: -60px;
+  width: 520px;
+  height: 330px;
+  margin-left: -260px;
+  /* A white lift, not a green one: the logo art carries its own soft dark
+     shadow for the console's dark plate, and any tint behind it turns that
+     shadow into mush. On white it just needs room to breathe. */
   background: radial-gradient(closest-side,
-    rgba(140, 196, 59, 0.17), rgba(140, 196, 59, 0.04) 52%, rgba(140, 196, 59, 0) 74%);
+    rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.6) 55%, rgba(255, 255, 255, 0) 78%);
 }
-.launcher-logo { position: relative; width: 300px; height: 196px; margin: 0 auto; }
+.launcher-logo { position: relative; width: 200px; height: 131px; margin: 0 auto; }
 .launcher-tagline {
   position: relative;
-  margin: 20px 0 0;
+  margin: 18px 0 0;
   font-size: 20px;
   letter-spacing: 0.02em;
-  color: #7f8778;
+  color: #6b7264;
 }
 
 /* ---------------------------------------------------------------- the cards */
@@ -160,9 +163,9 @@ html, body {
   width: 466px;
   height: 252px;
   padding: 24px 30px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
-  opacity: 0.6;
+  border: 1px solid rgba(31, 38, 26, 0.14);
+  background: linear-gradient(180deg, #ffffff, #fbfcf9);
+  opacity: 0.72;
   cursor: pointer;
   transition:
     transform 170ms cubic-bezier(0.2, 0.7, 0.2, 1),
@@ -174,46 +177,46 @@ html, body {
 .launcher-card[data-focused="true"] {
   opacity: 1;
   transform: scale(1.035);
-  border-color: #8cc43b;
+  border-color: #6f9f2a;
   background: linear-gradient(180deg,
-    rgba(140, 196, 59, 0.22), rgba(140, 196, 59, 0.05) 56%, rgba(140, 196, 59, 0.02));
-  box-shadow: 0 22px 70px -22px rgba(140, 196, 59, 0.6);
+    rgba(140, 196, 59, 0.16), rgba(140, 196, 59, 0.05) 56%, #ffffff);
+  box-shadow: 0 18px 54px -20px rgba(88, 128, 32, 0.55);
 }
 
 .launcher-build {
   font-size: 15px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #6b7264;
+  color: #7d8676;
   transition: color 170ms ease-out;
 }
-.launcher-card[data-focused="true"] .launcher-build { color: #8cc43b; }
+.launcher-card[data-focused="true"] .launcher-build { color: #5c8a17; }
 
 .launcher-name {
   margin: 8px 0 0;
   font-size: 58px;
   line-height: 1.04;
-  color: #d6dbcf;
+  color: #6a7263;
   transition: color 170ms ease-out;
 }
-.launcher-card[data-focused="true"] .launcher-name { color: #fff; }
+.launcher-card[data-focused="true"] .launcher-name { color: #1e2419; }
 
 .launcher-rule {
   height: 1px;
   margin: 18px 0 16px;
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(31, 38, 26, 0.12);
   transition: background 170ms ease-out;
 }
-.launcher-card[data-focused="true"] .launcher-rule { background: rgba(140, 196, 59, 0.5); }
+.launcher-card[data-focused="true"] .launcher-rule { background: rgba(111, 159, 42, 0.55); }
 
 .launcher-blurb {
   margin: 0;
   font-size: 20px;
   line-height: 1.5;
-  color: #8b9285;
+  color: #767e6f;
   transition: color 170ms ease-out;
 }
-.launcher-card[data-focused="true"] .launcher-blurb { color: #ccd3c4; }
+.launcher-card[data-focused="true"] .launcher-blurb { color: #39402f; }
 
 /* --------------------------------------------------------------- the legend */
 /* What the console draws for A: the 32x32 orb from shrdres/A-Button.png with
@@ -231,7 +234,7 @@ html, body {
   gap: 32px;
   font-size: 20px;
 }
-.launcher-hint { color: #6f7669; }
+.launcher-hint { color: #7d8576; }
 .launcher-a { display: flex; align-items: center; gap: 12px; }
 .launcher-orb { position: relative; width: 32px; height: 32px; }
 .launcher-orb-art { width: 32px; height: 32px; }
@@ -244,7 +247,7 @@ html, body {
   font-size: 20px;
   color: #0f0f0f;
 }
-.launcher-a-label { color: #ebebeb; }
+.launcher-a-label { color: #23291d; }
 
 /* ----------------------------------------------------------------- the intro */
 /* The page settles once on arrival, then never moves again except in answer
@@ -269,8 +272,8 @@ html, body {
 
 .launcher[data-phase="going"] .launcher-card[data-focused="true"] {
   transform: scale(1.06);
-  border-color: #cfe89a;
-  box-shadow: 0 0 0 2px rgba(140, 196, 59, 0.55), 0 26px 90px -20px rgba(140, 196, 59, 0.85);
+  border-color: #5c8a17;
+  box-shadow: 0 0 0 2px rgba(111, 159, 42, 0.65), 0 26px 80px -20px rgba(88, 128, 32, 0.7);
 }
-.launcher[data-phase="going"] .launcher-card[data-focused="false"] { opacity: 0.16; }
+.launcher[data-phase="going"] .launcher-card[data-focused="false"] { opacity: 0.2; }
 .launcher[data-phase="going"] .launcher-legend { opacity: 0.25; }
