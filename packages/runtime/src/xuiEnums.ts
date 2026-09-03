@@ -311,12 +311,75 @@ export const SCALE_STROKE_WITH_FIGURE = true;
  * one-figure special case. UNRESOLVED, and it is a stop-space question, not a
  * transform one.
  *
- * What is left after that is a uniform lightness, +12 at x=60 and +19 at
- * x=200 and x=340: a missing darkening layer - black_cover (BlendMode 2),
- * grey_trans_fade, or the blade-edge shadow. Whole-blade numbers per blade are
- * printed by tests/smoke/smoke-blades.mjs, where the page BODY agrees to
- * within 3-9 luma (frame -> ours: 150->141, 158->161, 135->142, 117->121,
- * 120->116).
+ * What is left after that is a uniform lightness, +12.0 at x=60 and +19.7 at
+ * x=200 and +18.9 at x=340 (40x300 columns CENTRED on those x, y 300..600).
+ * It is NOT a missing darkening layer, and the ablation that says so is
+ * tests/smoke/sweep-gradient.mjs `stack`, which is now the gate on it.
+ *
+ * WHAT PAINTS 1080p x < 350 AT THE SYSTEM REST FRAME, from the live DOM: five
+ * things only - wing_left (with its `lines` group), blade_0..3_grey_Left,
+ * blade4_top_back/jewel/face, blade_topshadow_left (Opacity 0.3) and
+ * color_highlight_left (below y ~700) - plus the rotated tab captions
+ * blade_0..4_txt, which do paint (hiding them lifts x=200 by 9.6). Everything
+ * else that covers the region is BEHIND the opaque tab figures, and hiding it
+ * moves all three columns by 0.0 luma: white_cover, black_cover, BG_color_2,
+ * Background, content_panel_blink, Tab5. grey_trans_fade cannot paint there at
+ * all - Opacity 0 at rest, and its box starts at screen x=463.
+ *
+ * So four hypotheses are CLOSED by measurement:
+ *   (a) a BlendMode 3/4/5 layer under the stack drawn with the wrong CSS mode.
+ *       Remapping 2, 3, 4 and 5 to any candidate moves the three columns by
+ *       0.0 luma, because every blended element in the region is occluded.
+ *       f0051's stack can therefore never settle 3/4/5 - only the top band can.
+ *   (b) the backdrop / grey_trans_fade / BG_color_* misread. Same 0.0, above.
+ *   (d) blade_topshadow_left animated at a frame we do not sample. Its three
+ *       keyframes around the rest frame (144, 154, 169) hold Opacity 0.30,
+ *       Width 128.98778 and Scale.x -1.7598 constant, and our render carries
+ *       exactly those. Its measured contribution down the stack is alpha
+ *       0.187 / 0.099 / 0.048 / 0.005 at 1080p x = 65 / 222 / 294 / 358, which
+ *       is its authored ramp to three decimals; scaling its Opacity to 0.39
+ *       would fix x=60 and leave x=340 +16, so it is not the answer.
+ *   (e) gamma or a levels mismatch in the capture. The frames are FULL range,
+ *       not studio swing: f0051 spans 0..255 with 8,311 subpixels below 16 and
+ *       37,082 above 235. A least-squares fit over 4,116 locally flat 16x16
+ *       blocks gives frame = 0.881*ours + 15.32 (rms 7.25, against 8.70 for
+ *       the identity), which LOOKS like studio swing but is not one: binned by
+ *       our own luma the mean error is -2.0/+3.6/-0.0 at ours 80/100/120 - the
+ *       page interior, which agrees - and -12.4/-10.9/-8.8/-8.1 at 160/180/
+ *       200/220, which is the chrome. One curve cannot be both.
+ *
+ * WHAT IT ACTUALLY IS, as far as measurement takes it: the error is not the
+ * tab stack and not the left of the screen. The RIGHT wing is +9.0
+ * (x 1860..1900, y 400..600: frame 204.9, ours 213.9) and the right page
+ * margin +8.7, while the page interior agrees within 5. It is the skin CHROME
+ * - the `wing` and `blade_grey_left`/`_rt` visuals - that is uniformly about
+ * 4-5% too light wherever it appears. Expressed as the alpha of a wash of the
+ * shadow's own colour (rgb 15) over our un-shadowed render, the darkening we
+ * are missing is nearly CONSTANT across the stack: 0.056, 0.050, 0.042, 0.039
+ * at the four tab bodies (x 40..90, 210..235, 282..306, 348..368, y 400..500),
+ * against our shadow's own 0.187, 0.099, 0.048, 0.005 - a different shape, so
+ * it is not the shadow being weak. Nothing in the z band between the chrome
+ * and the Tab scenes paints, which is why the page hides it and the wings do
+ * not. Remaining candidates, both unmeasurable from this archive: the chrome
+ * fills carry a modulation we do not apply (back1 stores FillColor 150,150,150
+ * ALONGSIDE its gradient and 12 wing-family fills store a black Stroke with no
+ * width), or 6717's dashuisk/skin.xur - which the frames were shot from and
+ * which we do not have; extracted/6719dev/resources is empty - authors these
+ * greys darker than 6770's. A 6770 frame, or a 6717 skin extraction, settles
+ * it; nothing in 6770 alone can.
+ *
+ * At the seams the profiles agree in shape and are displaced: at 1px
+ * resolution over y 400..500 the frame's first tab valley bottoms at x=192
+ * (luma 55) and ours at x=189 (72), peaks at 199 (174) against ours 199 (213).
+ * That 2-3 px is the same sign and size as the wing gate's 8-design-px knee
+ * offset, and it is the only thing an anisotropy correction (hypothesis (c),
+ * a radial that should be circular in SCREEN space, 22/21 = 4.8%) could move:
+ * every ring in blade_grey_left ends at alpha 0, so no ring reaches a tab body
+ * and no ring geometry can produce the flat offset there.
+ *
+ * Whole-blade numbers per blade are printed by tests/smoke/smoke-blades.mjs,
+ * where the page BODY agrees to within 3-9 luma (frame -> ours: 150->141,
+ * 158->161, 135->142, 117->121, 120->116).
  */
 export interface GradientTransformModel {
   direction: 'texture' | 'shape';
@@ -469,6 +532,14 @@ export const KNOWN_SIZE_MODES: readonly number[] = [0, 1, 2, 4, 8, 16];
  * white_cover, a 50-100/255 alpha wash: the same sweep moves its NCC by 0.005
  * on f0051 and the MAD ordering disagrees between the two blades, so nothing
  * separates it.
+ *
+ * AND THE TAB STACK CANNOT SEPARATE THEM EITHER, which is worth writing down
+ * because it looks like the obvious place to try. Every element carrying a
+ * BlendMode over 1080p x < 350 at the System rest frame - white_cover (5),
+ * black_cover/top (2), BG_color_2's color_back (2), BG_animation's thing1 (3)
+ * and thing2/thing3 (4) - sits BEHIND the opaque wing and tab figures. Remap
+ * any of 2, 3, 4 or 5 to any CSS mode and all three sample columns move by
+ * 0.0 luma; tests/smoke/sweep-gradient.mjs `stack` asserts that they do.
  *
  * THE ISOLATION TRAP, and why this took a second pass. CSS `mix-blend-mode`
  * blends only within the nearest stacking context, and `transform` creates

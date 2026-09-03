@@ -4,6 +4,7 @@
 //
 //   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs [stage2]
 //   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs wing
+//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs stack
 //
 // Each candidate renders the System blade (f0051) and the Marketplace blade
 // (f0034) through the console view at 1920x1080 and is scored on the tab stack
@@ -16,6 +17,11 @@
 // smoke-blades.mjs because the thing it holds still is the fill-transform
 // model: those rings are all Rotation 0, so nothing the sweep scores can tell
 // a rotated fill's Scale.x from its Scale.y. The wing can. It exits non-zero.
+//
+// `stack` is the second gate. It holds still what is LEFT after the transform
+// is right - the flat lightness of the tab stack on f0051 - and the three
+// hypotheses ablation CLOSED for it, so nobody re-opens them by hand. It also
+// exits non-zero.
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -149,6 +155,97 @@ if (process.argv.includes('wing')) {
   if (!ok) fails.push(`climb after the minimum: frame ${wantClimb.toFixed(1)}, ours ${gotClimb.toFixed(1)}`);
   console.log(`  (plateau: frame ${want.plateau.toFixed(1)}, ours ${got.plateau.toFixed(1)} - lightness is the residual, not this gate)`);
   if (fails.length) { console.log('SWEEP_FAIL'); process.exit(1); }
+  console.log('SWEEP_PASS');
+  process.exit(0);
+}
+
+/**
+ * THE STACK ABLATION GATE (`stack`). The wing gate holds the fill transform
+ * still; this one holds still what is LEFT after it - the flat lightness of
+ * the System blade's tab stack on f0051 - and, more usefully, the three
+ * hypotheses that ablation CLOSED, so that nobody re-opens them by hand.
+ *
+ * The columns are the ones xuiEnums.ts and the README quote: a 40x300 rect
+ * CENTRED on 1080p x = 60 / 200 / 340 over y 300..600, plus five 40x6 samples
+ * down each of them. `lines` (the wing visual's opaque radial disc, still
+ * UNRESOLVED) is hidden throughout, because with it in the picture the x=60
+ * column carries a y-dependence that swamps everything else.
+ *
+ * Three assertions, one per closed hypothesis:
+ *   OCCLUDED  hiding white_cover / black_cover / BG_color_2 / Background /
+ *             content_panel_blink / Tab5 must move all three columns by less
+ *             than 0.5 luma. They are behind the opaque wing and tab figures,
+ *             so nothing about THEM can be the residual.
+ *   BLEND     remapping BlendMode 2/3/4/5 to any CSS mode must likewise move
+ *             the three columns by less than 0.5 luma - which is why f0051's
+ *             stack can never settle 3/4/5, whatever the sweep in xuiEnums.ts
+ *             says about the top band.
+ *   RESIDUAL  the residual itself, +12.0 / +19.7 / +18.9, within 2 luma.
+ * It exits non-zero.
+ */
+const STACK_COLS = [60, 200, 340];
+const STACK_ROWS = [300, 450, 600, 750, 900];
+function stackProfile(im) {
+  return {
+    col: STACK_COLS.map((x) => mean(im, { x: x - 20, y: 300, w: 40, h: 300 })),
+    dots: STACK_COLS.map((x) => STACK_ROWS.map((y) => mean(im, { x: x - 20, y: y - 3, w: 40, h: 6 }))),
+  };
+}
+
+if (process.argv.includes('stack')) {
+  // Ablations that must do nothing (occluded), then blend remaps that must do
+  // nothing, then the two that DO paint there - the whole list of what covers
+  // 1080p x < 350 at the System rest frame.
+  const cases = [
+    { tag: 'baseline (lines hidden)', q: 'hide=lines', expect: 'residual' },
+    { tag: 'hide white_cover   (BlendMode 5)', q: 'hide=lines,white_cover', expect: 'occluded' },
+    { tag: 'hide black_cover   (BlendMode 2)', q: 'hide=lines,black_cover', expect: 'occluded' },
+    { tag: 'hide BG_color_2', q: 'hide=lines,BG_color_2', expect: 'occluded' },
+    { tag: 'hide Background    (BlendMode 3/4)', q: 'hide=lines,Background', expect: 'occluded' },
+    { tag: 'hide content_panel_blink', q: 'hide=lines,content_panel_blink', expect: 'occluded' },
+    { tag: 'hide Tab5          (the page)', q: 'hide=lines,Tab5', expect: 'occluded' },
+    { tag: 'blend 2 -> normal', q: 'hide=lines&blend=2:normal', expect: 'blend' },
+    { tag: 'blend 3 -> multiply', q: 'hide=lines&blend=3:multiply', expect: 'blend' },
+    { tag: 'blend 4 -> multiply', q: 'hide=lines&blend=4:multiply', expect: 'blend' },
+    { tag: 'blend 5 -> multiply', q: 'hide=lines&blend=5:multiply', expect: 'blend' },
+    { tag: 'hide blade_topshadow_left', q: 'hide=lines,blade_topshadow_left', expect: 'paints' },
+    { tag: 'hide wing_left', q: 'hide=lines,wing_left', expect: 'paints' },
+  ];
+  const ref = stackProfile(readPng(`${FRAMES}/f0051.png`));
+  const got = {};
+  try {
+    for (const c of cases) {
+      const shot = `${OUT}/f0051-stack-${c.q.replace(/[^a-z0-9]+/gi, '_')}.png`;
+      if (!existsSync(shot)) await render(`${BASE}/?zoom=1.5&mute&manual&blade=5&${c.q}`, shot);
+      got[c.tag] = stackProfile(readPng(shot));
+    }
+  } finally {
+    await browser.close();
+  }
+  const base = got['baseline (lines hidden)'];
+  const d = (p) => p.col.map((v, i) => v - ref.col[i]);
+  const sign = (v) => (v >= 0 ? '+' : '') + v.toFixed(1);
+  const fails = [];
+  console.log('f0051 System rest, 1080p columns centred on x=60/200/340, y 300..600');
+  console.log(`  frame                              ${ref.col.map((v) => v.toFixed(1).padStart(7)).join('')}`);
+  for (const c of cases) {
+    const p = got[c.tag];
+    const moved = p.col.map((v, i) => v - base.col[i]);
+    console.log(`  ${c.tag.padEnd(34)}${d(p).map((v) => sign(v).padStart(7)).join('')}   moved ${moved.map((v) => sign(v)).join(' / ')}`);
+    if ((c.expect === 'occluded' || c.expect === 'blend') && moved.some((v) => Math.abs(v) > 0.5)) {
+      fails.push(`${c.tag} was expected to be inert (${c.expect}) and moved ${moved.map(sign).join('/')}`);
+    }
+  }
+  // The residual itself. 2 luma is a quarter of the smallest of the three and
+  // twice the run-to-run spread of a headless render.
+  const RESIDUAL = [12.0, 19.7, 18.9];
+  d(base).forEach((v, i) => {
+    const ok = Math.abs(v - RESIDUAL[i]) <= 2;
+    console.log(`  ${ok ? 'ok  ' : 'FAIL'} residual at x=${STACK_COLS[i]}: recorded ${sign(RESIDUAL[i])}, now ${sign(v)}`);
+    if (!ok) fails.push(`residual at x=${STACK_COLS[i]}: recorded ${sign(RESIDUAL[i])}, now ${sign(v)}`);
+  });
+  console.log(`  (down x=60: ${base.dots[0].map((v, i) => sign(v - ref.dots[0][i])).join(' ')} at y 300/450/600/750/900 - flat, so no layer with a y ramp is missing)`);
+  if (fails.length) { for (const f of fails) console.log(`  FAIL ${f}`); console.log('SWEEP_FAIL'); process.exit(1); }
   console.log('SWEEP_PASS');
   process.exit(0);
 }
