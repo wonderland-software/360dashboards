@@ -85,7 +85,192 @@ html, body {
 }
 
 /* ------------------------------------------------------------ launcher */
-/* The launcher (app/launcher.ts) is the Blades dashboard's own chrome mounted
-   through the runtime, so it owns no styling here: everything on it comes
-   from dashmain/dashmain.xur and dashuisk/skin.xur and lives inside
-   .xui-canvas like any other scene. */
+/* The one page in the project that is OURS. Every other thing inside
+   .xui-canvas is scene data and nothing here may touch it; the launcher is
+   the exception, and it is scoped to `.launcher` so it cannot.
+
+   It is authored at 1280x720, the console's output size, and the Viewport
+   fits that box into the window. The only console materials on it are the
+   two extracted images (app/launcher.ts names their manifest entries), the
+   ConvectionUI face above, and the accent green #8CC43B, which is a palette
+   entry of dashcomm/xboxLogo.png itself. */
+
+.launcher {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #050604;
+  color: #9aa095;
+  font-family: ConvectionUI, "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  cursor: default;
+}
+.launcher img { display: block; }
+
+/* The one ambient element: a wide green bloom that leans toward whichever
+   card has focus, so the whole page acknowledges a move. */
+.launcher-glow {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 1560px;
+  height: 1040px;
+  margin: -520px 0 0 -780px;
+  background: radial-gradient(closest-side,
+    rgba(140, 196, 59, 0.20), rgba(140, 196, 59, 0.055) 46%, rgba(140, 196, 59, 0) 72%);
+  transform: translateX(-176px);
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.launcher[data-index="1"] .launcher-glow { transform: translateX(176px); }
+
+/* -------------------------------------------------------- the focal point */
+
+.launcher-head { position: absolute; top: 48px; left: 0; right: 0; text-align: center; }
+.launcher-halo {
+  position: absolute;
+  left: 50%;
+  top: -78px;
+  width: 680px;
+  height: 430px;
+  margin-left: -340px;
+  background: radial-gradient(closest-side,
+    rgba(140, 196, 59, 0.17), rgba(140, 196, 59, 0.04) 52%, rgba(140, 196, 59, 0) 74%);
+}
+.launcher-logo { position: relative; width: 300px; height: 196px; margin: 0 auto; }
+.launcher-tagline {
+  position: relative;
+  margin: 20px 0 0;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  color: #7f8778;
+}
+
+/* ---------------------------------------------------------------- the cards */
+
+.launcher-cards {
+  position: absolute;
+  top: 318px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+.launcher-card {
+  width: 466px;
+  height: 252px;
+  padding: 24px 30px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  opacity: 0.6;
+  cursor: pointer;
+  transition:
+    transform 170ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 170ms ease-out,
+    border-color 170ms ease-out,
+    background 170ms ease-out,
+    box-shadow 260ms ease-out;
+}
+.launcher-card[data-focused="true"] {
+  opacity: 1;
+  transform: scale(1.035);
+  border-color: #8cc43b;
+  background: linear-gradient(180deg,
+    rgba(140, 196, 59, 0.22), rgba(140, 196, 59, 0.05) 56%, rgba(140, 196, 59, 0.02));
+  box-shadow: 0 22px 70px -22px rgba(140, 196, 59, 0.6);
+}
+
+.launcher-build {
+  font-size: 15px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #6b7264;
+  transition: color 170ms ease-out;
+}
+.launcher-card[data-focused="true"] .launcher-build { color: #8cc43b; }
+
+.launcher-name {
+  margin: 8px 0 0;
+  font-size: 58px;
+  line-height: 1.04;
+  color: #d6dbcf;
+  transition: color 170ms ease-out;
+}
+.launcher-card[data-focused="true"] .launcher-name { color: #fff; }
+
+.launcher-rule {
+  height: 1px;
+  margin: 18px 0 16px;
+  background: rgba(255, 255, 255, 0.10);
+  transition: background 170ms ease-out;
+}
+.launcher-card[data-focused="true"] .launcher-rule { background: rgba(140, 196, 59, 0.5); }
+
+.launcher-blurb {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  color: #8b9285;
+  transition: color 170ms ease-out;
+}
+.launcher-card[data-focused="true"] .launcher-blurb { color: #ccd3c4; }
+
+/* --------------------------------------------------------------- the legend */
+/* What the console draws for A: the 32x32 orb from shrdres/A-Button.png with
+   the letter over it in near-black, and the label to its right in #EBEBEB.
+   (dashuisk/skin.xur, visual legend_A.) */
+
+.launcher-legend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  font-size: 20px;
+}
+.launcher-hint { color: #6f7669; }
+.launcher-a { display: flex; align-items: center; gap: 12px; }
+.launcher-orb { position: relative; width: 32px; height: 32px; }
+.launcher-orb-art { width: 32px; height: 32px; }
+.launcher-orb-key {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #0f0f0f;
+}
+.launcher-a-label { color: #ebebeb; }
+
+/* ----------------------------------------------------------------- the intro */
+/* The page settles once on arrival, then never moves again except in answer
+   to a press. `?boot=none` arrives settled. */
+
+.launcher-head, .launcher-cards, .launcher-legend {
+  transition: opacity 520ms ease-out, transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.launcher[data-phase="intro"] .launcher-head,
+.launcher[data-phase="intro"] .launcher-cards,
+.launcher[data-phase="intro"] .launcher-legend { opacity: 0; transform: translateY(16px); }
+.launcher[data-phase="intro"] .launcher-glow { opacity: 0; }
+.launcher-cards { transition-delay: 90ms; }
+.launcher-legend { transition-delay: 190ms; }
+.launcher-glow { transition-property: transform, opacity; }
+.launcher-noboot .launcher-head,
+.launcher-noboot .launcher-cards,
+.launcher-noboot .launcher-legend,
+.launcher-noboot .launcher-glow { transition: none; }
+
+/* ---------------------------------------------------------------- the commit */
+
+.launcher[data-phase="going"] .launcher-card[data-focused="true"] {
+  transform: scale(1.06);
+  border-color: #cfe89a;
+  box-shadow: 0 0 0 2px rgba(140, 196, 59, 0.55), 0 26px 90px -20px rgba(140, 196, 59, 0.85);
+}
+.launcher[data-phase="going"] .launcher-card[data-focused="false"] { opacity: 0.16; }
+.launcher[data-phase="going"] .launcher-legend { opacity: 0.25; }

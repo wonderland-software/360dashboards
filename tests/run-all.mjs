@@ -29,8 +29,9 @@ const SUITES = [
   // against the reference stills. It also re-checks that the DEFAULT route
   // still serves Blades 6770 on its own 1120x770 canvas.
   ['tests/smoke/smoke-nxe.mjs'],
-  // The launcher: the Blades chrome on a bare `/`, the logo from the manifest,
-  // the skin's rows, Right+Enter to ?build=9199, and the same layer budget.
+  // The launcher: our own page on a bare `/`. Every image traced back to a
+  // manifest entry, both builds offered, Right/Down+Enter to ?build=9199, the
+  // focus and select cues, and the same layer budget as the dashboards.
   ['tests/smoke/smoke-launcher.mjs'],
   // The fill-transform gate: the only thing standing between the gradient
   // transform's order of operations and a silent regression.

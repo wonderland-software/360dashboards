@@ -36,6 +36,10 @@ import { LISTS_DISABLED_OFFLINE } from './codeLists';
 import { REFERENCE_AV_PACK } from './displaySettings';
 import { playTransition, transitionId, transitionKey, type TransitionProp, type RunningTransition } from './transitions';
 import { BOOT_RANGES, DEFAULT_BOOT } from './boot';
+import {
+  SYSTEM_INFO_SCENE, SYSTEM_INFO_EDIT, NO_CONSOLE,
+  formatSystemInfo, systemInfoGaps, systemInfoStringIndex,
+} from './systemInfo';
 import { fillContainers, DASH_STRINGS_PACK, DASH_STRINGS_TABLE, type FillHost } from './containers';
 
 export const DASHMAIN = 'dashmain/dashmain.xur';
@@ -57,8 +61,16 @@ const CODE_FILLED_PANEL_STRINGS: Readonly<Record<string, string>> = {
   // nothing static could say it.
   'consoles/dashSysCslSetPControl.xur#btnDone': 'labDoneSummary is written by 0x921bd0b0 (0x921bd1c8-0x921bd298): dashCSettingsStrings [447] sprintf\'d over the five current values read from the staged block (0x921bb420 / 0x921bb588 / 0x921bb718 / 0x921bb780 / 0x921bb860), console state we cannot read',
 };
-/** XuiNavButton.PressKey values the legends carry: X 0x5802, Y 0x5803, B 0x5841 [SCENE]. */
-export const PRESS_KEY = { X: 0x5802, Y: 0x5803, B: 0x5841 } as const;
+/**
+ * XuiNavButton.PressKey values the legends carry: X 0x5802, Y 0x5803, B 0x5841
+ * [SCENE]. A is 0x5840 = `VK_PAD_A_OR_START` [xui.h 551] and it is
+ * `XuiButton.PressKey`'s DEFAULT (22592, reference/xzp-tool/XuiElements.xml:69),
+ * which is why no `legend_a` in the build authors one and why an unkeyed
+ * `XuiBackButton` binds A rather than B (keyCarrierOf).
+ */
+export const PRESS_KEY = { A: 0x5840, X: 0x5802, Y: 0x5803, B: 0x5841 } as const;
+/** What `PressKey` means when a XuiButton (or a subclass of it) sets none. */
+export const PRESS_KEY_DEFAULT = PRESS_KEY.A;
 
 export interface ShellState {
   signedIn: boolean;
@@ -1330,6 +1342,26 @@ export class BladeShell {
       if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
       findById(level.node, 'btnMediaCenter')?.overrides.set('NavDown', '');
     }
+    // System Info: the page's XuiEdit is authored with the FACTORY RESET
+    // screen's prose and dashSystemReset's init overwrites it - see
+    // systemInfo.ts for the branch, the four fields and the addresses. The
+    // string index follows the same IPTV predicate that hides navIPTVSettings
+    // (0x9226e7d8), so offline it is 545; the fields the archive cannot supply
+    // are the code's own empty buffers and each one is disclosed.
+    if (level.id === SYSTEM_INFO_SCENE) {
+      const node = findById(level.node, SYSTEM_INFO_EDIT);
+      const idx = systemInfoStringIndex(this.state.iptv);
+      const template = this.resolveLabel({ idx }, `${SYSTEM_INFO_EDIT} body`);
+      if (node && template !== null) {
+        setOwnerText(node, formatSystemInfo(template, NO_CONSOLE));
+        this.filledByShell.add(node);
+        const note = `${level.id}:${SYSTEM_INFO_EDIT} - dashCSettingsStrings[${idx}] written by dashSystemReset's init (0x921c8568, SetText at 0x921c879c) over the scene's authored factory-reset prose; ${this.state.iptv ? 'IPTV provider present' : 'no IPTV provider (0x9226e7d8), the 545 arm at 0x921c8704'}, copyright year 2008 from the code literal 0x7d8`;
+        if (!this.codeFilled.includes(note)) this.codeFilled.push(note);
+        for (const gap of systemInfoGaps(NO_CONSOLE)) {
+          if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+        }
+      }
+    }
     if (level.id === DISPLAY_SCENE) this.track(this.arriveDisplay(level));
     const off = LISTS_DISABLED_OFFLINE[level.id];
     if (off) {
@@ -1394,16 +1426,17 @@ export class BladeShell {
     // System Info, the Arcade pages and the Family Timer - resolved the way X
     // and Y are, not by the name `legend_b` [Judge E round 3, finding 6].
     //
-    // 176 of the build's scenes carry that carrier and ten do not: dashmain
-    // itself and nine wait / progress / confirm screens
-    // (oobe/oobeProfileCreation, download/2407_WaitingScreen,
-    // memory/OperationProgress, ...), every one of which authors its four
-    // legends as XuiLabels with Enabled=false - a page that offers no B. Those
-    // play NO Press: B still navigates back, because that is the scene
-    // manager's job and not the button's, and the blade's own close range
-    // still fires its cue. Pressing the hidden page underneath's back button
-    // instead - which is what the name-matching version did - would be a cue
-    // the console never plays.
+    // 176 of the build's scenes carry that carrier and 87 do not; of the 187
+    // that declare the full canvas, 16 have none, and they are not one shape -
+    // six author no legend band at all, five author a legend_b that is
+    // Enabled=false, oobe/oobeProfileCreation authors four XuiLabel legends,
+    // and four network scenes author an ENABLED "Back" whose PressKey is left
+    // on XuiButton's default 0x5840, which is A (keyCarrierOf has the survey
+    // and the addresses). A page with no B carrier plays NO Press: B still
+    // navigates back, because that is the scene manager's job and not the
+    // button's, and the blade's own close range still fires its cue. Pressing
+    // the hidden page underneath's back button instead - which is what the
+    // name-matching version did - would be a cue the console never plays.
     if (!programmatic) {
       const own = this.keyCarrier(level, PRESS_KEY.B);
       if (own) this.setState(level, own.id, 'Press');
@@ -1497,14 +1530,85 @@ export class BladeShell {
       return typeof v === 'string' ? v : '';
     };
     const play = (name: string, target: Level, role: 'out' | 'in'): RunningTransition | null => {
-      if (!name) return null;
-      const run = playTransition(this.engine, owner.visuals, name, target.node, role);
+      const node = this.navScene(target);
+      if (!name) {
+        // XuiSceneNavigateForward hides the outgoing scene whatever visual is
+        // named (0x9215369c: state = !StayVisible), so a scene that authors no
+        // TransFrom still goes away. Every second-level page reachable in this
+        // build DOES author one; the direct hide is the code's rule, not a
+        // guess, and it is reported when it fires.
+        if (role === 'out' && forward) {
+          node.overrides.set('Show', false);
+          node.overrides.set('Opacity', 0);
+          updateNode(node, ['Show', 'Opacity']);
+          const gap = `${idOf(owner.scene)} names no TransFrom; the scene it navigates from is hidden with no curve (XuiSceneNavigateForward 0x9215369c)`;
+          if (!this.codeFilled.includes(gap)) this.codeFilled.push(gap);
+        }
+        return null;
+      }
+      const run = playTransition(this.engine, owner.visuals, name, node, role);
       if (!run) {
         this.ctx.report.errors.push(`transition visual "${name}" (${idOf(owner.scene)}.${role}) is not in the skin`);
       }
       return run;
     };
     return { out: play(named(fromProp), outgoing, 'out'), in: play(named(toProp), incoming, 'in') };
+  }
+
+  /**
+   * The scene a navigation moves: what `XuiSceneNavigateForward` hides on the
+   * way in and what its `TransBackTo` brings back on the way out.
+   *
+   * `0x921534e8` is `XuiSceneNavigateForward(HXUIOBJ hCur, BOOL bStayVisible,
+   * HXUIOBJ hFwd, BYTE UserIndex)` - r6 is masked to a byte and checked against
+   * `< 4 / 0xff / 0xfe / 0xfd` at 0x921534fc-0x92153520, which is the UserIndex
+   * test, and every call site passes 0xfd (XUSER_INDEX_FOCUS) or 0xff. Its tail
+   * at 0x9215369c-0x921536b8 is the whole rule:
+   *
+   *     cmpwi cr6, r27, 0     ; r27 = bStayVisible
+   *     mr    r3, r31         ; r31 = the scene navigated FROM
+   *     li    r4, 0
+   *     bne   cr6, 0x921536b0
+   *     li    r4, 1           ; not staying visible -> state 1
+   *     bl    0x921531a8      ; set the outgoing scene's state
+   *     mr    r3, r30         ; r30 = the scene navigated TO
+   *     bl    0x92153150
+   *
+   * so the scene it came from is hidden unless the pressed control asked to
+   * stay. `NavigateToScenePath` (0x921a5a28) passes `hCur = lwz r3, 4(this)` -
+   * the scene handle of the class that handled the press - and
+   * `bStayVisible = 0x9214d1f8(pressedControl)`, bit 0 of the control's +8,
+   * which is `XuiNavButton.StayVisible`. **No control in build 6770 authors
+   * StayVisible at all** (a sweep of all 263 scenes: zero occurrences), so it
+   * is FALSE everywhere and every forward navigation hides its source; the
+   * build's other forward path, 0x921a5328, hard-codes `li r4, 0`.
+   *
+   * WHICH scene that is, is scene data, not a guess. Level 0 of a blade is a
+   * panel parented into `TabN/scBlade/scContainer`, but the panel scenes author
+   * no transition properties at all: the five blade scenes do -
+   * `Tab1/scMarketplace` all four, `Tab2/scBlade`, `Tab3/scBlade`,
+   * `Tab4/scBlade` and `Tab5/System` `TransBackTo=FadeIn`, plus `Tab6/scOOBE`
+   * all four [SCENE, dashmain.xur]. A `TransBackTo` is the visual a scene plays
+   * when a page pops back TO it, which it can only need if it went away when
+   * the page opened. And those five scenes are exactly what carries the blade's
+   * `txt_Header` / `labHeader` and its four legends, so hiding them is what
+   * makes 6717 f0053 - one header, one legend set with a page up - come out
+   * right. Before this, the Games and Media blades kept painting their own
+   * header and legends under every pushed page ("GamesGaLibrrary", two X/Y disc
+   * pairs) because only the PANEL faded [Judge E round 4, finding 1].
+   *
+   * The System blade needed no fix and still gets none: `Tab5/System` IS its
+   * level-0 node. The page itself is parented at `TabN` (pageHost), a SIBLING
+   * of the blade scene, so hiding the blade scene never touches the page.
+   * A level that was pushed is its own scene and answers itself.
+   */
+  private navScene(level: Level): NodeRecord {
+    if (level.hostNode) return level.node;      // a pushed page is its own scene
+    const tab = this.nodeByPath(`Tab${this.tab}`);
+    if (!tab) return level.node;
+    let n: NodeRecord | null = level.rootNode;
+    while (n && n.parentNode && n.parentNode !== tab) n = n.parentNode;
+    return n && n.parentNode === tab ? n : level.node;
   }
 
   /* --------------------------------------------------------------------- boot */
@@ -1663,11 +1767,51 @@ function findAllById(root: NodeRecord, id: string): NodeRecord[] {
 }
 
 /**
- * The first control in a scene that binds `code` through PressKey [SCENE]:
- * XuiBackButton's 0x5841 is `legend_b` on the settings pages, `navB` on
- * dashcomm/MediaSourceSelection, `btnB` on the Arcade pages and on System
- * Info - every one of them wearing the skin's `legend_B`, whose Press range
- * carries btn_Back.xma on frame 2. Exported for the tests.
+ * The first control in a scene that binds `code` through PressKey [SCENE].
+ *
+ * SURVEYED over all 263 scenes of build 6770 (`scratchpad/m3g/survey5.ts`;
+ * the round-3 numbers this replaces were wrong in both halves [Judge E round 4,
+ * finding 4]). **176 scenes carry a 0x5841 carrier and 87 do not**; of the 187
+ * scenes that declare the full 1120x770 canvas, **16** have none. The carrier
+ * is called FIVE different things - `legend_b` 107, `btnB` 54, `navB` 8,
+ * `legend_B` 4, `backButton` 3 - and it is not always the same class either:
+ * 172 are `XuiBackButton` and **four are a plain `XuiButton`**
+ * (`network/2010_TestingNetwork`, `2011_TestingLAN`, `ConnStatus_2010`,
+ * `ConnStatus_2011`, all of them called `legend_b`). So the binding can be
+ * neither the name nor the class; it is the property, and every one of the 176
+ * wears the skin's `legend_B`, whose Press range carries btn_Back.xma on
+ * frame 2.
+ *
+ * The 16 full-canvas scenes with no carrier are not one shape:
+ *   - six author no legend band at all (`dashcomm/GenericWaitingScene`,
+ *     `dashcomm/MediaPackageEmbedded`, `music/1023_TroubleshootConnectionAlert`,
+ *     `music/1024_DownloadInfoAlert`, `music/1031_SaveChangesAlert`,
+ *     `videos/Video`);
+ *   - four author a `legend_b` that is present but `Enabled=false`
+ *     (`download/2407_WaitingScreen`, `download/2410_AttemptingOldSoftware`,
+ *     `download/AcquiringNetworkSettings`, `memory/OperationProgress`), as does
+ *     `dashmain` itself on all five blades;
+ *   - `oobe/oobeProfileCreation` authors its four legends as `XuiLabel`s with
+ *     `Enabled=false`;
+ *   - and four network scenes (`2008_ActivateConfiguration`,
+ *     `2030_ConfirmAction`, `2032_connecNow`, `2040_Ad-HocWirelessSecurity`)
+ *     author an ENABLED `XuiBackButton legend_b` reading "Back" with no
+ *     PressKey at all.
+ *
+ * That last group binds A, not B, and the build says so: **`XuiButton.PressKey`
+ * defaults to 22592 = 0x5840 = `VK_PAD_A_OR_START`** [xui.h 551,
+ * reference/xzp-tool/XuiElements.xml:69], `XuiBackButton` derives from
+ * `XuiButton` and adds no PressKey of its own, and an unset property in a XUR
+ * is the class default. It is the same reason `legend_a` authors no PressKey
+ * anywhere in the build while `legend_x` and `legend_y` always author 22530 /
+ * 22531: A needs no binding. So those four pages have TWO controls on A and
+ * none on B - an authoring slip, disclosed rather than repaired. XUI does
+ * export `XuiControlIsBackButton`, so its input router may reach a back button
+ * by class; that router lives in xam.xex, which is not in this archive, and
+ * none of the four scenes is reachable offline, so it changes no pixel here
+ * (PLACEHOLDERS.md).
+ *
+ * Exported for the tests.
  */
 export function keyCarrierOf(scene: XuObject, code: number): XuObject | undefined {
   let hit: XuObject | undefined;

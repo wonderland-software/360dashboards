@@ -322,6 +322,25 @@ neither side keeps its authored width and x (`btn_horizontal_spinner_Arrows`'
 373-wide row at x 21.7 in a 420-wide list, the arrows outside it); RIGHT alone
 slides it by the delta; the width is floored at 0.
 
+**Which axis a list windows on is the template's too.** `XUI_SCROLLEND_DIRECTION`
+is UP 0, DOWN 1, LEFT 2, RIGHT 3 [xui.h 1874-1880], and a template's scroll ends
+say which way its rows run. `XuiList` authors `control_ScrollUp` /
+`control_ScrollDown` (0, 1) and stacks its rows down the list's height;
+`XuiListChooser`, `XuiListChooser_No_Kill` and `btn_horizontal_spinner{,_Arrows}`
+author `ScrollLeft` / `ScrollRight` (2, 3) and lay theirs along the width - one
+value between two arrows, which is what a chooser is. `visibleSlots` is the same
+arithmetic on whichever axis the template names: `floor((h - LIST_ITEM_TOP) /
+pitch)` down, `floor((w - rowSpan.x) / rowSpan.w)` across. Four lists in each
+build name a horizontal template and no other does -
+`dashSysCslSetPControlFamilyTimer#lstTime` and `dashSysLiveVision`'s three
+settings - and the vertical rule drew LiveVision's 480x74 choosers as TWO
+stacked values, `floor(74/33)`, where the console shows one: `floor((480 - 30.5)
+/ 419) = 1` [Judge E round 4, finding 3]. Two XuiList constants went with it: a
+scroll end's anchor delta is the list against its OWN template visual (it was
+hard-coded `rect - 420x74`, which put the chooser's right arrow 120 design px
+inside the list), and the arrows are addressed by the template's own ids, not by
+the literals `control_ScrollUp` / `control_ScrollDown`.
+
 A control with no `Visual` falls back to a visual named after its **class**, and
 this is now the general rule in `DomRenderer.defaultVisualFor`, not a
 list-only convenience. `dashuisk/skin.xur` says so itself: it carries a literal
@@ -1801,3 +1820,21 @@ and clears every authoring token on push. `__dash.nxe` grew `codePaths`,
   scene's ids, so a scope matched by its tail (`endsWith('metaScene_1line')`)
   is unaffected. `dashboards/blades/transitions.ts` keys a transition by
   `pathOf(target)` for the same reason.
+
+
+## Blades M3g: one runtime change, and it moves 9199 too (2026-09-03)
+
+- **`ListView`: the window axis** (above, under Lists). Surveyed over both
+  corpora before it shipped: exactly four lists in each build wear a horizontal
+  template, the same four, and only `dashSysLiveVision`'s three actually change
+  (2 rows -> 1); the Family Timer's spinner already answered 1 and does not
+  move. **9199 DOES move here** - unlike M3f's `rowSpan`, whose 9199 lists were
+  all empty offline - so `smoke-nxe` carries its own gate: each chooser draws
+  one value and the row keeps the **419-wide span at design x 606** that Judge G
+  round 4 recorded, so nothing Judge G measured has moved and only the extra row
+  is gone. `smoke-nav` §10d gates the 6770 side in design pixels
+  (419x33 at (539,412) / (539,465) / (539,518)) and the Family Timer's 373-wide
+  row beside it.
+- Nothing else in `packages/runtime` changed. The Blades-side fix for the
+  doubled blade chrome is in `dashboards/blades/BladeShell.ts` (`navScene`), and
+  the System Info body is `dashboards/blades/systemInfo.ts`.

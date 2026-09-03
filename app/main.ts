@@ -1,7 +1,9 @@
 // Routes:
-//   /                       the launcher: pick Blades or NXE (app/launcher.ts),
-//                           drawn with dashmain's own boot; ?launcher opens it
-//                           with &manual, &mute, &boot=none, &frame=N honoured
+//   /                       the launcher: pick Blades or NXE (app/launcher.ts).
+//                           Our own 1280x720 page, not a dashboard; ?launcher
+//                           opens it explicitly with &manual (step its own
+//                           60 Hz clock by hand), &mute and &boot=none (arrive
+//                           settled instead of playing the intro)
 //   /?build=6770            the Blades shell: dashmain plus every blade's
 //                           panel scene, resting on the current blade
 //   /?scene=<pack>/<path>   one scene

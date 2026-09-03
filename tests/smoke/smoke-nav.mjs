@@ -396,6 +396,10 @@ try {
   /* --------- 9. M3f: Judge E round 3's seven findings, each with its measure */
 
   await m3f(browser);
+
+  /* --------- 10. M3g: Judge E round 4's four findings, each with its measure */
+
+  await m3g(browser);
 } catch (err) {
   fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
@@ -455,9 +459,10 @@ async function m3e(browser) {
     // `legend_b` on the settings pages, `navB` on the media source picker,
     // `btnB` on the Arcade pages, System Info and the Family Timer - and its
     // Press range carries btn_Back.xma on frame 2. 176 scenes in the build
-    // carry one; the ten that do not (dashmain and nine wait / progress
-    // screens) author their legends Enabled=false and press nothing [Judge E
-    // round 3, finding 6].
+    // carry one and 87 do not (16 of the 187 full-canvas scenes); an unkeyed
+    // XuiBackButton binds A, not B, because that is XuiButton.PressKey's
+    // default [Judge E round 3, finding 6; the survey corrected in round 4,
+    // finding 4 - see keyCarrierOf].
     const was = await depth(); const c0 = (await cues()).length;
     const left = await at(); const carrier = (await shell()).backCarrier;
     await ev(() => window.__dashApi.shell.back()); await ev(() => window.__dashApi.stepFrames(60)); await ev(() => window.__dashApi.shell.idle());
@@ -685,7 +690,11 @@ async function m3e(browser) {
   check(await at() === 'dashcomm/742_SelectNetworkDevice.xur', `${tag}Computers`);
   await B(); await Down(); await A();
   d = await noTokens('Xbox LIVE Vision');
-  check((await shell()).focusId === null && d.items.length === 6 && d.shown.noCamera === true, `${tag}no camera: choosers disabled, no focus, NoCameraTextField shown`);
+  // THREE rows, one per chooser: each is a XuiListChooser, a horizontal
+  // control that shows one value between two arrows. It read 6 until M3g,
+  // because the window arithmetic counted rows down a 74-tall list at the
+  // template's 33 pitch [Judge E round 4, finding 3; gated in 10d].
+  check((await shell()).focusId === null && d.items.length === 3 && d.shown.noCamera === true, `${tag}no camera: three choosers each showing ONE value, no focus, NoCameraTextField shown: ${JSON.stringify(d.items.map((i) => i.t))}`);
   await B(); await Down();
   const c5 = (await shell()).stack.length; await A();
   sh = await shell();
@@ -1138,4 +1147,288 @@ function compareToF0060(shot) {
     console.log(`  f0060 ${what.padEnd(13)} dx ${String(fx.shift).padStart(3)} (ncc ${fx.ncc.toFixed(2)})  `
       + `dy ${String(fy.shift).padStart(3)} (ncc ${fy.ncc.toFixed(2)})  ncc ${c.ncc.toFixed(3)} mad ${c.mad.toFixed(1)}`);
   }
+}
+
+/**
+ * §10. M3g: Judge E round 4's four findings, each closed with the measurement
+ * that would have caught it.
+ *
+ *  1 (HIGH) the blade's own header and legends painted THROUGH every page the
+ *    Games and Media blades pushed - the arcade home read "GamesGaLibrrary"
+ *    with two X/Y disc pairs. `XuiSceneNavigateForward` (0x921534e8) puts the
+ *    scene it came from into state !bStayVisible (0x9215369c-0x921536b0) and
+ *    nothing in the build authors StayVisible, so the source scene always goes
+ *    away; the source scene is the BLADE scene (`TabN/scBlade`,
+ *    `Tab1/scMarketplace`, `Tab5/System`, `Tab6/scOOBE` - the five that author
+ *    transition properties, where the panels author none), not the panel inside
+ *    scContainer. Gated below on EVERY blade that pushes: exactly one header
+ *    text and one legend set.
+ *  2 (HIGH) System Info painted the factory-reset screen's authored prose where
+ *    `dashSystemReset`'s init writes dashCSettingsStrings[545]. Gated on the
+ *    painted body, and swept: no reachable page paints prose the code replaces.
+ *  3 (MED) LiveVision's three choosers drew two rows stacked. A list windows on
+ *    the axis its template's scroll ends point along; the chooser's are
+ *    ScrollLeft / ScrollRight. Gated on the row boxes.
+ *  4 (LOW) the B-carrier survey was wrong in both halves. Gated in the unit
+ *    tests over the whole corpus; the reachable half is the backCarrier gate
+ *    the B helper already runs on every pop.
+ *
+ * Plus the two things the judge could not verify: the origin sweep of every
+ * System-blade page (its Chrome died after 12), and whether the doubled chrome
+ * reached `oobe/oobeProfileCreation`, which authors no header of its own.
+ */
+async function m3g(browser) {
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+  const tag = '[m3g] ';
+  const ev = (f, ...a) => page.evaluate(f, ...a);
+  const shell = () => ev(() => JSON.parse(JSON.stringify(window.__dash.shell)));
+  const at = () => ev(() => window.__dash.shell.stack.at(-1));
+  const depth = () => ev(() => window.__dash.shell.stack.length);
+  const step = (n) => ev((n) => window.__dashApi.stepFrames(n), n);
+  const idle = () => ev(() => window.__dashApi.shell.idle());
+  const A = async () => { await ev(() => window.__dashApi.shell.press()); await idle(); await step(60); await idle(); };
+  const B = async () => { await ev(() => window.__dashApi.shell.back()); await step(60); await idle(); };
+  const Down = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Down')); await step(21); } await idle(); };
+  const seek = async (t) => { await ev((t) => window.__dashApi.shell.seekRest(t), t); await step(5); await idle(); };
+
+  /**
+   * The chrome census, in DESIGN pixels: every painted text leaf in the header
+   * band (y 85..150, where all 187 full-canvas pages and all five blades author
+   * theirs) and in the legend band (y 600..700), wherever in the tree it lives,
+   * plus the legend GLYPH art (the discs are <svg>/<img>, not text). Deliberately
+   * not scoped to the top scene: the whole point of the finding is a second
+   * scene painting into the same band.
+   */
+  const census = () => ev(() => {
+    const canvas = document.querySelector('.xui-canvas');
+    const cr = canvas.getBoundingClientRect();
+    const sx = cr.width / 1120, sy = cr.height / 770;
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const box = (e) => { const r = e.getBoundingClientRect(); return { x: +((r.left - cr.left) / sx).toFixed(1), y: +((r.top - cr.top) / sy).toFixed(1), w: +(r.width / sx).toFixed(1), h: +(r.height / sy).toFixed(1) }; };
+    const paints = [], art = [];
+    for (const e of document.querySelectorAll('[data-xui-paint]')) {
+      if (!vis(e)) continue;
+      const b = box(e); if (b.w <= 0 || b.h <= 0) continue;
+      const owner = e.closest('[data-xui-id]');
+      const chain = [];
+      for (let n = owner; n; n = n.parentElement && n.parentElement.closest('[data-xui-id]')) chain.push(n.dataset.xuiId);
+      paints.push({ ...b, id: owner ? owner.dataset.xuiId : null, chain, text: (e.textContent ?? '').replace(/\s+/g, ' ').trim() });
+    }
+    for (const e of document.querySelectorAll('[data-xui-id]')) {
+      if (!vis(e) || !e.querySelector(':scope > svg, :scope > img')) continue;
+      const b = box(e); if (b.w <= 0 || b.h <= 0) continue;
+      art.push({ ...b, id: e.dataset.xuiId });
+    }
+    const body = (document.body.innerText ?? '').replace(/\s+/g, ' ');
+    return { paints, art, body };
+  });
+  // A header is a paint leaf under the skin's `Label_Head` visual: the five
+  // blade headers and all 187 full-canvas pages' own headers wear exactly that,
+  // and nothing else does.
+  const header = (c) => c.paints.filter((p) => p.text && p.chain.includes('Label_Head'));
+  const legendGlyphs = (c) => c.art.filter((a) => a.y >= 600 && a.y <= 700);
+  const legendText = (c) => c.paints.filter((p) => p.y >= 600 && p.y <= 700 && p.text);
+
+  /* ---- 10a. Finding 1: one header, one legend set, on every blade that pushes. */
+
+  // The console's reference for this is [FRAME 6717 f0053], the Console
+  // Settings page: ONE header ("Console Settings") and ONE legend set. Every
+  // blade has to look like that.
+  const pushes = [
+    { tab: 3, rows: 2, want: 'arcade/2500_LiveArcadeHome.xur', headerText: 'Games Library', bladeHeader: 'Games' },
+    // oobeProfileCreation authors NO header of its own, which is the case the
+    // judge could not check: before this it drew the Games blade's "Games" and
+    // a second set of legend discs over its own four.
+    { tab: 3, rows: 1, want: 'oobe/oobeProfileCreation.xur', headerText: null, bladeHeader: 'Games' },
+    { tab: 4, rows: 1, want: 'dashcomm/MediaSourceSelection.xur', headerText: 'Select Source', bladeHeader: 'Media' },
+    { tab: 5, rows: 0, want: 'consoles/dashSysCslSet.xur', headerText: 'Console Settings', bladeHeader: 'System' },
+  ];
+  for (const p of pushes) {
+    await page.goto(`${BASE}/?blade=${p.tab}&zoom=1.5&boot=none&mute&manual`, { waitUntil: 'networkidle0', timeout: 90000 });
+    await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+    const before = await census();
+    check(header(before).length === 1 && header(before)[0].text === p.bladeHeader,
+      `${tag}tab${p.tab} at rest paints its own header once: ${JSON.stringify(header(before).map((h) => h.text))}`);
+    const gBefore = legendGlyphs(before).length;
+    check(gBefore === 4, `${tag}tab${p.tab} at rest paints four legend glyphs, got ${gBefore}`);
+    if (p.rows) await Down(p.rows);
+    await A();
+    check(await at() === p.want, `${tag}tab${p.tab} pushes ${p.want}, got ${await at()}`);
+    const c = await census();
+    const h = header(c), g = legendGlyphs(c), lt = legendText(c);
+    check(h.length === (p.headerText ? 1 : 0),
+      `${tag}${p.want}: exactly ${p.headerText ? 'one' : 'no'} header is painted, got ${JSON.stringify(h.map((x) => `${x.text}@(${x.x},${x.y})`))}`);
+    if (p.headerText) {
+      // The authored frame is (156,96) and §9a gates it exactly, through the
+      // offset chain; this is a client rect on a 1.5x canvas, so it is the same
+      // number within a rounded pixel.
+      check(h[0].text === p.headerText && Math.abs(h[0].x - 156) <= 1.5 && Math.abs(h[0].y - 96) <= 1.5,
+        `${tag}${p.want}: the header is the PAGE's, at its authored (156,96): ${JSON.stringify(h[0])}`);
+    }
+    check(g.length === 4, `${tag}${p.want}: exactly four legend glyphs, got ${g.length} - ${JSON.stringify(g.map((x) => `${x.id}@(${x.x},${x.y})`))}`);
+    // and the blade's own header is gone, not merely covered
+    check(!h.some((x) => x.text === p.bladeHeader) || p.headerText === p.bladeHeader,
+      `${tag}${p.want}: the blade header "${p.bladeHeader}" must not still be painted`);
+    const selects = lt.filter((x) => x.text === 'Select').length;
+    check(selects <= 1, `${tag}${p.want}: "Select" appears once in the legend band, got ${selects}`);
+    console.log(`  ${tag}tab${p.tab} + ${p.want}: headers ${JSON.stringify(h.map((x) => x.text))}, glyphs ${g.length}, legend text ${JSON.stringify(lt.map((x) => x.text))}`);
+    // B restores the blade: its header and its four glyphs come back.
+    await B();
+    const after = await census();
+    check(header(after).length === 1 && header(after)[0].text === p.bladeHeader && legendGlyphs(after).length === 4,
+      `${tag}tab${p.tab}: B brings the blade's own chrome back (TransBackTo=FadeIn): ${JSON.stringify(header(after).map((x) => x.text))} / ${legendGlyphs(after).length} glyphs`);
+  }
+
+  /* ---- 10b. Finding 2 + the origin sweep: every page the System blade reaches. */
+
+  await page.goto(`${BASE}/?blade=5&zoom=1.5&boot=none&mute&manual`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+
+  // The one authored Text in the build that the console's code replaces. A
+  // sweep of every authored Text of 40+ characters over all 263 scenes found no
+  // other whose prose belongs to a different screen (dashboards/blades/
+  // systemInfo.ts, CODE_WRITTEN_TEXT), so this list is the gate.
+  const CODE_WRITTEN = [
+    'Do you want to reset your console? This will restore all console settings to factory defaults. Data on storage devices will not be affected.',
+  ];
+  // Where a pushed page is MOUNTED, in design pixels: the `[data-xui-scene]`
+  // element renderInto makes, which is the page's own XuiCanvas. The scene
+  // INSIDE it is not always at (0,0) of its canvas - four of these pages author
+  // `Position` (-1,-1) or (0,-1) on their scene root - so the canvas is what
+  // "hosted at the origin" means, and the scene's own offset is reported with
+  // it rather than asserted away.
+  const rootOrigin = () => ev(() => {
+    const canvas = document.querySelector('.xui-canvas');
+    const id = window.__dash.shell.stack.at(-1);
+    if (id.includes('#')) return null;                 // level 0 is inside dashmain
+    const host = [...document.querySelectorAll(`[data-xui-scene="${id}"]`)].at(-1);
+    if (!host) return null;
+    let x = 0, y = 0, n = host;
+    while (n && n !== canvas) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+    const root = host.firstElementChild;
+    return { id, x, y, w: host.offsetWidth, h: host.offsetHeight,
+      scene: root ? { x: root.offsetLeft, y: root.offsetTop, w: root.offsetWidth, h: root.offsetHeight } : null };
+  });
+  const seen = new Map();
+  const visit = async (budget) => {
+    const id = await at();
+    const c = await census();
+    for (const prose of CODE_WRITTEN) {
+      check(!c.body.includes(prose),
+        `${tag}${id}: paints prose the console's code replaces: "${prose.slice(0, 48)}..."`);
+    }
+    const h = header(c), g = legendGlyphs(c);
+    check(h.length <= 1, `${tag}${id}: at most one header is painted, got ${JSON.stringify(h.map((x) => x.text))}`);
+    check(g.length <= 4, `${tag}${id}: at most one legend set is painted, got ${g.length} glyphs`);
+    const o = await rootOrigin();
+    if (!seen.has(id)) seen.set(id, o);
+    if (o) {
+      check(o.x === 0 && o.y === 0 && o.w === 1120 && o.h === 770,
+        `${tag}${id}: a pushed page is hosted on the whole canvas at its origin, got ${JSON.stringify(o)}`);
+    }
+    if (budget <= 0) return;
+    const base = await depth();
+    let last = null;
+    for (let k = 0; k < 24; k++) {
+      const f = (await shell()).focusId;
+      if (f !== null && f === last) break;              // the nav chain clamped
+      last = f;
+      await A();
+      const d = await depth();
+      if (d > base) {
+        await visit(budget - 1);
+        while ((await depth()) > base) await B();
+      } else if (d < base) {
+        return;                 // an option row wrote and popped this page
+      }
+      await Down();
+    }
+  };
+  await visit(5);
+  const pages = [...seen.keys()];
+  check(pages.length >= 40,
+    `${tag}the System blade reaches ${pages.length} pages (Judge E round 4 measured 12 of 40 before its Chrome died): ${JSON.stringify(pages)}`);
+  const offset = [...seen.entries()].filter(([, v]) => v && !(v.x === 0 && v.y === 0 && v.w === 1120 && v.h === 770));
+  check(offset.length === 0, `${tag}every pushed page is at (0,0): offenders ${JSON.stringify(offset)}`);
+  const authored = [...seen.entries()].filter(([, v]) => v && v.scene && (v.scene.x !== 0 || v.scene.y !== 0));
+  console.log(`  ${tag}origin sweep: ${pages.length} System-blade pages, every mount at (0,0) 1120x770; ${authored.length} author a scene Position of their own (${JSON.stringify(authored.map(([k, v]) => `${k.split('/').pop()} (${v.scene.x},${v.scene.y})`))})`);
+
+  /* ---- 10c. Finding 2: what System Info paints instead. */
+
+  await page.goto(`${BASE}/?blade=5&zoom=1.5&boot=none&mute&manual`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  await A();                                     // Console Settings
+  await Down(10);                                // row 10: System Info
+  await A();
+  check(await at() === 'consoles/dashSysCslSetPolicyInfo_System.xur', `${tag}row 10 opens System Info, got ${await at()}`);
+  const info = await ev(() => {
+    const e = [...document.querySelectorAll('[data-xui-id="edInfo"]')].pop();
+    return e ? (e.textContent ?? '') : null;
+  });
+  check(info !== null, `${tag}System Info paints edInfo`);
+  if (info === null) { await page.close(); return; }
+  check(!info.includes('Do you want to reset your console'),
+    `${tag}edInfo must not paint the factory-reset screen's authored prose`);
+  check(info.startsWith('Console Serial Number:'),
+    `${tag}edInfo is dashCSettingsStrings[545], which opens "Console Serial Number:": ${JSON.stringify(info.slice(0, 40))}`);
+  check(info.includes('Console ID:') && info.includes('© 2008 Microsoft Corporation')
+    && info.includes('Xbox 360') && info.includes('Warning: This computer program is protected by copyright law')
+    && info.includes('D:'),
+    `${tag}edInfo carries every field of string 545, with the code's own 2008: ${JSON.stringify(info.slice(0, 120))}`);
+  const sh10 = await shell();
+  const gaps = sh10.hardwareState.filter((x) => x.includes(':edInfo'));
+  check(gaps.length === 3,
+    `${tag}the three fields the archive cannot supply are disclosed, got ${JSON.stringify(gaps)}`);
+  check(sh10.codeFilled.some((x) => x.includes('dashCSettingsStrings[545]')),
+    `${tag}codeFilled names the string and the branch: ${JSON.stringify(sh10.codeFilled.filter((x) => x.includes('edInfo')))}`);
+  check(sh10.missingStrings.length === 0, `${tag}missing strings: ${JSON.stringify(sh10.missingStrings)}`);
+  console.log(`  ${tag}System Info edInfo: ${JSON.stringify(info.replace(/\s+/g, ' ').slice(0, 90))}...`);
+  await B(); await B();
+
+  /* ---- 10d. Finding 3: LiveVision's three choosers draw ONE row each. */
+
+  await page.goto(`${BASE}/?scene=consoles/dashSysLiveVision.xur&zoom=1.5&mute&manual&design`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  const chooser = (id) => ev((id) => {
+    const canvas = document.querySelector('.xui-canvas');
+    const cr = canvas.getBoundingClientRect(); const sx = cr.width / 1120, sy = cr.height / 770;
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const host = document.querySelector(`[data-xui-id="${id}"]`);
+    if (!host) return null;
+    const rows = [...host.querySelectorAll(`[data-xui-id^="${id}_item"]`)].map((e) => {
+      const r = e.getBoundingClientRect();
+      return { id: e.dataset.xuiId, vis: vis(e), x: +((r.left - cr.left) / sx).toFixed(1), y: +((r.top - cr.top) / sy).toFixed(1), w: +(r.width / sx).toFixed(1), h: +(r.height / sy).toFixed(1), text: (e.textContent ?? '').trim() };
+    });
+    return { rows, shown: rows.filter((r) => r.vis) };
+  }, id);
+  for (const [id, first, second] of [
+    ['BrightnessSetting', 'Auto (Default)', 'Dark Wall'],
+    ['LightingSetting', 'Auto (Default)', 'Incandescent'],
+    ['FlickerSetting', 'Auto (Default)', 'On'],
+  ]) {
+    const c = await chooser(id);
+    check(c !== null, `${tag}${id} is on the LiveVision page`);
+    check(c.shown.length === 1,
+      `${tag}${id} draws ONE value, not a stack: ${JSON.stringify(c.shown.map((r) => `${r.text}@(${r.x},${r.y})`))}`);
+    check(c.shown[0].text === first && c.shown[0].w === 419,
+      `${tag}${id}'s row is the template's 419-wide span carrying "${first}": ${JSON.stringify(c.shown[0])}`);
+    check(!c.rows.some((r) => r.vis && r.text === second),
+      `${tag}${id} must not paint "${second}" under "${first}"`);
+    console.log(`  ${tag}${id}: ${JSON.stringify(c.shown.map((r) => `${r.text} ${r.w}x${r.h}@(${r.x},${r.y})`))}`);
+  }
+  // The Family Timer's spinner is the build's other horizontal list and it must
+  // not move: one 373-wide row, the number Judge E round 4 verified.
+  await page.goto(`${BASE}/?scene=consoles/dashSysCslSetPControlFamilyTimer.xur&zoom=1.5&mute&manual&design`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  const timer = await chooser('lstTime');
+  check(timer.shown.length === 1 && timer.shown[0].w === 373,
+    `${tag}the Family Timer spinner is unchanged - one row, 373 wide: ${JSON.stringify(timer.shown)}`);
+
+  const errs2 = await page.evaluate(() => window.__dash.errors);
+  check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);
+  check(errs.length === 0, `${tag}page errors: ${errs.join(' | ')}`);
+  await page.close();
 }

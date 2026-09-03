@@ -1080,11 +1080,15 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   resolves the control that binds `XuiBackButton`'s `PressKey` 0x5841 the way
   `pressKey()` resolves X and Y, so `navB`, `btnB` and `legend_b` are all
   found. It also no longer presses the page UNDERNEATH's back button when the
-  top page has none: **176 of the build's scenes carry a 0x5841 carrier and
+  top page has none: ~~**176 of the build's scenes carry a 0x5841 carrier and
   ten do not** (dashmain and nine wait / progress / confirm screens -
   `oobe/oobeProfileCreation`, `download/2407_WaitingScreen`,
   `memory/OperationProgress`, ...), and every one of those authors its four
-  legends as `XuiLabel`s with `Enabled=false`: a page that offers no B presses
+  legends as `XuiLabel`s with `Enabled=false`~~ **- that survey was wrong in
+  both halves and is corrected under "Closed in M3g" below: 176 carry and 87 do
+  not, 16 of them full-canvas, under five names in two classes, and only
+  `oobeProfileCreation` has the `XuiLabel` legends.** The behaviour it fixed is
+  right either way: a page that offers no B presses
   nothing, while B still navigates back. The new `ShellReport.backCarrier`
   names the carrier, and the suite gates **btn_Back played === a carrier
   exists** on every pop of §8 and §9, with the id asserted on the four pages
@@ -1214,3 +1218,157 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   all 40 System-blade pages (12 measured, all (0,0)), which AV pack the
   reference console runs, whether the doubled chrome also affects
   oobeProfileCreation. Fixes pending with M3g.
+
+### Closed in M3g (2026-09-03), with a measurement per finding
+
+- **(1) HIGH, doubled header and legends: CLOSED.** The console's rule is
+  `XuiSceneNavigateForward(HXUIOBJ hCur, BOOL bStayVisible, HXUIOBJ hFwd, BYTE
+  UserIndex)` at **0x921534e8** (BLADES_GLUE_SPEC §3.4 writes it as
+  0x921536e8, which is +0x200 and lands mid-body of the NEXT function - that
+  section's whole `.text` column came from `tools/ppc-dis.ts`, which prints
+  `.text` VAs 0x200 high; LEARNINGS "The extracted basefile.exe is
+  flat-mapped, and its section headers lie". Every address below is flat-mapped,
+  like the rest of `dashboards/blades/*.ts`). Its tail at
+  **0x9215369c-0x921536b8** is the finding: `cmpwi cr6, r27, 0` on
+  bStayVisible, `li r4,1` when it is false, then `bl 0x921531a8` on the scene
+  navigated FROM — the source scene is put into state 1 unless the pressed
+  control asked to stay. `NavigateToScenePath` (**0x921a5a28**) passes
+  `hCur = lwz r3, 4(this)` and `bStayVisible = 0x9214d1f8(pressedControl)`
+  (bit 0 of the control's +8 = `XuiNavButton.StayVisible`), and the build's
+  other forward path (0x921a5328) hard-codes `li r4, 0`. **No control in build
+  6770 authors StayVisible at all** (own sweep, 263 scenes, zero occurrences),
+  so every push hides its source.
+  WHICH scene that is, is scene data: the five blade scenes author transition
+  properties and the panels parented into their `scContainer` author **none** —
+  `Tab1/scMarketplace` and `Tab6/scOOBE` all four, `Tab2/scBlade`,
+  `Tab3/scBlade`, `Tab4/scBlade` and `Tab5/System` `TransBackTo=FadeIn`, which
+  is the visual a scene plays when a page pops back TO it. Those five are
+  exactly what carries the blade's header and its four legends, which is why
+  the System blade was already clean (`Tab5/System` IS its level-0 node) and
+  the others were not. `BladeShell.navScene()` now returns the blade scene at
+  level 0 and the page's own scene above it, and both transition roles target
+  it; the page is still parented at `TabN`, a SIBLING, so hiding the blade
+  scene never touches the page.
+  **Measured** (`smoke-nav` §10a, design px, on every blade that pushes):
+  | with a page up | headers painted | legend glyphs | "Select" in the band |
+  |---|---|---|---|
+  | tab3 + `arcade/2500_LiveArcadeHome` | 1 — "Games Library" @(156,96) | 4 | 1 |
+  | tab3 + `oobe/oobeProfileCreation` | 0 (it authors none) | 4 | 0 |
+  | tab4 + `dashcomm/MediaSourceSelection` | 1 — "Select Source" @(156,96) | 4 | 1 |
+  | tab5 + `consoles/dashSysCslSet` | 1 — "Console Settings" @(156,96) | 4 | 1 |
+  Before the fix the same probe read TWO headers ("Games" + "Games Library",
+  "Media" + "Select Source"), nine legend text boxes and eight glyph discs.
+  B restores the blade's own header and its four glyphs on every one
+  (`TransBackTo=FadeIn`), and the whole walk of §10b gates "at most one header,
+  at most four glyphs" on all 40 System-blade pages.
+  **oobeProfileCreation, which the judge could not check: it WAS affected.** It
+  authors no header, so nothing collided there, but the Games blade's five
+  legend text boxes and four discs painted over its own four
+  `XuiLabel Enabled=false` legends — eight discs where the console draws four.
+  It now shows its own four alone.
+
+- **(2) HIGH, System Info's authored prose: CLOSED, and the string is 545, not
+  546.** `edInfo` exists in exactly ONE scene in the build and `dashSystemReset`
+  is that scene's `ClassOverride` and nothing else's, so 0x921c8568 is its init.
+  It formats one of TWO strings, and the branch at **0x921c86f4** is the
+  IPTV-provider predicate: `0x90(r1)` is filled only when **0x9226e7d8()** ≥ 0
+  (0x921c85ac-0x921c85bc), and 0x9226e7d8 is the same call that hides
+  `navIPTVSettings` (BLADES_GLUE_SPEC §3.4's 0x9226e9d8, +0x200). With a
+  provider it is `dashCSettingsStrings[0x222 = 546]` with the extra
+  `%s GUID: %hs`; **without one it is [0x221 = 545]**, four args. The reference
+  console has no IPTV provider (seven System rows, [FRAME hi f0051]), so 545 is
+  what the page paints. Its fields: serial (`0x9273a9cc(0x14)` at 0x921c85d4,
+  whose failed read stores the empty string at 0x921c85d8-0x921c85e8), console
+  id (`0x9273ab7c` at 0x921c85f4), the copyright year **2008 from the code
+  literal `li 0x7d8`** at 0x921c8730, and the `D:` line built by 0x9273aa1c
+  from 0x92016908 `"%s - K:%d.%d.%d.%d (BK:%d.%d.%d.%d) X:%04X-%04X-%04X-%04X"`
+  over the version literal 0x920168fc `"2.0.6770.0"` and the records at
+  0x92000b08 / 0x92000ccc — which are XEX import thunks the loader patches, so
+  this archive carries no firmware version at all.
+  **Measured** (`smoke-nav` §10c): `edInfo` now paints
+  `"Console Serial Number: / Console ID: / Xbox 360™ video game and
+  entertainment system / © 2008 Microsoft Corporation. All rights reserved. /
+  Warning: This computer program is protected by copyright law… / D:"`, the
+  reset prose is gone, `codeFilled` names `dashCSettingsStrings[545]` and the
+  branch, and the **three** fields the archive cannot supply are disclosed in
+  `hardwareState` with their read addresses (they were disclosed nowhere).
+  **The sweep the finding asked for, done independently:** every authored
+  `Text` of 40+ characters over all 263 scenes — 126 of them, 34 on the 50
+  reachable pages. `edInfo` is the only one whose prose belongs to another
+  screen; no reachable page repeats another scene's prose; the single
+  page-string that also appears in a `.xus`
+  (`arcade/250x_FriendsPlayingNowScene#labEmpty` = `arcade/Strings.xus[50]`) is
+  its own page's. The registry is `systemInfo.ts`'s `CODE_WRITTEN_TEXT`, a unit
+  test asserts it quotes the scene file verbatim, and §10b's walk fails if any
+  of that prose is painted on any page it reaches.
+
+- **(3) MED, LiveVision's stacked choosers: CLOSED.** The console's rule is in
+  the skin: `XUI_SCROLLEND_DIRECTION` is UP 0, DOWN 1, LEFT 2, RIGHT 3 [xui.h
+  1874-1880], and a list template's scroll ends say which axis it windows on.
+  `XuiList` authors control_ScrollUp / control_ScrollDown (0, 1);
+  `XuiListChooser_No_Kill` (300x60, a 239x33 row at x 30.5) authors
+  **ScrollLeft / ScrollRight (2, 3)** and is a horizontal chooser — one value
+  between two arrows. `ListView.visibleCount` is now the same arithmetic on
+  whichever axis the template names: `floor((480 − 30.5) / rowSpan 419) = 1`
+  where `floor(74 / 33)` said 2. Four lists in each build name a horizontal
+  template and no other does; the other one, the Family Timer's `lstTime`, was
+  already answering 1 and still does.
+  **Measured** (`smoke-nav` §10d, design px): each chooser draws ONE row,
+  419x33 — Brightness @(539,412), Lighting @(539,465), Flicker @(539,518) — and
+  "Dark Wall" / "Incandescent" / "On" are no longer painted under
+  "Auto (Default)". Family Timer: one row, 373 wide, unchanged.
+  **9199 MOVED, and it is measured** (`smoke-nxe`, new gate): the same three
+  choosers now show one value each; the row keeps the **419-wide span at design
+  x 606** that Judge G round 4 recorded, so nothing Judge G measured has moved
+  — only the second row is gone. `smoke-nxe` is SMOKE_PASS. Two smaller
+  corrections ride with it: a scroll end's anchor delta is now the LIST against
+  its OWN template visual (it was hard-coded to XuiList's 420x74, which put the
+  chooser's right arrow 120 design px inside the list), and the scroll ends are
+  driven by the template's own ids (`ScrollLeft` / `ScrollRight`, not
+  `control_ScrollUp` / `control_ScrollDown`). `m3e`'s camera gate went from
+  "6 rows" to "3 rows, one per chooser" — that count WAS the defect.
+
+- **(4) LOW, the carrier survey: CLOSED, re-surveyed and now gated by a test.**
+  Own sweep of all 263 scenes: **176 carry a PressKey 0x5841 control, 87 do
+  not; 187 declare the full 1120x770 canvas and 16 of those have no carrier**.
+  The ids are five — `legend_b` 107, `btnB` 54, `navB` 8, `legend_B` 4,
+  `backButton` 3 — and the CLASS is not constant either: 172 `XuiBackButton`
+  and **four plain `XuiButton`** (`network/2010_TestingNetwork`,
+  `2011_TestingLAN`, `ConnStatus_2010`, `ConnStatus_2011`, all called
+  `legend_b`), so the binding can be neither the name nor the class. The
+  runtime already resolved by PressKey and so needed no change; the unit test
+  now exercises all five ids in both classes, and a corpus test asserts every
+  number above so a wrong count cannot survive in prose again. The 16
+  carrier-less full-canvas scenes are not one shape (six author no legend band,
+  five author a `legend_b` that is `Enabled=false`, `oobeProfileCreation`
+  authors four `XuiLabel` legends, four network scenes author an enabled
+  "Back"), and the round-3 claim that they all use `Enabled=false` XuiLabels is
+  corrected in `keyCarrierOf`, `LEARNINGS`, `JUDGE` and the suite.
+  **What B does on a full-canvas page with no carrier, decided with evidence:**
+  it presses nothing and still pops, and the four network scenes are not a gap
+  in the rule. **`XuiButton.PressKey` defaults to 22592 = 0x5840 =
+  `VK_PAD_A_OR_START`** [xui.h 551, reference/xzp-tool/XuiElements.xml:69];
+  `XuiBackButton` derives from `XuiButton` and adds no PressKey of its own, and
+  an unset property in a XUR is the class default — so those four `legend_b`s
+  bind **A**, not B. The corroboration is that no `legend_a` anywhere in the
+  build authors a PressKey while every `legend_x` / `legend_y` authors 22530 /
+  22531: A needs no binding. Those pages therefore have two controls on A and
+  none on B, which is an authoring slip in the build. XUI does export
+  `XuiControlIsBackButton`, so its input router may reach a back button by
+  class, but that router is in `xam.xex` and is not in this archive; none of the
+  four scenes is reachable offline. Disclosed in PLACEHOLDERS.md rather than
+  guessed.
+
+- **Also closed: the origin sweep the judge's Chrome died in the middle of.**
+  §10b now walks the System blade to depth 5 and reaches **all 40 pages**;
+  every pushed page's mount is at **(0,0), 1120x770**. One thing the 12-page
+  sample would have hidden: **ten of the forty author a scene `Position` of
+  their own** inside that canvas — `dashSysCslSetStartUp`, `Screensaver`,
+  `RemoteC`, `AutoOff` (−1,−1), `BackgroundDownloads` and `PControlVideo`
+  (−2,−1 / −2,−3), `PControl` and `PControlVideoExplicit` (0,−1),
+  `PControlFamilyTimer` (−2,0), `ClockTime` (−1,1). The canvas is what "hosted
+  at the origin" means; the scene's own authored offset is reported, not
+  asserted away.
+
+- **Still open / not settled:** which AV pack the reference console runs (4, 6
+  or 8) — no frame separates them, unchanged from M3f.

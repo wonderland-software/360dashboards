@@ -1023,6 +1023,21 @@ export const VISIBLE_DESIGN_RECT = {
 export const LIST_ITEM_PITCH = 45;
 export const LIST_ITEM_TOP = 0;
 
+/**
+ * `XuiList`'s own visual is 420x74, and a template's scroll ends are anchored
+ * inside it: the delta they answer to is the LIST's rect against the
+ * template's visual, so this is the fallback for a list with no visual at all.
+ */
+export const LIST_VISUAL_HEIGHT = 74;
+
+/**
+ * `XUI_SCROLLEND_DIRECTION` [xui.h 1874-1880]. `XuiScrollEnd.Direction` is
+ * unset (0 = UP) on every up arrow in both skins, 1 on every down arrow, and
+ * 2 / 3 on the LEFT / RIGHT pair the chooser and spinner templates author -
+ * which is how a list says which axis it windows on (ListView.Template).
+ */
+export const ScrollEnd = { UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 } as const;
+
 /* ---------------------------------------------------------------------- fonts */
 
 /** DOCUMENTED: ConvectionUI is the only font any 6770 scene names (26 uses). */

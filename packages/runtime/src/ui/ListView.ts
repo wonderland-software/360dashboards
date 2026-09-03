@@ -81,19 +81,38 @@ interface Template {
   itemWidth: number;
   itemX: number;
   visualWidth: number;
+  /** The visual's authored height, the other half of the delta an anchored
+   *  scroll end answers to. */
+  visualHeight: number;
   scrollUp: XuObject | null;
   scrollDown: XuObject | null;
+  /**
+   * Which axis the list windows on, read from the template's own scroll ends.
+   * `XUI_SCROLLEND_DIRECTION` is UP 0, DOWN 1, LEFT 2, RIGHT 3 [xui.h], and a
+   * template's pair says which way its rows run: `XuiList` authors
+   * control_ScrollUp / control_ScrollDown (0, 1) and stacks its rows down,
+   * while `XuiListChooser` and `btn_horizontal_spinner` author ScrollLeft /
+   * ScrollRight (2, 3) and lay theirs along x - one value at a time between
+   * two arrows, which is what a chooser is. Four lists in each build name a
+   * horizontal template and no other does (survey over all 263 / 311 scenes):
+   * `dashSysCslSetPControlFamilyTimer#lstTime` (btn_horizontal_spinner_Arrows)
+   * and `dashSysLiveVision`'s three `XuiListChooser_No_Kill` settings.
+   */
+  horizontal: boolean;
 }
 
 /** Read the row template out of the list's own visual. */
 export function templateOf(listVisual: XuObject | undefined): Template {
   const t: Template = {
     itemVisual: 'XuiButton', itemHeight: E.LIST_ITEM_PITCH, itemAnchor: 15,
-    itemWidth: E.DEFAULT_WIDTH, itemX: 0, visualWidth: E.DEFAULT_WIDTH, scrollUp: null, scrollDown: null,
+    itemWidth: E.DEFAULT_WIDTH, itemX: 0, visualWidth: E.DEFAULT_WIDTH,
+    visualHeight: E.LIST_VISUAL_HEIGHT, scrollUp: null, scrollDown: null, horizontal: false,
   };
   if (!listVisual) return t;
   const vw = propByName(listVisual, 'Width')?.value;
   if (typeof vw === 'number') t.visualWidth = vw;
+  const vh = propByName(listVisual, 'Height')?.value;
+  if (typeof vh === 'number') t.visualHeight = vh;
   for (const c of listVisual.children) {
     const id = idOf(c);
     if (c.className === 'XuiListItem' || id === 'control_ListItem') {
@@ -109,7 +128,10 @@ export function templateOf(listVisual: XuObject | undefined): Template {
       if (pos && typeof pos === 'object' && 'x' in pos && typeof pos.x === 'number') t.itemX = pos.x;
     } else if (c.className === 'XuiScrollEnd') {
       const dir = propByName(c, 'Direction')?.value;
-      if (dir === 1) t.scrollDown = c; else t.scrollUp = c;
+      if (typeof dir === 'number' && dir >= E.ScrollEnd.LEFT) t.horizontal = true;
+      // LEFT (2) sits where UP (0) does - the window's near end - and RIGHT (3)
+      // where DOWN (1) does. One pair of fields, one pair of ids per template.
+      if (dir === E.ScrollEnd.DOWN || dir === E.ScrollEnd.RIGHT) t.scrollDown = c; else t.scrollUp = c;
     }
   }
   return t;
@@ -145,6 +167,21 @@ export function rowSpan(tpl: { itemWidth: number; itemX: number; itemAnchor: num
   if (a & E.Anchor.RIGHT) return { x: tpl.itemX + dw, w: tpl.itemWidth };
   if (a & E.Anchor.HCENTER) return { x: tpl.itemX + dw / 2, w: tpl.itemWidth };
   return { x: tpl.itemX, w: tpl.itemWidth };
+}
+
+/**
+ * How many rows a list shows: the same arithmetic on whichever axis the
+ * template windows on (Template.horizontal). Exported for the tests.
+ */
+export function visibleSlots(
+  tpl: { itemWidth: number; itemX: number; itemAnchor: number; visualWidth: number; itemHeight: number; horizontal: boolean },
+  rect: { w: number; h: number },
+): number {
+  if (tpl.horizontal) {
+    const span = rowSpan(tpl, rect.w);
+    return Math.max(1, Math.floor((rect.w - span.x) / Math.max(1, span.w)));
+  }
+  return Math.max(1, Math.floor((rect.h - E.LIST_ITEM_TOP) / Math.max(1, tpl.itemHeight)));
 }
 
 function def(reg: XuRegistry, className: string, name: string): XuPropertyDef | null {
@@ -193,8 +230,27 @@ export class ListView {
   enabledAt(i: number): boolean { return this.items[i]?.enabled !== false; }
   get focusEnabled(): boolean { return this.focused >= 0 && this.enabledAt(this.focused); }
   get focusId(): string | null { return this.focused < 0 ? null : this.rows[this.focused]?.id ?? null; }
-  /** Rows that fit inside the list's Height at the template's pitch. */
-  get visibleCount(): number { return Math.max(1, Math.floor((this.node.rect.h - E.LIST_ITEM_TOP) / this.pitch)); }
+  /**
+   * Rows that fit inside the list, ALONG THE AXIS THE TEMPLATE WINDOWS ON: its
+   * Height at the row pitch for a vertical list, its Width at the row's own
+   * span for a horizontal one. The two are the same arithmetic on the two axes.
+   *
+   * The horizontal half is what a chooser needs. `dashSysLiveVision`'s three
+   * `XuiCommonList`s are 480x74 wearing `XuiListChooser_No_Kill`, whose row
+   * template is 33 tall, so the vertical rule answered floor(74/33) = 2 and the
+   * page drew BOTH values stacked - "Auto (Default)" over "Dark Wall" - where
+   * the console shows one value between two arrows [Judge E round 4, finding 3].
+   * The template says so itself: its scroll ends are ScrollLeft / ScrollRight
+   * (Direction 2 / 3), and its row is 239 wide at x 30.5 inside a 300-wide
+   * visual, which `rowSpan` stretches to 419 in a 480-wide list. floor((480 -
+   * 30.5) / 419) = 1.
+   *
+   * The build's other horizontal list is `lstTime` on the Family Timer page
+   * (btn_horizontal_spinner_Arrows, a 373-wide row at x 21.7 in a 420x420
+   * list): floor((420 - 21.7) / 373) = 1, which is the one row the console
+   * shows there and the one this already drew - the rule does not move it.
+   */
+  get visibleCount(): number { return visibleSlots(templateOf(this.visual()), this.node.rect); }
   /** The table row drawn in the window's first slot. */
   get topIndex(): number { return this.windowTop; }
   /**
@@ -272,9 +328,13 @@ export class ListView {
 
   private addScrollEnd(tplObj: XuObject | null): NodeRecord | undefined {
     if (!tplObj) return undefined;
+    const tpl = templateOf(this.visual());
     const before = this.index.all.length;
     const el = renderElement(tplObj, this.ctx, {
-      overrides: new Map(), delta: { dw: this.node.rect.w - 420, dh: this.node.rect.h - 74 },
+      // The delta an anchored scroll end answers to is the LIST's rect against
+      // the TEMPLATE'S OWN visual - 420x74 for XuiList, which is where the two
+      // constants this used to hard-code came from, and 300x60 for the chooser.
+      overrides: new Map(), delta: { dw: this.node.rect.w - tpl.visualWidth, dh: this.node.rect.h - tpl.visualHeight },
       parent: this.node.rect, owner: null, parentNode: this.node,
     });
     if (el) this.node.el.appendChild(el);
@@ -304,13 +364,23 @@ export class ListView {
    * console shows nine.
    */
   private layout(): void {
-    const pitch = this.pitch;
+    const tpl = templateOf(this.visual());
+    const pitch = tpl.itemHeight;
+    const span = rowSpan(tpl, this.node.rect.w);
     const bottom = this.windowTop + this.visibleCount;
     for (let k = 0; k < this.rows.length; k++) {
       const node = this.rows[k]!.node;
       if (!node) continue;
+      const s = k - this.windowTop;
+      // A horizontal list steps its slots along x and keeps every row on the
+      // same line; a vertical one is the mirror. The row's other coordinate is
+      // the template's own origin either way (LIST_ITEM_TOP is XuiList's
+      // authored 0, measured against f0060).
+      const pos = tpl.horizontal
+        ? { x: span.x + span.w * s, y: E.LIST_ITEM_TOP, z: 0 }
+        : { x: this.rowX, y: E.LIST_ITEM_TOP + pitch * s, z: 0 };
       node.overrides.set('Show', k >= this.windowTop && k < bottom);
-      node.overrides.set('Position', { x: this.rowX, y: E.LIST_ITEM_TOP + pitch * (k - this.windowTop), z: 0 });
+      node.overrides.set('Position', pos);
       updateNode(node, ['Show', 'Position']);
     }
     this.updateEnds();
@@ -341,15 +411,20 @@ export class ListView {
    */
   private updateEnds(): void {
     const path = pathOf(this.node) + '/';
-    const set = (which: 'up' | 'down', id: string, on: boolean): void => {
-      if (!this.ends[which]) return;
+    const tpl = templateOf(this.visual());
+    const set = (which: 'up' | 'down', tplObj: XuObject | null, on: boolean): void => {
+      // The id is the TEMPLATE control's own: XuiList calls its pair
+      // control_ScrollUp / control_ScrollDown, XuiListChooser calls its
+      // ScrollLeft / ScrollRight, and neither name is a constant.
+      const id = tplObj ? idOf(tplObj) : '';
+      if (!this.ends[which] || !id) return;
       const state = on ? 'ScrollMore' : 'Normal';
       if (this.endState[which] === state) return;   // no edge, no re-entry
       this.endState[which] = state;
       this.engine.setState(id, state, path);
     };
-    set('up', 'control_ScrollUp', this.windowTop > 0);
-    set('down', 'control_ScrollDown', this.windowTop + this.visibleCount < this.items.length);
+    set('up', tpl.scrollUp, this.windowTop > 0);
+    set('down', tpl.scrollDown, this.windowTop + this.visibleCount < this.items.length);
   }
 
   /**

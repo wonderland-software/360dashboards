@@ -71,7 +71,16 @@ Settings row's value is in `reference/frames/6717/f0053-f0066`), and what no
 frame or file settles - the daylight-saving bit, the Family Settings block,
 the xam message boxes behind Initial Setup and Background Downloads' Enable -
 is left on the code's own failed-read path and reported in
-`__dash.shell.hardwareState` / `dialogs`. Routes: `/` is the dashboard — it BOOTS, playing `dashmain`'s own `BootLive`
+`__dash.shell.hardwareState` / `dialogs`. Routes: `/` is the **launcher**, our
+own 1280x720 page (`app/launcher.ts`, styled in the `.launcher` block of
+`app/styles.css`) that offers the two builds and navigates to `?build=<id>`. It
+is not a dashboard and wears no skin: the only console materials on it are the
+extracted logo (`dashcomm/xboxLogo.png`), the A legend orb
+(`shrdres/A-Button.png`), the `btn_Focus` / `btn_Select` cues and the
+ConvectionUI face, each resolved through the manifest and asserted by
+`smoke-launcher`. `?launcher` opens it explicitly, with `&manual` (step its
+60 Hz clock by hand), `&mute` and `&boot=none` (arrive settled). `?build=6770`
+is the Blades dashboard — it BOOTS, playing `dashmain`'s own `BootLive`
 range onto Xbox LIVE the way the console's boot dispatcher does (`&boot=<range>`
 picks another of the fifteen, `&boot=none` parks on `DefaultTab`, `&blade=N`
 drops straight onto a blade's rest state). `/?scene=<pack>/<file>.xur` renders
@@ -265,6 +274,14 @@ npx vercel@latest deploy --prebuilt --prod
   width, the Display page's hidden switch art, the media picker's two "Please
   wait" labels, `btn_Back` playing exactly where the page binds `PressKey`
   0x5841, and the Time Zone list driven by index through all its wraps.
+  Section 10 re-walks Judge E round 4's: exactly one header and one legend set
+  on every blade that pushes a page (the blade's own scene goes away on the
+  push, the way `XuiSceneNavigateForward` hides the scene it came from),
+  System Info's `edInfo` carrying `dashCSettingsStrings[545]` instead of the
+  factory-reset screen's authored prose, LiveVision's three choosers drawing
+  ONE value each (a list windows on the axis its template's scroll ends point
+  along), and an origin sweep of all 40 System-blade pages with a gate that no
+  page paints prose the console's code replaces.
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.

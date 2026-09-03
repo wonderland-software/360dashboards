@@ -1468,6 +1468,33 @@ async function completeness() {
       });
       ok(over.length === 0, `${top}: a picture from outside the list is drawn over the rows: ${over.join(', ')}`);
     }
+    // 9199 carries the same three XuiListChooser settings as 6770 and they
+    // MOVED in M3g: a list windows on the axis its template's scroll ends point
+    // along, and the chooser's are ScrollLeft / ScrollRight, so each shows ONE
+    // value instead of the two the vertical rule stacked. The row's width and x
+    // are the ones Judge G round 4 measured (419 at design x 606) and are
+    // unchanged; only the second row goes [Judge E round 4, finding 3].
+    if (top === 'consoles/dashSysLiveVision.xur') {
+      const rows = await nav.page.evaluate(() => {
+        const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+        const out = {};
+        for (const id of ['BrightnessSetting', 'LightingSetting', 'FlickerSetting']) {
+          const host = document.querySelector(`[data-xui-id="${id}"]`);
+          if (!host) continue;
+          out[id] = [...host.querySelectorAll(`[data-xui-id^="${id}_item"]`)].filter(vis).map((e) => {
+            const r = e.getBoundingClientRect();
+            return { t: (e.textContent ?? '').trim(), w: +r.width.toFixed(1), x: +r.left.toFixed(1) };
+          });
+        }
+        return out;
+      });
+      for (const [id, r] of Object.entries(rows)) {
+        ok(r.length === 1, `${top}: ${id} draws ONE value, not a stack: ${JSON.stringify(r)}`);
+        ok(r[0] && Math.abs(r[0].w - 419) < 1.5 && Math.abs(r[0].x - 606) < 1.5,
+          `${top}: ${id}'s row keeps the 419-wide span at x 606 that Judge G round 4 measured: ${JSON.stringify(r[0])}`);
+      }
+      console.log(`    9199 LiveVision choosers: ${JSON.stringify(Object.entries(rows).map(([k, v]) => `${k} ${v.length} row "${v[0]?.t}" ${v[0]?.w}px`))}`);
+    }
     // Every mounted page: no painted token, an arrival focus wherever there is
     // something to focus, no shell error.
     ok(here.painted.length === 0, `${top}: authoring tokens PAINTED: ${here.painted.join(', ')}`);

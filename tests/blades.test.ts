@@ -549,7 +549,8 @@ test('the spinner numbers come from the build: List_VerticalSpin 83-in-53, lstYe
 test('B resolves the same way X and Y do: the control carrying PressKey 0x5841 [Judge E round 3, finding 6]', () => {
   const back = (id: string): XuObject => obj('XuiNavButton', [prop('Id', id, 'XuiNavButton'), prop('PressKey', PRESS_KEY.B, 'XuiNavButton')]);
   assert.equal(PRESS_KEY.B, 0x5841);
-  // The three names the build actually uses for the same job.
+  // Three of the five names the build uses for the same job; all five and both
+  // classes are exercised in the M3g test below, against the corpus.
   for (const id of ['legend_b', 'navB', 'btnB']) {
     const scene = obj('XuiScene', [prop('Id', 'scene', 'XuiScene')], [obj('XuiGroup', [prop('Id', 'g', 'XuiGroup')], [back(id)])]);
     const hit = keyCarrierOf(scene, PRESS_KEY.B);
@@ -581,3 +582,198 @@ test('the Time Zone page writes the row INDEX, for all 75 rows', () => {
     assert.deepEqual(page.label(s), { idx: TZ_ROWS[k]!.label });
   }
 });
+
+/* ------------------------------------------------- M3g: Judge E round 4 fixes */
+
+import {
+  SYSTEM_INFO_SCENE, SYSTEM_INFO_EDIT, SYSTEM_INFO_STRING, CODE_WRITTEN_TEXT, NO_CONSOLE,
+  COPYRIGHT_YEAR, DASH_VERSION, D_LINE_FORMAT,
+  formatSystemInfo, systemInfoGaps, systemInfoStringIndex,
+} from '@dash/blades/systemInfo';
+import { PRESS_KEY_DEFAULT } from '@dash/blades/BladeShell';
+import { templateOf as tplOf, visibleSlots, ScrollEnd } from '@runtime/index';
+
+const ASSETS = 'public/assets/6770/xuiz';
+const assetsHere = existsSync(`${ASSETS}/dashmain/dashmain.xur`);
+async function scene(rel: string): Promise<XuObject> {
+  const { XuRegistry, parseXur } = await import('@xur/index');
+  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')) as never);
+  return parseXur(new Uint8Array(readFileSync(`${ASSETS}/${rel}`)), reg).root;
+}
+const idIn = (o: XuObject): string => { const p = o.properties.find((x) => x.def.name === 'Id'); return typeof p?.value === 'string' ? p.value : ''; };
+function findIn(o: XuObject, id: string): XuObject | undefined {
+  if (idIn(o) === id) return o;
+  for (const c of o.children) { const hit = findIn(c, id); if (hit) return hit; }
+  return undefined;
+}
+const propIn = (o: XuObject, name: string): XuProperty['value'] | undefined => o.properties.find((p) => p.def.name === name)?.value;
+
+test('the scene a push hides is the BLADE scene, and dashmain says which one [Judge E round 4, finding 1]',
+  { skip: !assetsHere }, async () => {
+    // XuiSceneNavigateForward(hCur, bStayVisible, hFwd, UserIndex) puts the
+    // scene it came from into state !bStayVisible (0x9215369c-0x921536b0), and
+    // NOTHING in the build authors StayVisible, so every push hides its source.
+    // WHICH scene is scene data: the five blade scenes author transition
+    // properties and the panels parented into their scContainer author none.
+    const dash = await scene('dashmain/dashmain.xur');
+    const blades: [string, string][] = [
+      ['Tab1', 'scMarketplace'], ['Tab2', 'scBlade'], ['Tab3', 'scBlade'],
+      ['Tab4', 'scBlade'], ['Tab5', 'System'], ['Tab6', 'scOOBE'],
+    ];
+    for (const [tab, id] of blades) {
+      const tabNode = findIn(dash, tab);
+      assert.ok(tabNode, `${tab} is in dashmain`);
+      const blade = tabNode.children.find((c) => idIn(c) === id);
+      assert.ok(blade, `${tab}/${id} is Tab${tab}'s own scene`);
+      assert.equal(propIn(blade, 'TransBackTo'), 'FadeIn',
+        `${tab}/${id} authors the visual it plays when a page pops back to it`);
+      // and it is the thing that carries the blade's header and legends
+      const header = blade.children.some((c) => /header/i.test(idIn(c)));
+      const legends = blade.children.filter((c) => /^legend_[abxy]$/.test(idIn(c))).length;
+      if (tab !== 'Tab6') {
+        assert.ok(header, `${tab}/${id} carries the blade header`);
+        assert.equal(legends, 4, `${tab}/${id} carries the four legends`);
+      }
+    }
+    // Tab1's and Tab6's scenes author all four; the panels author none at all.
+    assert.equal(propIn(findIn(dash, 'scMarketplace')!, 'TransFrom'), 'FadeOut');
+    assert.equal(propIn(findIn(dash, 'scOOBE')!, 'TransFrom'), 'FadeOut');
+    for (const rel of ['gamesbla/gamesSignedOut.xur', 'mediabla/mediaSignedOut.xur',
+      'live/liveSignedOutUI.xur', 'blademp/marketplaceSignedOut.xur']) {
+      const panel = await scene(rel);
+      const seen: string[] = [];
+      const w = (o: XuObject) => { for (const p of ['TransFrom', 'TransTo', 'TransBackFrom', 'TransBackTo']) if (propIn(o, p) !== undefined) seen.push(`${idIn(o)}.${p}`); o.children.forEach(w); };
+      w(panel);
+      assert.deepEqual(seen, [], `${rel} authors no transition property - it is not what XUI navigates from`);
+    }
+  });
+
+test('System Info paints dashCSettingsStrings[545], not the reset screen\'s authored prose [Judge E round 4, finding 2]', () => {
+  // The branch at 0x921c86f4 is the IPTV-provider predicate: 546 with a
+  // provider (it adds "%s GUID: %hs"), 545 without, and the reference console
+  // has none.
+  assert.equal(systemInfoStringIndex(false), 545);
+  assert.equal(systemInfoStringIndex(true), 546);
+  assert.equal(SYSTEM_INFO_STRING.noProvider, 0x221);
+  assert.equal(SYSTEM_INFO_STRING.withProvider, 0x222);
+  // 545's four slots, in the code's argument order.
+  const s545 = 'Console Serial Number: %hs\r\nConsole ID: %hs\r\n\r\n(c) %d Microsoft\r\n\r\nD:%hs\r\n';
+  assert.equal(
+    formatSystemInfo(s545, { serial: 'SN', consoleId: 'CID', provider: null, dLine: 'D' }),
+    'Console Serial Number: SN\r\nConsole ID: CID\r\n\r\n(c) 2008 Microsoft\r\n\r\nD:D\r\n');
+  // 546 takes the provider's name and GUID between the id and the year.
+  const s546 = 'Console Serial Number: %hs\r\nConsole ID: %hs\r\n%s GUID: %hs\r\n(c) %d\r\nD:%hs\r\n';
+  assert.equal(
+    formatSystemInfo(s546, { serial: 'SN', consoleId: 'CID', provider: { name: 'P', guid: 'G' }, dLine: 'D' }),
+    'Console Serial Number: SN\r\nConsole ID: CID\r\nP GUID: G\r\n(c) 2008\r\nD:D\r\n');
+  // With no console the three hardware fields are the code's own empty buffer
+  // and the year is still the literal; each empty field is disclosed.
+  assert.equal(formatSystemInfo(s545, NO_CONSOLE), 'Console Serial Number: \r\nConsole ID: \r\n\r\n(c) 2008 Microsoft\r\n\r\nD:\r\n');
+  assert.equal(COPYRIGHT_YEAR, 0x7d8);
+  assert.equal(DASH_VERSION, '2.0.6770.0');
+  assert.ok(D_LINE_FORMAT.startsWith('%s - K:'));
+  const gaps = systemInfoGaps(NO_CONSOLE);
+  assert.equal(gaps.length, 3, 'serial, console id and the D: line');
+  for (const g of gaps) assert.ok(g.startsWith(`${SYSTEM_INFO_SCENE}:${SYSTEM_INFO_EDIT}`), g);
+  assert.deepEqual(systemInfoGaps({ serial: 'a', consoleId: 'b', provider: null, dLine: 'c' }), []);
+});
+
+test('the code-written-text registry quotes the scene verbatim, and it is the only one',
+  { skip: !assetsHere }, async () => {
+    assert.equal(CODE_WRITTEN_TEXT.length, 1);
+    for (const e of CODE_WRITTEN_TEXT) {
+      const root = await scene(e.scene);
+      const node = findIn(root, e.control);
+      assert.ok(node, `${e.scene}#${e.control} exists`);
+      assert.equal(String(propIn(node, 'Text') ?? '').replace(/\s+/g, ' ').trim(), e.authored,
+        'the registry must quote the file, or the gate can be passed by a typo');
+    }
+    // The page is authored as a copy of the factory-reset screen: that is what
+    // its ClassOverride says, and no other scene in the build shares either.
+    const root = await scene(SYSTEM_INFO_SCENE);
+    assert.equal(propIn(root.children[0]!, 'ClassOverride'), 'dashSystemReset');
+  });
+
+test('a list windows on the axis its template\'s scroll ends point along [Judge E round 4, finding 3]',
+  { skip: !assetsHere }, async () => {
+    assert.deepEqual({ ...ScrollEnd }, { UP: 0, DOWN: 1, LEFT: 2, RIGHT: 3 });
+    const skin = await scene('dashuisk/skin.xur');
+    const chooser = findIn(skin, 'XuiListChooser_No_Kill');
+    const list = findIn(skin, 'XuiList');
+    const spinner = findIn(skin, 'btn_horizontal_spinner_Arrows');
+    assert.ok(chooser && list && spinner);
+    const tc = tplOf(chooser), tl = tplOf(list), ts = tplOf(spinner);
+    assert.equal(tl.horizontal, false, 'XuiList authors ScrollUp/ScrollDown');
+    assert.equal(tc.horizontal, true, 'the chooser authors ScrollLeft/ScrollRight');
+    assert.equal(ts.horizontal, true);
+    // The chooser: a 239-wide row at x 30.5 in a 300x60 visual, in a 480x74
+    // list -> rowSpan 419 at 30.5, and floor((480 - 30.5) / 419) = ONE row.
+    // The vertical rule answered floor(74 / 33) = 2 and stacked two values.
+    assert.equal(tc.visualWidth, 300); assert.equal(tc.visualHeight, 60);
+    assert.equal(tc.itemHeight, 33); assert.equal(tc.itemWidth, 239);
+    assert.equal(Math.round(tc.itemX * 10) / 10, 30.5);
+    assert.equal(visibleSlots(tc, { w: 480, h: 74 }), 1);
+    assert.equal(Math.floor((74 - 0) / 33), 2, 'which is what the old rule said');
+    // The Family Timer's spinner already answered one, and still does.
+    assert.equal(visibleSlots(ts, { w: 420, h: 47 }), 1);
+    // Console Settings is untouched: 423x435 at a 45 pitch is nine rows.
+    assert.equal(visibleSlots(tl, { w: 423, h: 435 }), 9);
+    assert.equal(visibleSlots(tl, { w: 420, h: 74 }), 1);
+    // A template with no visual at all keeps the measured vertical default.
+    assert.equal(tplOf(undefined).horizontal, false);
+    // The scroll ends are named by the template, not by a constant.
+    assert.equal(idIn(tl.scrollUp!), 'control_ScrollUp');
+    assert.equal(idIn(tl.scrollDown!), 'control_ScrollDown');
+    assert.equal(idIn(tc.scrollUp!), 'ScrollLeft');
+    assert.equal(idIn(tc.scrollDown!), 'ScrollRight');
+  });
+
+test('the B carrier has FIVE names and two classes, and an unkeyed back button binds A [Judge E round 4, finding 4]',
+  { skip: !assetsHere }, async () => {
+    // Every id the build really uses, not the three the round-3 test invented.
+    for (const [id, cls] of [['legend_b', 'XuiBackButton'], ['btnB', 'XuiBackButton'],
+      ['navB', 'XuiBackButton'], ['legend_B', 'XuiBackButton'], ['backButton', 'XuiBackButton'],
+      ['legend_b', 'XuiButton']] as const) {
+      const ctrl = obj(cls, [prop('Id', id, cls), prop('PressKey', PRESS_KEY.B, cls)]);
+      const sc = obj('XuiScene', [prop('Id', 'scene', 'XuiScene')], [obj('XuiGroup', [prop('Id', 'g', 'XuiGroup')], [ctrl])]);
+      const hit = keyCarrierOf(sc, PRESS_KEY.B);
+      assert.ok(hit, `${cls} #${id} carries B`);
+      assert.equal(hit.properties.find((p) => p.def.name === 'Id')?.value, id);
+      assert.equal(hit.className, cls, 'the class is not part of the rule either');
+    }
+    // A XuiBackButton with NO PressKey is not a B carrier: XuiButton.PressKey
+    // defaults to 0x5840 (A) and XuiBackButton adds none of its own.
+    assert.equal(PRESS_KEY_DEFAULT, PRESS_KEY.A);
+    assert.equal(PRESS_KEY.A, 0x5840);
+    const unkeyed = obj('XuiScene', [prop('Id', 'scene', 'XuiScene')],
+      [obj('XuiBackButton', [prop('Id', 'legend_b', 'XuiBackButton'), prop('Text', 'Back', 'XuiBackButton')])]);
+    assert.equal(keyCarrierOf(unkeyed, PRESS_KEY.B), undefined);
+
+    // And the corpus behind all of that, re-surveyed here so a wrong number
+    // cannot survive in prose again.
+    const { XuRegistry, parseXur } = await import('@xur/index');
+    const { readdirSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')) as never);
+    const files: string[] = [];
+    const walkDir = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walkDir(p); else if (p.endsWith('.xur')) files.push(p); } };
+    walkDir(ASSETS);
+    let carriers = 0, none = 0, full = 0, fullNone = 0;
+    const ids = new Map<string, number>(), classes = new Map<string, number>();
+    for (const f of files) {
+      const root = parseXur(new Uint8Array(readFileSync(f)), reg).root;
+      const isFull = propIn(root, 'Width') === 1120 && propIn(root, 'Height') === 770;
+      if (isFull) full++;
+      const hit = keyCarrierOf(root, PRESS_KEY.B);
+      if (hit) { carriers++; ids.set(idIn(hit), (ids.get(idIn(hit)) ?? 0) + 1); classes.set(hit.className, (classes.get(hit.className) ?? 0) + 1); }
+      else { none++; if (isFull) fullNone++; }
+    }
+    assert.equal(files.length, 263);
+    assert.equal(carriers, 176);
+    assert.equal(none, 87, 'not ten - the round-3 survey counted a partition that does not exist');
+    assert.equal(full, 187);
+    assert.equal(fullNone, 16);
+    assert.deepEqual(Object.fromEntries([...ids].sort((a, b) => b[1] - a[1])),
+      { legend_b: 107, btnB: 54, navB: 8, legend_B: 4, backButton: 3 });
+    assert.deepEqual(Object.fromEntries(classes), { XuiBackButton: 172, XuiButton: 4 });
+  });

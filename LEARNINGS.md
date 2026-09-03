@@ -1299,11 +1299,16 @@ own code saying "hide this" where we had drawn the file as authored.
   `navB` or `btnB` played no press and no `btn_Back`. `XuiNavButton.PressKey`
   is the binding (B 0x5841, X 0x5802, Y 0x5803) and the name is decoration.
   The survey that came with the fix is the other half of it: **176 scenes carry
-  a B carrier and ten do not** - dashmain and nine wait / progress screens
-  whose four legends are `XuiLabel`s with `Enabled=false` - so "every pop plays
-  `btn_Back`" is the WRONG gate, and "plays it exactly when the page binds
-  0x5841" is the right one. A page that offers no B still navigates back,
-  because that is the scene manager's job, not the button's.
+  a B carrier and 87 do not** - and of the 187 scenes that declare the full
+  1120x770 canvas, **16** have none - so "every pop plays `btn_Back`" is the
+  WRONG gate, and "plays it exactly when the page binds 0x5841" is the right
+  one. A page that offers no B still navigates back, because that is the scene
+  manager's job, not the button's.
+  ~~"176 carry and ten do not, all of them authoring four Enabled=false
+  XuiLabel legends"~~ was wrong in both halves and is corrected in the M3g
+  section below: the count is 87, only `oobe/oobeProfileCreation` has the
+  XuiLabel legends, and the carrier goes by five different names in two
+  different classes.
 - **Hiding is code, and it is usually the FIRST thing the handler does.**
   Three findings were one shape: `dashCTime`'s init hides `lstAMPM` in the
   24-hour branch, `UpdateCurrentSetting` hides `SwitchImage` before it decides
@@ -1328,3 +1333,89 @@ own code saying "hide this" where we had drawn the file as authored.
   screenshot and measures 0.00 there. An NCC against the pre-push frame was
   the tempting version and is wrong: in a window the size of a row block, the
   focus highlight moving one row down drops it to 0.3.
+
+## Blades M3g: what a push HIDES, and which axis a list windows on (2026-09-03)
+
+Judge E round 4's four findings. Three of them were one shape: **a rule read off
+the wrong half of the data.**
+
+- **A forward navigation HIDES the scene it came from, and the scene it came
+  from is the one that authors the transition properties.** `0x921534e8` is
+  `XuiSceneNavigateForward(HXUIOBJ hCur, BOOL bStayVisible, HXUIOBJ hFwd, BYTE
+  UserIndex)` — r6 is masked to a byte and tested against `< 4 / 0xff / 0xfe /
+  0xfd`, which is the UserIndex check, and the tail at
+  0x9215369c-0x921536b8 is the whole rule: `cmpwi cr6, r27, 0` on bStayVisible,
+  `li r4, 1` when it is false, `bl 0x921531a8` on the OUTGOING scene. **No
+  control in build 6770 authors `StayVisible` at all**, so every push hides its
+  source. M3f had already got the page's HOST right (`TabN`, the canvas origin)
+  and that is exactly what made the bug visible: with the page's header landing
+  on the blade's instead of 258 px away, the arcade home read
+  "GamesGaLibrrary". The offset was masking a missing hide.
+- **The scene the console navigates from is not the scene the control lives
+  in.** Level 0 of a blade is a panel parented into `TabN/scBlade/scContainer`,
+  so "hide the level you push from" hid the panel and left the blade's header
+  and its four legends painting through the page. The build says which scene is
+  the participant, in the scene data and not in the code: the five blade scenes
+  author transition properties — `Tab1/scMarketplace` and `Tab6/scOOBE` all
+  four, `Tab2/scBlade`, `Tab3/scBlade`, `Tab4/scBlade` and `Tab5/System`
+  `TransBackTo=FadeIn` — and **the panel scenes author none at all**. A
+  `TransBackTo` is the visual a scene plays when a page pops back TO it, which
+  it can only need if it went away. The System blade looked correct all along
+  for the boring reason that `Tab5/System` IS its level-0 node.
+  **Lesson: when a rule needs "which object", look for the object that AUTHORS
+  the property the rule is about, not the one the input happened to arrive at.**
+- **A list windows on the axis its template's scroll ends point along.**
+  `XUI_SCROLLEND_DIRECTION` is UP 0, DOWN 1, LEFT 2, RIGHT 3 [xui.h 1874-1880].
+  `XuiList` authors control_ScrollUp / control_ScrollDown and stacks rows down;
+  `XuiListChooser` and `btn_horizontal_spinner` author ScrollLeft / ScrollRight
+  and lay theirs along x — one value between two arrows, which is what a chooser
+  is. `visibleCount` was `floor(height / pitch)` for everything, so
+  `dashSysLiveVision`'s three 480x74 choosers with a 33-tall row template drew
+  TWO values stacked. The fix is the same arithmetic on the other axis:
+  `floor((480 − 30.5) / 419) = 1`. Four lists in each build name a horizontal
+  template and no other does, so the blast radius was surveyable before the
+  edit — and the other one, the Family Timer's spinner, already answered 1.
+  Two hard-coded XuiList numbers fell out with it: a scroll end's anchor delta
+  was `rect − 420x74` (it is the list against its OWN template visual) and the
+  arrows were driven by the literal ids `control_ScrollUp` / `control_ScrollDown`
+  (they are `ScrollLeft` / `ScrollRight` on a chooser).
+- **A page authored as a copy of another page keeps the other page's words, and
+  a token gate cannot see prose.** `dashSysCslSetPolicyInfo_System.xur` is a
+  copy of the factory-reset screen: `ClassOverride="dashSystemReset"`, and its
+  `XuiEdit edInfo` still carries "Do you want to reset your console?…". The
+  console's init at 0x921c8568 overwrote it every time. The existing gate
+  looked for `<angle-bracket>` tokens, and this was ENGLISH, so it walked
+  through 447 screens undetected. **The gate that catches this class is a
+  registry of "authored text the code replaces", checked against the scene file
+  by a unit test so a typo cannot pass it, and swept over every reachable page.**
+  A sweep of every authored `Text` of 40+ characters over all 263 scenes (126;
+  34 on the 50 reachable pages) found exactly one such control, which is why the
+  registry can be a list and not a heuristic.
+- **The branch a code path takes is part of the reading.** The finding said the
+  page formats `dashCSettingsStrings[546]`. It formats one of TWO, and the test
+  at 0x921c86f4 is the IPTV-provider predicate — the same `0x9226e7d8()` that
+  hides `navIPTVSettings`. The reference console has no provider, so the string
+  is **545**, four fields instead of six. Reading the `bne` as well as the
+  `swprintf` was the difference between the right screen and a plausible one.
+- **An unset property is the class default, and the default can be the whole
+  answer.** Four network scenes author an ENABLED `XuiBackButton legend_b`
+  reading "Back" with no `PressKey`, which looked like a hole in "B is the
+  control that binds 0x5841". It is not: **`XuiButton.PressKey` defaults to
+  22592 = 0x5840 = `VK_PAD_A_OR_START`** [reference/xzp-tool/XuiElements.xml:69]
+  and `XuiBackButton` derives from `XuiButton` without adding one, so those
+  controls bind **A**. The corroboration is in the corpus: no `legend_a`
+  anywhere authors a PressKey while every `legend_x` / `legend_y` authors
+  22530 / 22531 — A needs no binding. Two controls on A and none on B is an
+  authoring slip in the build, disclosed rather than repaired.
+- **Re-run a survey before you quote it.** Round 3's "176 carry a B carrier and
+  ten do not, under three names" was wrong in both halves: **176 / 87**, with
+  16 of the 187 full-canvas scenes carrier-less, under **five** names
+  (`legend_b` 107, `btnB` 54, `navB` 8, `legend_B` 4, `backButton` 3) and in
+  **two classes** (172 `XuiBackButton`, 4 plain `XuiButton`). The count now
+  lives in a corpus unit test, not in prose, so it cannot drift again.
+- **An "all at the origin" sweep needs to say WHICH box is at the origin.**
+  Walking all 40 System-blade pages instead of 12 turned up ten that author a
+  scene `Position` of their own inside their canvas (−1,−1 / −2,−1 / −2,−3 /
+  0,−1 / −2,0 / −1,1). The MOUNT is at (0,0) 1120x770 on all forty; the scene
+  inside it is where the file puts it. A gate written against the scene root
+  would have failed on a correct render.

@@ -1,118 +1,119 @@
 // The launcher: what a bare `/` shows.
 //
-// It is the Blades dashboard's own chrome. dashmain/dashmain.xur is rendered
-// by the runtime exactly as the Blades shell renders it, BootLive (the range
-// the console's cold boot plays) unfurls it onto the Xbox LIVE blade, and the
-// two choices sit inside that blade's panel container where the console
-// parented its own panel scene. Nothing on screen is drawn by hand:
+// It is OUR page, not a dashboard's. Nothing here is a XUR scene, no skin
+// visual is worn, and no timeline runs: a Blades page re-labelled into a
+// chooser is a Blades page, and this is the one screen in the project that
+// Microsoft never drew. What it borrows is the console's MATERIALS, and every
+// one of them resolves through the extracted manifest so a smoke check can
+// name where it came from:
 //
-//   background, wings, blade tabs   dashmain/dashmain.xur + dashuisk/skin.xur
-//   the two rows                    the System page's navSettings, a
-//                                   XuiNavButton wearing btn_1line_icon, on
-//                                   that page's own row grid, re-labelled the
-//                                   way console code labels a control (Id,
-//                                   Text, ImagePath)
-//   the row icons                   dashmain/ico_32x_console.png and
-//                                   dashmain/ico_32x_systemSet.png
-//   the description pane            the System page's metaPanelScene, a
-//                                   XuiScene wearing metaScene_1line, at its
-//                                   own place (its row highlight and divider
-//                                   are drawn for exactly that grid)
-//   the Xbox 360 logo               oobe/oobeCountry.xur's XuiImage1, which
-//                                   authors common://xboxLogo.png
-//   the header and the A legend     Tab2's own txt_Header and legend_a
-//   the sounds                      the skin's keyframed cues (btn_Focus on
-//                                   Focus, btn_Select on Press) and dashmain's
-//                                   dash_2ndLevelClose inside BootLive
-//   the face                        ConvectionUI, decoded from the console
+//   the Xbox 360 logo   dashcomm/xboxLogo.png     the focal point
+//   the A legend orb    shrdres/A-Button.png      the commit affordance; the
+//                       console draws exactly this, a 32x32 orb with the
+//                       letter A in near-black over it and the label to its
+//                       left (dashuisk/skin.xur, visual legend_A: Button1 is
+//                       the orb, XuiText1 is the "A" at TextColor 15,15,15,
+//                       XuiTextPresenter1 is the label at 235,235,235)
+//   the accent green    #8CC43B, a palette entry OF xboxLogo.png
+//   the face            ConvectionUI, decoded from the console's own
+//                       xenonclatin.xtt (app/styles.css @font-face)
+//   the cues            shrdres/btn_Focus and shrdres/btn_Select, through the
+//                       runtime's AudioBank, which indexes them out of the
+//                       same manifest
 //
-// Choosing is the console's own state machine: KillFocus / Focus / Press on
-// the row's visual, the metapane's NToM slide and NPress flourish, and the
-// page navigates to `/?build=<id>` when the Press range has run its 13 frames.
-// That URL is the whole contract: the dashboards never know the launcher exists.
+// Everything else is plain CSS in app/styles.css, under `.launcher`.
+//
+// The page is authored in the console's OUTPUT space, 1280x720, so there is no
+// canvas -> framebuffer transform for it to apply: the console's view mapping
+// exists to put a 1120x770 Blades canvas on a 720p frame, and this page has no
+// design canvas behind it. What the runtime's Viewport still does, and the
+// reason it is here rather than a `width: 100vw`, is the SECOND transform: the
+// 1280x720 output is fitted uniformly into whatever window it is opened in.
+//
+// Choosing navigates to `/?build=<id>`. That URL is the whole contract: the
+// dashboards never know the launcher exists.
 import {
-  AssetIndex, Skin, VisualScope, indexVisuals, renderScene, renderElement, Viewport,
-  NodeIndex, bindTimelines, TimelineEngine, AudioBank, loadScene, setOwnerText, setOwnerSlot,
-  createTelemetry, emptyReport, publish, startFpsMeter, refreshVisibility, pathOf,
-  InputRouter, Button, NO_DELTA, FONT_FAMILY, setActiveBuild, activeBuild,
-  type NodeRecord, type RenderCtx, type DashTelemetry, type TimelineScope,
+  AssetIndex, Viewport, AudioBank, FRAMEBUFFER, FONT_FAMILY,
+  createTelemetry, emptyReport, publish, startFpsMeter,
+  InputRouter, Button, setActiveBuild,
 } from '@runtime/index';
-import { BUILDS, BUILD_PROFILES, type BuildId } from '@runtime/build';
-import { idOf, type XuObject, type XuScalar } from '@xur/index';
-import { metaRange, metaPressRange } from '@dash/blades/panels';
-import { bladeByTab, DEFAULT_TAB } from '@dash/blades/tabs';
+import { BUILDS, type BuildId } from '@runtime/build';
 
-/** The scenes the launcher is built from. */
-const DASHMAIN = 'dashmain/dashmain.xur';
-const LOGO_SCENE = 'oobe/oobeCountry.xur';
-/** The range the console's cold boot plays, landing on Xbox LIVE. */
-const BOOT = { start: 'BootLive', end: 'EndBootLive' };
-const ROOT_SCENE = 'RootScene';
-/** Where the console parents Xbox LIVE's panel scene. */
-const CONTAINER = 'RootScene/Tab2/scBlade/scContainer';
-/** Tab2 controls that belong to the Live page, not to a launcher. */
-const PRUNE_IN_TAB2 = ['legend_x', 'legend_y', 'legend_b'];
+/** The console's output, and this page's design size. */
+const OUTPUT = { w: FRAMEBUFFER.width, h: FRAMEBUFFER.height };
+
+/** Art, as "<pack>/<path>" into the manifest. Nothing is drawn by hand. */
+const ART = {
+  logo: { pack: 'dashcomm', path: 'xboxLogo.png' },
+  aButton: { pack: 'shrdres', path: 'A-Button.png' },
+} as const;
+
+/** The two cues the console plays for a chooser: move, and commit. */
+const CUE = { focus: 'btn_Focus', select: 'btn_Select' } as const;
+
+/** Frames, on the console's 60 Hz clock, so ?manual + stepFrames() reproduces
+ *  every timing exactly. The intro is how long the page takes to settle; the
+ *  commit delay is how long the chosen card holds its flash before the URL
+ *  changes. */
+const INTRO_FRAMES = 30;
+const COMMIT_FRAMES = 18;
 
 interface Choice {
   build: BuildId;
+  /** The name, big. */
   name: string;
-  icon: string;
+  /** The build number, small, above the name. */
+  label: string;
+  /** Two short concrete sentences. */
   blurb: string;
 }
 
-/** What each row says. Copy is ours; everything drawing it is the console's. */
+/** The copy. Ours, and the only words on the page. */
 const CHOICES: readonly Choice[] = [
   {
-    build: '6770', name: 'Blades', icon: 'ico_32x_console.png',
-    blurb: 'Blades, build 6770. The dashboard the Xbox 360 launched with, in its last release from 2008.',
+    build: '6770', name: 'Blades', label: 'Build 6770',
+    blurb: 'The dashboard the Xbox 360 launched with. Five blades you slide between, in its last 2008 release.',
   },
   {
-    build: '9199', name: 'NXE', icon: 'ico_32x_systemSet.png',
-    blurb: 'NXE, build 9199. The New Xbox Experience of November 2008: channels, panels and a queue.',
+    build: '9199', name: 'NXE', label: 'Build 9199',
+    blurb: 'The New Xbox Experience, November 2008. Channels, panels and a queue replace the blades.',
   },
 ];
-const HINT = 'Up and Down choose, A or Enter starts. A controller works too.';
-const HEADER = 'Choose a dashboard';
-
-/**
- * Layout inside Tab2's 700x369 panel container, in its design units: the
- * System page's own grid (rows 342 wide on a 45 px pitch, the metapane 356 px
- * to their right), started where the Live page starts its own rows (x=7..15)
- * rather than at the System page's x=115, because Xbox LIVE's page has the
- * three right-hand tabs over its last 90 px and System's does not. The pane's
- * row highlight and Shadow are authored 359 px to its left, so the rows have
- * to sit exactly there for its 2To1End / 1To2 slides to land on them.
- */
-const ROW = { x: 15, y: 1, pitch: 45, w: 342, h: 47 };
-const META = { x: 371, y: 1, w: 342, h: 360 };
-const LOGO = { x: 452, y: 232 };
+const TAGLINE = "Two Xbox 360 dashboards, running from the console's own files.";
+const HINT = 'Left and Right choose';
+const COMMIT_LABEL = 'Start';
 
 /** What the smoke suite drives and reads. */
 export interface LauncherApi {
-  engine: TimelineEngine;
   input: InputRouter;
   audio: AudioBank;
   /** One press, as the pad would send it. */
   press(button: string): boolean;
+  /** Advance the launcher's own 60 Hz clock by hand. */
   stepFrames(n: number): void;
   state(): LauncherState;
 }
 export interface LauncherState {
-  /** The boot range has landed and the rows take input. */
+  /** 'intro' until the page has settled, then 'ready', then 'going'. */
+  phase: 'intro' | 'ready' | 'going';
+  /** The cards take input. */
   armed: boolean;
   index: number;
   focusId: string | null;
-  /** The build a press committed to, once the Press range is running. */
+  /** The build a press committed to, before the page leaves. */
   going: BuildId | null;
-  choices: { id: string; build: BuildId; visual: string | null; state: string | null; range: string | null }[];
-  logo: { src: string; manifest: string | null } | null;
-  booted: string | null;
+  frame: number;
+  choices: { id: string; build: BuildId; name: string; label: string; blurb: string; focused: boolean }[];
+  /** Every image on the page, with the manifest entry its URL came from. */
+  art: Record<keyof typeof ART, { src: string; manifest: string | null }>;
+  /** The two cue names, and whether the bank actually holds each .ogg. */
+  cues: { focus: string; select: string; haveFocus: boolean; haveSelect: boolean };
 }
 declare global { interface Window { __launcher?: LauncherApi } }
 
 export async function launcher(host: HTMLElement, onDispose: (fn: () => void) => void, params: URLSearchParams): Promise<void> {
-  // The launcher is Blades chrome, so it is parsed with Blades' registry and
-  // seen through Blades' view transform, whichever build the user then picks.
+  // The launcher belongs to neither build; its materials come out of the 6770
+  // dump, which is the one both builds' packs are extracted alongside.
   setActiveBuild('6770');
   const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
   const assets = await AssetIndex.load(base, '6770');
@@ -120,227 +121,248 @@ export async function launcher(host: HTMLElement, onDispose: (fn: () => void) =>
   onDispose(startFpsMeter(t));
   await loadFont(assets.base + 'assets/6770/fonts/', t.placeholders);
 
-  const skin = await Skin.load(assets, activeBuild().skin);
-  const [dashmain, logoScene] = await Promise.all([loadScene(assets, DASHMAIN), loadScene(assets, LOGO_SCENE)]);
+  const report = emptyReport('launcher');
+  report.canvas = { w: OUTPUT.w, h: OUTPUT.h };
+
+  /* ------------------------------------------------------------- the frame */
 
   const viewportHost = document.createElement('div');
   viewportHost.className = 'xui-viewport';
   host.appendChild(viewportHost);
-  const viewport = new Viewport(viewportHost, { consoleView: !params.has('design') });
+  const viewport = new Viewport(viewportHost, { consoleView: false, canvas: OUTPUT });
 
-  const report = emptyReport(DASHMAIN);
-  const nodes = new NodeIndex();
-  const engine = new TimelineEngine();
-  const ctx: RenderCtx = {
-    assets, pack: dashmain.pack, report, nodes,
-    visuals: new VisualScope(indexVisuals(dashmain.root), skin),
-  };
-  const root = renderScene(dashmain.root, ctx);
-  viewport.mount(root);
-  viewport.setCanvas({ w: report.canvas.w, h: report.canvas.h });
+  /* --------------------------------------------------------------- the page */
 
-  // The other blades' pages and the Live page's own legends are not part of a
-  // launcher. Dropped from the index BEFORE the timelines bind, so no range
-  // ever looks for them; the blade tabs themselves live outside Tab1..Tab6.
-  for (const n of nodes.all.filter((n) => /^Tab[13456]$/.test(idOf(n.obj)))) nodes.removeSubtree(n);
-  for (const n of nodes.all.filter((n) => PRUNE_IN_TAB2.includes(idOf(n.obj)) && pathOf(n).includes('/Tab2/'))) nodes.removeSubtree(n);
-
-  const container = nodes.all.find((n) => pathOf(n).endsWith(CONTAINER));
-  if (!container) throw new Error(`launcher: no ${CONTAINER} in ${DASHMAIN}`);
-  const header = nodes.all.find((n) => idOf(n.obj) === 'txt_Header' && pathOf(n).includes('/Tab2/'));
-  if (header) setOwnerText(header, HEADER);
-
-  /* ------------------------------------------------------------ the rows */
-
-  // A real control from the System page, wearing its real visual, with the
-  // three properties console code writes onto a control (Id, Text, ImagePath)
-  // and its place in the container. `into` renders it as the console's panel
-  // was rendered: parented under scContainer, so Tab2's own boot fade carries
-  // it. The objects are read before Tab5's DOM is pruned; the tree is separate.
-  const template = findObject(dashmain.root, 'navSettings');
-  const metaTemplate = findObject(dashmain.root, 'metaPanelScene');
-  const logoTemplate = findObject(logoScene.root, 'XuiImage1');
-  if (!template || !metaTemplate || !logoTemplate) throw new Error('launcher: a template control is missing from the archive');
-
-  const into = (obj: XuObject, overrides: Record<string, XuScalar>, pack = ctx.pack): NodeRecord | null => {
-    const before = nodes.all.length;
-    const el = renderElement(obj, { ...ctx, pack }, {
-      overrides: new Map(Object.entries(overrides)), delta: NO_DELTA, owner: null,
-      parent: container.rect, parentNode: container,
-    });
-    if (!el) return null;
-    container.el.appendChild(el);
-    return nodes.all[before] ?? null;
+  /** An <img> whose src came out of the manifest, or a recorded miss. */
+  const image = (key: keyof typeof ART, className: string, alt: string): HTMLImageElement => {
+    const { pack, path } = ART[key];
+    const url = assets.url(pack, path);
+    if (!url) report.missingImages.push(`${pack}/${path}`);
+    const img = document.createElement('img');
+    img.className = className;
+    img.src = url ?? '';
+    img.alt = alt;
+    img.draggable = false;
+    return img;
   };
 
-  const rows = CHOICES.map((c, i) => {
-    const id = `launch${c.build}`;
-    const node = into(withId(template, id), {
-      Text: c.name, ImagePath: c.icon,
-      Position: { x: ROW.x, y: ROW.y + i * ROW.pitch, z: 0 }, Width: ROW.w, Height: ROW.h,
-    });
-    if (!node) throw new Error(`launcher: ${id} did not render`);
-    // The right-hand text channel (DataAssociation 1) carries the build number.
-    setOwnerSlot(node, 1, BUILD_PROFILES[c.build].id);
-    node.el.style.cursor = 'pointer';
-    return { id, choice: c, node };
-  });
+  const page = el('div', 'launcher');
+  page.dataset['phase'] = 'intro';
+  page.dataset['index'] = '0';
 
-  const meta = into(withId(metaTemplate, 'launchMeta'), {
-    Position: { x: META.x, y: META.y, z: 0 }, Width: META.w, Height: META.h, Text: '',
-  });
-  const logo = into(logoTemplate, { Position: { x: LOGO.x, y: LOGO.y, z: 0 } }, logoScene.pack);
-  const logoImg = logo?.el.querySelector('img') ?? null;
+  page.appendChild(el('div', 'launcher-glow'));
 
-  bindTimelines(nodes, engine);
-  refreshVisibility(root, report);
+  const head = el('div', 'launcher-head');
+  head.appendChild(el('div', 'launcher-halo'));
+  const logo = image('logo', 'launcher-logo', 'Xbox 360');
+  head.appendChild(logo);
+  head.appendChild(text('p', 'launcher-tagline', TAGLINE));
+  page.appendChild(head);
+
+  const deck = el('div', 'launcher-cards');
+  deck.setAttribute('role', 'listbox');
+  deck.setAttribute('aria-label', 'Dashboard');
+  const cards = CHOICES.map((c) => {
+    const card = el('div', 'launcher-card');
+    card.id = `build-${c.build}`;
+    card.setAttribute('role', 'option');
+    card.setAttribute('aria-selected', 'false');
+    card.dataset['build'] = c.build;
+    card.dataset['focused'] = 'false';
+    card.appendChild(text('div', 'launcher-build', c.label));
+    card.appendChild(text('div', 'launcher-name', c.name));
+    card.appendChild(el('div', 'launcher-rule'));
+    card.appendChild(text('p', 'launcher-blurb', c.blurb));
+    deck.appendChild(card);
+    return { id: card.id, choice: c, el: card };
+  });
+  page.appendChild(deck);
+
+  const legend = el('div', 'launcher-legend');
+  legend.appendChild(text('span', 'launcher-hint', HINT));
+  const commit = el('span', 'launcher-a');
+  const orb = el('span', 'launcher-orb');
+  const orbArt = image('aButton', 'launcher-orb-art', '');
+  orb.appendChild(orbArt);
+  orb.appendChild(text('span', 'launcher-orb-key', 'A'));
+  commit.appendChild(orb);
+  commit.appendChild(text('span', 'launcher-a-label', COMMIT_LABEL));
+  legend.appendChild(commit);
+  page.appendChild(legend);
+
+  viewport.mount(page);
   publish(t, report);
 
   /* ----------------------------------------------------------- the machine */
 
-  const rootScope = engine.all().find((s) => s.id.endsWith('/' + ROOT_SCENE) || s.id === ROOT_SCENE);
-  if (!rootScope) throw new Error(`launcher: no ${ROOT_SCENE} scope`);
-  const metaScope = meta ? engine.forControl('launchMeta')[0] ?? null : null;
-
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
-  audio.attach(engine);
+  for (const cue of [CUE.focus, CUE.select]) {
+    if (!audio.has(cue)) t.placeholders.push(`cue ${cue}: no .ogg in the manifest's audio entries`);
+  }
 
-  let armed = false;
+  let phase: LauncherState['phase'] = 'intro';
   let index = 0;
   let going: BuildId | null = null;
-  let booted: string | null = null;
-  /** Frames left before the press commits, counted on the engine's own clock. */
-  let countdown = -1;
+  let frame = 0;
+  /** The frame the chosen card's flash ends on, or -1. */
+  let commitAt = -1;
+  let left = false;
 
-  const scopeOf = (id: string): TimelineScope | undefined => engine.forControl(id)[0];
-  const under = (n: NodeRecord) => pathOf(n);
-  const setState = (row: typeof rows[number], state: string) => engine.setState(row.id, state, under(row.node));
+  const setPhase = (p: LauncherState['phase']) => {
+    phase = p;
+    page.dataset['phase'] = p;
+    host.dataset['launcher'] = p;
+  };
 
-  const describe = (i: number) => { if (meta) setOwnerText(meta, `${CHOICES[i]!.blurb}\n\n${HINT}`); };
-
-  const select = (next: number, init = false) => {
-    if (!armed || going) return;
-    const prev = index;
-    index = (next + rows.length) % rows.length;
-    if (!init && index === prev) return;
-    if (!init) setState(rows[prev]!, 'KillFocus');
-    // InitFocus is what a page arriving with focus somewhere plays, and it is
-    // silent; Focus fires btn_Focus on its own frame 15.
-    setState(rows[index]!, init ? 'InitFocus' : 'Focus');
-    describe(index);
-    if (metaScope) {
-      const r = metaRange(init ? -1 : prev, index);
-      if (!init || r.start !== 'Default') engine.playRange(metaScope.id, r.start, r.end);
+  const paint = () => {
+    page.dataset['index'] = String(index);
+    for (const [i, card] of cards.entries()) {
+      const on = i === index && phase !== 'intro';
+      card.el.dataset['focused'] = on ? 'true' : 'false';
+      card.el.setAttribute('aria-selected', on ? 'true' : 'false');
     }
-    rows.forEach((r, k) => r.node.el.setAttribute('aria-selected', k === index ? 'true' : 'false'));
     sync();
   };
 
-  const press = () => {
-    if (!armed || going) return false;
-    const row = rows[index]!;
-    going = row.choice.build;
-    setState(row, 'Press');
-    if (metaScope) { const r = metaPressRange(index); engine.playRange(metaScope.id, r.start, r.end); }
-    // Navigate when the Press range ends, measured off the visual's own frames.
-    const s = scopeOf(row.id);
-    const from = s?.stateFrame('Press')?.frame ?? null;
-    const to = from !== null ? s?.frameOf('EndPress') ?? null : null;
-    countdown = from !== null && to !== null && to > from ? to - from : 1;
-    sync();
+  /** Move focus. Silent on arrival, btn_Focus on every move after it. */
+  const select = (next: number, silent = false) => {
+    if (phase !== 'ready') return;
+    const to = (next + cards.length) % cards.length;
+    if (to === index && !silent) return;
+    index = to;
+    if (!silent) audio.play(CUE.focus, null, frame);
+    paint();
+  };
+
+  const press = (): boolean => {
+    if (phase !== 'ready') return false;
+    going = cards[index]!.choice.build;
+    audio.play(CUE.select, null, frame);
+    setPhase('going');
+    commitAt = frame + COMMIT_FRAMES;
+    paint();
     return true;
   };
 
   const go = (id: BuildId) => {
+    if (left) return;
+    left = true;
     const url = new URL(location.href);
     url.search = `?build=${id}`;
     location.assign(url.toString());
   };
 
   const arm = () => {
-    if (armed) return;
-    armed = true;
-    select(0, true);
+    if (phase !== 'intro') return;
+    setPhase('ready');
+    select(index, true);
   };
 
-  // Everything timed is timed on the 60 Hz timeline clock, never on wall time,
-  // so ?manual + stepFrames() reproduces it exactly.
-  const unstep = engine.addStepper(() => {
-    if (!armed && !rootScope.playing) arm();
-    if (countdown > 0 && --countdown === 0 && going) go(going);
-  });
-  onDispose(unstep);
+  /** One frame of the launcher's own clock. Everything timed is timed here,
+   *  never on wall time, so ?manual + stepFrames() reproduces it exactly. */
+  const step = () => {
+    frame++;
+    if (phase === 'intro' && frame >= INTRO_FRAMES) arm();
+    if (commitAt >= 0 && frame >= commitAt && going) { commitAt = -1; go(going); }
+  };
 
-  for (const [i, row] of rows.entries()) {
-    row.node.el.addEventListener('click', () => { select(i); press(); });
+  /* ------------------------------------------------------------- the input */
+
+  for (const [i, card] of cards.entries()) {
+    card.el.addEventListener('click', () => { select(i); press(); });
+    card.el.addEventListener('pointerenter', () => select(i));
   }
 
   const router = new InputRouter();
   router.push({
     id: 'launcher',
     onButton: (b) => {
-      if (b === Button.Up || b === Button.Left || b === Button.LB) select(index - 1);
-      else if (b === Button.Down || b === Button.Right || b === Button.RB) select(index + 1);
+      if (b === Button.Left || b === Button.Up) select(index - 1);
+      else if (b === Button.Right || b === Button.Down) select(index + 1);
       else if (b === Button.A || b === Button.Start) press();
     },
   });
   router.attach();
 
-  // Boot the way the console does: BootLive, out of dashmain's own timeline,
-  // fires dash_2ndLevelClose on frame 497 and lands on Xbox LIVE. ?boot=none
-  // parks on the blade's rest frame instead (the shell's seekRest).
-  if (params.get('boot') === 'none') {
-    rootScope.seek(bladeByTab(DEFAULT_TAB)?.restFrame ?? 0);
-    rootScope.playing = false;
-    rootScope.invalidate();
-    engine.applyNow(rootScope);
-    arm();
-  } else if (engine.playRange(rootScope.id, BOOT.start, BOOT.end)) {
-    booted = BOOT.start;
-  }
+  // Coming BACK to the launcher from a dashboard.
+  //
+  // `go()` leaves the page with `location.assign`, and the browser may keep
+  // this document alive in its back/forward cache: pressing Back then restores
+  // it with every variable exactly as it was left, which means `phase` is
+  // still 'going' and `left` is still true, so `select()` and `press()` both
+  // refuse and the launcher sits frozen on the card that was chosen. (A page
+  // that is NOT cached re-executes the module and arrives clean, which is why
+  // this only bites some browsers - Tag hit it in Chrome, 2026-09-03.) A
+  // restore fires `pageshow` with `persisted` true, and it is the only signal
+  // that says "this document is being shown again"; take it as the arrival it
+  // is and put the launcher back in its ready state.
+  const onPageShow = (e: PageTransitionEvent) => {
+    if (!e.persisted) return;
+    left = false;
+    going = null;
+    commitAt = -1;
+    setPhase('ready');
+    select(index, true);
+  };
+  addEventListener('pageshow', onPageShow);
+  onDispose(() => removeEventListener('pageshow', onPageShow));
 
-  const frame = params.get('frame');
-  if (frame !== null && Number.isFinite(Number(frame))) engine.freeze(Number(frame));
+  /* -------------------------------------------------------------- the start */
+
+  // ?boot=none skips the intro: the page arrives settled and armed on frame 0,
+  // which is what a suite that does not want to step 30 frames asks for.
+  setPhase('intro');
+  if (params.get('boot') === 'none') {
+    page.classList.add('launcher-noboot');
+    arm();
+  } else {
+    // The CSS transition that runs the intro starts on the next paint, so the
+    // opening state gets a frame of its own to be rendered from.
+    requestAnimationFrame(() => { if (phase === 'intro') page.dataset['phase'] = 'entering'; });
+  }
+  paint();
 
   let raf = 0;
-  if (!params.has('manual') && engine.frozenAt === null) {
+  if (!params.has('manual')) {
     let last = performance.now();
+    let carry = 0;
     const loop = (now: number) => {
-      engine.tick(now - last);
+      carry += (now - last) * 60 / 1000;
       last = now;
-      t.timeline = { ...engine.report(), fps: t.timeline.fps };
+      // Whole frames only, and never a spiral of death after a stalled tab.
+      for (let i = 0; i < Math.min(Math.floor(carry), 8); i++) step();
+      carry -= Math.floor(carry);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
   }
 
   function sync(): void {
-    t.focusId = armed ? rows[index]!.id : null;
-    t.timeline = { ...engine.report(), fps: t.timeline.fps };
+    t.focusId = phase === 'intro' ? null : cards[index]!.id;
     t.input = router.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer }));
     t.cues = audio.log.slice(-40).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
     t.lastCue = audio.log.length ? audio.log[audio.log.length - 1]!.cue : t.lastCue;
-    host.dataset['launcher'] = armed ? 'armed' : 'booting';
   }
   sync();
 
   const api: LauncherApi = {
-    engine, input: router, audio,
+    input: router, audio,
     press: (b) => { const ok = router.press(b as Button); sync(); return ok; },
-    stepFrames: (n) => { for (let i = 0; i < n; i++) engine.step(); sync(); },
+    stepFrames: (n) => { for (let i = 0; i < n; i++) step(); sync(); },
     state: () => ({
-      armed, index, going, booted,
-      focusId: armed ? rows[index]!.id : null,
-      choices: rows.map((r) => {
-        const s = scopeOf(r.id);
-        return {
-          id: r.id, build: r.choice.build,
-          visual: r.node.visualWrap?.dataset['xuiVisual'] ?? null,
-          state: s?.state ?? null, range: s?.range ? s.range.join('..') : null,
-        };
-      }),
-      logo: logoImg ? { src: logoImg.src, manifest: manifestPathOf(assets, logoImg.src) } : null,
+      phase, armed: phase !== 'intro', index, going, frame,
+      focusId: phase === 'intro' ? null : cards[index]!.id,
+      choices: cards.map((c, i) => ({
+        id: c.id, build: c.choice.build, name: c.choice.name,
+        label: c.choice.label, blurb: c.choice.blurb,
+        focused: c.el.dataset['focused'] === 'true' && i === index,
+      })),
+      art: {
+        logo: { src: logo.src, manifest: manifestPathOf(assets, logo.src) },
+        aButton: { src: orbArt.src, manifest: manifestPathOf(assets, orbArt.src) },
+      },
+      cues: { focus: CUE.focus, select: CUE.select, haveFocus: audio.has(CUE.focus), haveSelect: audio.has(CUE.select) },
     }),
   };
   window.__launcher = api;
@@ -357,16 +379,16 @@ export async function launcher(host: HTMLElement, onDispose: (fn: () => void) =>
 
 /* ------------------------------------------------------------------ helpers */
 
-/** The same object with one property, Id, rewritten: what CXuiControl::SetId
- *  does to a control the code instantiates twice. Everything else is shared. */
-function withId(o: XuObject, id: string): XuObject {
-  return { ...o, properties: o.properties.map((p) => (p.def.name === 'Id' ? { ...p, value: id } : p)) };
+function el(tag: string, className: string): HTMLElement {
+  const n = document.createElement(tag);
+  n.className = className;
+  return n;
 }
 
-function findObject(root: XuObject, id: string): XuObject | undefined {
-  if (idOf(root) === id) return root;
-  for (const c of root.children) { const f = findObject(c, id); if (f) return f; }
-  return undefined;
+function text(tag: string, className: string, s: string): HTMLElement {
+  const n = el(tag, className);
+  n.textContent = s;
+  return n;
 }
 
 /** "<pack>/<path>" of the manifest entry a served URL came from, or null. */
@@ -393,8 +415,8 @@ async function loadFont(fontDir: string, placeholders: string[]): Promise<void> 
   }
 }
 
-// The builds table is what the rows are made from; anything not in it is not
-// offered, and anything in it must have a row.
+// The builds table is what the cards are made from; anything not in it is not
+// offered, and anything in it must have a card.
 if (CHOICES.length !== BUILDS.length || !BUILDS.every((b) => CHOICES.some((c) => c.build === b))) {
   throw new Error(`launcher: CHOICES do not match BUILDS (${BUILDS.join(', ')})`);
 }
