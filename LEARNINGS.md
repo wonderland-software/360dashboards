@@ -720,7 +720,7 @@ output).
   contapp, contui, dashlua, epix, friendsc, hubapp, hubui, luaxbox,
   mediasit, oobe, signinpr, soclua, socxzp.
 - **A TOC name can start with `..`.** `controlp` names thirty entries
-  `..\handles\*` (ten `.xur`, six `.xma`, fourteen png) and `dash.xex`
+  `..\handles\*` (nine `.xur`, six `.xma`, fifteen png) and `dash.xex`
   addresses them exactly so: `controlpack://../handles/VScrollHandle.xur`
   at .rdata 0x920fc4a0, `../handles/NuiButtonHandle.xur`, `BackHandle`,
   `NuiSwipeNavLeft/Right`. `entryPath` keeps the name (it is the runtime's
@@ -728,8 +728,9 @@ output).
   dump cannot leave its directory, and `build-manifest` puts the TOC name
   back in `path` while `out` stays the served file. A traversal anywhere
   else in a name is still refused.
-- **All 22 sounds are XMA1 at 44.1 kHz mono**, so every one is resampled to
-  48 kHz Opus (`convert-audio` asserts source and output durations within
+- **All 22 sounds are XMA1 at 44.1 kHz** (13 mono, 9 stereo: the page,
+  channel, panel and transition cues), so every one is resampled to 48 kHz
+  Opus with its channel count kept (`convert-audio` asserts source and output durations within
   5 ms; AUDIO_PASS 22).
 - **XUS version 2 is UTF-8.** Byte 0x04 is 2 in all 3,857 tables; the value
   is a NUL-terminated UTF-8 string (23,686 of the 47,599 entries carry
@@ -765,7 +766,7 @@ output).
   passes all 363. XUIHelper pushes after reading and never checks (it would
   hand a later reuse the wrong list if the order were otherwise). A
   compound's declared count is a VALUE count as in v5 (indexed lists per
-  element, 62 scenes with two-stop gradients) and the count header's
+  element, 40 scenes with two-stop gradients) and the count header's
   compoundProperties is the value count over the shared lists (XUIHelper's
   own formula is four high on every scene with a Gradient).
 - **KEYD/KEYP, from the console's decoder, not from XUIHelper.** A KEYD

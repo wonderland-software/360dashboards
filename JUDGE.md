@@ -287,7 +287,7 @@ and legend, and every PLACEHOLDERS row checked for honesty.
   silhouette, channel targets, edge refusals, System/Console Settings rows
   and pitch, focus restore, Blades untouched. Fixes in progress with M4d.
 
-## Judge AB-17559: pending
+## Judge AB-17559: Metro 17559 extraction + parser
 
 Metro 17559 through the extraction and parser pipeline (M5a, 2026-09-03).
 What the implementer claims, for the judge to verify from the bytes; nothing
@@ -341,3 +341,21 @@ here is self-certified.
   `SegoeXbox-Light.xtt` is not in the archive, so 17559 text would fall back
   to the Convection decode; the Lua bytecode apps are classified, not
   decoded.
+
+- **2026-09-03, round 1 @ 47f5085: PASS** for the data, the parser and the
+  registry. The judge re-derived the twin (dashbigger.xex → the same
+  16,941,056 B basefile, 36/36 resources identical), walked the XUIZ v3 TOC
+  with its own reader (5,187 entries tiling every data region, all 5,186
+  files byte-equal their TOC ranges, 677 PNG signatures = 677 PNG entries),
+  parsed all 3,857 XUS tables to EOF independently, hand-decoded seven scenes
+  from hexdumps (every value type, post-order compound numbering, KEYD types
+  0-4 and 0xa with direction bits), confirmed the KEYD decoder at 0x92203930
+  / jump table 0x92011030 / evaluator 0x921e9788 with Capstone, regenerated
+  the registry byte-identical, re-read the seven binary-vs-XML differences
+  from the table-building code, and checked every xur2xui normalisation in
+  XUIHelper's source. Findings, all LOW doc errors, fixed in this commit: 9 of
+  the 22 cues are stereo, not all mono; `..\handles` is 9 xur / 6 xma / 15
+  png; the two-stop-gradient scene count is 40, not 62. Nit: the
+  TeletypeCount normalisation is class-blind (harmless, would surface as a
+  diff). Could not verify: which of type 2's three bytes feed p1/p2; the
+  runtime meaning of the `.xhe`-ignored properties.
