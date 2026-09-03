@@ -117,6 +117,28 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   frame is a near duplicate); durations survive that, per-60Hz-frame
   velocity claims do not. Blade switches measured on the console: 20
   timeline frames for 1To2, 22 for 2To1/5To4, matching the parsed ranges.
+- **A sound keyframe is an EVENT, not a value.** (2026-09-02)
+  `XuiSoundXAudio.File` tracks are animated like any other property, so the
+  obvious implementation fires a cue when the sampled value CHANGES. That is
+  wrong and it fails silently: dashmain's `_2ndLevel_Sounds` writes
+  `dash_2ndLevelClose.xma` on frames 435, 497, 581, 656, 1020 ... with no
+  keyframe in between, so the change reading fires the first and swallows the
+  rest - including the only cue inside `BootLive`. Button visuals hide the bug
+  because they DO write `""` after each cue (`btn_1line_icon`: 15
+  btn_Focus, 16 empty, 269 btn_Select, 282 empty). **Fire on the frame the
+  playhead lands on, and only while it is playing** - a seek (parking a blade
+  at its rest frame, `?frame=N`) must stay silent.
+- **A visual's InitFocus frame is deliberately silent.** `btn_1line_icon` and
+  `XuiButton` both carry `btn_Focus.xma` on Focus and an EMPTY File on
+  InitFocus, so the console distinguishes "focus moved" (audible) from "a page
+  arrived with focus already somewhere" (silent). Arriving on a pushed page,
+  and returning to the page underneath, are both the second kind.
+- **`XuiScene.TransFrom`/`TransTo` name a CURVE, not a skin.** `FadeIn` and
+  `FadeOut` in `dashuisk/skin.xur` are visuals with one timeline over a single
+  300x300 proxy box nobody parents: the box's `Opacity`/`Show` track is what
+  XUI applies to the scene being transitioned (FadeOut 1->0 over 5 frames,
+  FadeIn 0->1 over 13..30). They carry no named frames, so neither `playRange`
+  nor the ambient-loop rule describes them - they run once and hold.
 
 ## Rendering (DOM)
 
@@ -131,6 +153,28 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   (lowest colour error on both blades). 3 and 4 occur only in blade skins
   the footage never loads; 5 is a faint wash the frames cannot separate.
   The table and its errors live in xuiEnums.ts.
+- **The XUI fill transform is a TEXTURE matrix about the box centre**
+  (2026-09-02, `GRADIENT_TRANSFORM`). `Fill.Translation/Scale/Rotation` map the
+  box's own (u,v) INTO gradient space - so the SVG `gradientTransform` is its
+  INVERSE, and `Translation +0.5` moves the gradient left, not right. Scale and
+  rotation act about the centre, translation is a fraction of the box, the
+  order is scale-rotate-translate, and a resting radial is the ellipse
+  inscribed in the box. Swept as 40 candidates against the tab staircases of
+  f0051 and f0034: summed luma MAD 40.95 for this model against 103.33 for the
+  shape-direction reading it replaced (per blade, NCC 0.225 -> 0.877 and
+  -0.021 -> 0.889). **Getting the DIRECTION backwards looks like a plausible
+  render**, which is why it survived a phase: the edges are in roughly the
+  right place and only the darkness is wrong.
+- **Settle a rotation sign on a figure whose geometry cannot lie.**
+  The staircase sweep separates +1 from -1 by 1.5 MAD, which decides nothing.
+  `botd/defaultbanner1`'s frame does: four 14 px border strips around one
+  rectangle, the horizontal pair at Rotation 0 and 180 (sign-free) proving the
+  opaque stop sits on the INNER edge, then the vertical pair at -90 and +90
+  forced to agree with it. Only one sign makes all four glow inward.
+- **An element Id is not unique in the document.** `legend_a`, `legend_b` and
+  `metaPanelScene` exist in dozens of scenes at once, so `setState(id, state)`
+  over the whole tree plays the range on every copy - which fires one cue per
+  copy. Scope a state change to the subtree of the scene that owns it.
 - **Rendered screenshots are Microsoft artwork too:** tests/smoke/out is
   gitignored like the assets.
 
@@ -149,6 +193,17 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   crossing of a 3 px separator figure that starts at the row's own y (154);
   reading it as the row origin put every row label 3 design px low (Judge
   C). dashmain's hand-placed nav buttons sit at y = 153, 198, 243, ... 468.
+- **The landmark you measure has to be a DETECTOR, not five numbers.**
+  (2026-09-02) Comparing a render to a frame by hand-read landmarks cannot tell
+  a composition error from a reading error. Writing the rule instead - page
+  left = the strongest falling luma edge in the y=20 band, page right = the
+  darkest column one page-width to its right - and checking it reproduces the
+  spec's own ten hand-read landmarks to within 3 px turns the gate into a
+  measurement of the render. **Window the search by an invariant of the
+  subject**: a global minimum picked the wrong one of four near-identical tab
+  seams (within 3 luma of each other) as soon as the render's seams got a few
+  luma lighter; right - left is 1321..1359 on all five blades, so that window
+  is data.
 - **Focus transitions must be edge-triggered.** A clamped d-pad press that
   re-issued setState('Focus') re-entered the button's Focus range ten times
   a second under auto-repeat, so the FocusLoop never got past its first

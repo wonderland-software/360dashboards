@@ -42,6 +42,17 @@ export class TimelineScope {
   /** The state name currently playing, for telemetry and for asserting that a
    *  range is not re-entered while nothing has changed. */
   state: string | null = null;
+  /**
+   * Called with the tick every time the playhead LANDS on a frame while
+   * playing - not on a seek, which is a jump the console never makes with the
+   * clock running. bind.ts uses it for XuiSoundXAudio cues, because a File
+   * keyframe is an EVENT and not a value: dashmain's _2ndLevel_Sounds writes
+   * dash_2ndLevelClose.xma on frames 435, 497, 581, 656 ... with nothing in
+   * between, so "the sampled value changed" would fire the first of those and
+   * silence the rest, including the one BootLive depends on.
+   */
+  onFrame: ((tick: number) => void) | null = null;
+
   /** How many times a range has been STARTED on this scope. A range that is
    *  looping via GoToAndPlay does not increment it; only a fresh playRange
    *  does, which is what makes an accidental re-entry visible. */
@@ -105,12 +116,14 @@ export class TimelineScope {
     // (metaScene_1line's is 1To2End, legend visuals use 1EndPress), and a range
     // whose end simply does not exist says so.
     this.range = [start.name, end?.frame !== null && end ? end.name : '(none)'];
+    this.once = false;
     this.state = startName;
     this.entries += 1;
     this.tick = start.frame;
     this.stopAt = end?.frame ?? null;
     this.playing = true;      // the start frame's own Play command confirms it
     this.dispatch(start.frame);
+    this.onFrame?.(this.tick);
     return true;
   }
 
@@ -141,6 +154,7 @@ export class TimelineScope {
   }
   autoplay(): void {
     if (!this.isAmbient) return;
+    this.once = false;
     this.tick = 0;
     this.playing = true;
     this.range = ['(ambient)', '(loop)'];
@@ -153,9 +167,9 @@ export class TimelineScope {
    * skin are one-timeline visuals with no named frames at all, so neither the
    * named-range path nor the ambient loop describes them.
    */
-  playOnce(): void {
+  playOnce(from = 0): void {
     this.once = true;
-    this.tick = 0;
+    this.tick = from;
     this.playing = true;
     this.range = ['(once)', '(end)'];
     this.state = null;
@@ -181,6 +195,7 @@ export class TimelineScope {
       if (this.isAmbient && !this.once) { this.tick = 0; this.invalidate(); }
       else { this.tick = this.lastFrame; this.playing = false; }
     }
+    this.onFrame?.(this.tick);
   }
 
   private jumped = false;
@@ -288,9 +303,13 @@ export class TimelineEngine {
    * A XuiSoundXAudio child of the visual is the console's cue for that state;
    * we record it and play nothing.
    */
-  setState(controlId: string, state: string): boolean {
+  setState(controlId: string, state: string, underPath?: string): boolean {
     let any = false;
     for (const s of this.forControl(controlId)) {
+      // Scope ids are the chain of element Ids, so a path prefix is how one
+      // scene's legend_b is told apart from the four other legend_b controls
+      // on screen. Without it, pressing B fires btn_Back once per copy.
+      if (underPath !== undefined && !s.id.startsWith(underPath)) continue;
       const opened = s.stateFrame(state);
       if (!opened) continue;
       s.playRange(opened.name);

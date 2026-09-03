@@ -48,11 +48,16 @@ dump cannot pass.
 
 A controller works through the Gamepad API with the standard mapping. Without
 one, the keyboard maps as: Enter = A, Esc or Backspace = B, X = X, Y = Y,
-Q/E = LB/RB (blade switch), arrows or WASD = d-pad, Tab = Guide (a no-op,
-see PLACEHOLDERS.md). Routes: `/` is the dashboard, `/?scene=<pack>/<file>.xur`
-renders one scene, `/?gallery` renders every scene, `&debug` adds the
-inspector, `&locale=de-de` applies a localized string table, `&mute` silences
-cues, `&frame=N` freezes every timeline at frame N. The default view is the
+Q/E = LB/RB (blade switch, as are left and right — no control in the build sets
+NavLeft or NavRight), arrows or WASD = d-pad (up and down walk the scene's own
+NavUp/NavDown chain, A presses the focused control, B goes back a page), Tab = Guide (a no-op,
+see PLACEHOLDERS.md). Routes: `/` is the dashboard — it BOOTS, playing `dashmain`'s own `BootLive`
+range onto Xbox LIVE the way the console's boot dispatcher does (`&boot=<range>`
+picks another of the fifteen, `&boot=none` parks on `DefaultTab`, `&blade=N`
+drops straight onto a blade's rest state). `/?scene=<pack>/<file>.xur` renders
+one scene, `/?gallery` renders every scene, `&debug` adds the inspector,
+`&locale=de-de` applies a localized string table, `&mute` silences cues,
+`&frame=N` freezes every timeline at frame N. The default view is the
 console's 1280x720 output (the measured anisotropic mapping of the 1120x770
 canvas, filling the window uniformly); `&design` shows the raw design canvas
 instead.

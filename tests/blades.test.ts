@@ -6,6 +6,10 @@ import { splitPanelList, metaRange, metaPressRange, PANEL_SEPARATOR } from '@das
 import { switchRange, levelRange, BLADES, HOME_BLADES, DEFAULT_TAB, bladeByTab, panelSceneFor } from '@dash/blades/tabs';
 import { CONSOLE_SETTINGS_ROWS, CONSOLE_SETTINGS_FOCUS } from '@dash/blades/consoleSettings';
 import { SYSTEM_NAV, systemNavRows, IPTV_ROW } from '@dash/blades/nav';
+import { BOOT_RANGES, DEFAULT_BOOT, BOOT_CUES, BOOT_HANDOVER_FRAME } from '@dash/blades/boot';
+import { FocusModel } from '@dash/blades/focus';
+import { xuiRegistry } from '@runtime/index';
+import type { XuObject, XuProperty } from '@xur/index';
 
 const NUL = String.fromCharCode(0);
 
@@ -114,4 +118,107 @@ test('the System nav list is 8 rows, 7 of them without an IPTV provider', () => 
   assert.equal(SYSTEM_NAV.find((r) => r.id === 'navMemory')?.pack, 'memory');
   // navSystemSetUp never navigates: it raises a dialog and runs the OOBE
   assert.equal(SYSTEM_NAV.find((r) => r.id === 'navSystemSetUp')?.pressPath, null);
+});
+
+/* ------------------------------------------------------------------ boot */
+
+test('every boot range is one of RootScene\'s authored pairs, with a 0-based tab', () => {
+  // The frames are RootScene's own named frames; the ranges are contiguous and
+  // never overlap, which is what a mis-copied table would break.
+  const sorted = [...BOOT_RANGES].sort((a, b) => a.from - b.from);
+  for (let i = 1; i < sorted.length; i++) {
+    assert.ok(sorted[i]!.from > sorted[i - 1]!.to,
+      `${sorted[i]!.name} starts at ${sorted[i]!.from}, inside ${sorted[i - 1]!.name}`);
+  }
+  for (const r of BOOT_RANGES) {
+    assert.equal(r.end, 'End' + r.name, 'boot pairs are End<Name>, not <Name>End');
+    assert.ok(r.tab >= 0 && r.tab <= 5, `${r.name} tab ${r.tab} is out of range`);
+    assert.ok(r.to > r.from, `${r.name} is not a range`);
+  }
+  const live = BOOT_RANGES.find((r) => r.name === DEFAULT_BOOT)!;
+  // 71 frames at 60 Hz = 1.18 s, against 73 presented frames (1.22 s) measured
+  // on the capture - the strongest single confirmation of the 60 Hz clock.
+  assert.equal(live.to - live.from, 71);
+  assert.equal(live.tab, 1, '0-based: tab 1 is Tab2, Xbox LIVE');
+  assert.equal(live.from, BOOT_HANDOVER_FRAME);
+  // BootLive fires exactly one cue, and it is inside the range.
+  const cue = BOOT_CUES[DEFAULT_BOOT]!;
+  assert.equal(cue.length, 1);
+  assert.ok(cue[0]!.frame > live.from && cue[0]!.frame < live.to);
+});
+
+/* ----------------------------------------------------------------- focus */
+
+const prop = (name: string, value: XuProperty['value'], className = 'XuiNavButton'): XuProperty => {
+  const reg = xuiRegistry();
+  for (const cls of reg.hierarchy(className)) {
+    const d = cls.props.find((x) => x.name === name);
+    if (d) return { def: d, value };
+  }
+  throw new Error(`no property ${name} on ${className}`);
+};
+const obj = (className: string, props: XuProperty[], children: XuObject[] = []): XuObject =>
+  ({ className, properties: props, children, namedFrames: [], timelines: [] });
+
+/** dashmain's System chain, verbatim: a linked list with no wrap, and no
+ *  NavLeft/NavRight anywhere because left and right are the blade switch. */
+function systemScene(hidden: string[] = []): { scene: XuObject; model: FocusModel } {
+  const ids = ['navSettings', 'navPControls', 'navMemory', 'navNetwork'];
+  const rows = ids.map((id, i) => {
+    const p = [prop('Id', id)];
+    if (i > 0) p.push(prop('NavUp', ids[i - 1]!));
+    if (i < ids.length - 1) p.push(prop('NavDown', ids[i + 1]!));
+    return obj('XuiNavButton', p, [obj('XuiTextPresenter', [prop('Id', `txt_${id}`)])]);
+  });
+  const scene = obj('DashScene',
+    [prop('Id', 'System'), prop('DefaultFocus', 'navSettings', 'DashScene')], rows);
+  const byId = new Map(rows.map((r) => [String(r.properties[0]!.value), r]));
+  const model = new FocusModel(scene, {
+    object: (id) => (id === 'System' ? scene : byId.get(id) ?? findDeep(scene, id)),
+    focusable: (id) => !hidden.includes(id),
+    override: () => null,
+  });
+  return { scene, model };
+}
+function findDeep(root: XuObject, id: string): XuObject | undefined {
+  let found: XuObject | undefined;
+  const walk = (o: XuObject) => {
+    if (found) return;
+    if (o.properties.some((p) => p.def.name === 'Id' && p.value === id)) found = o;
+    else o.children.forEach(walk);
+  };
+  walk(root);
+  return found;
+}
+
+test('focus walks the authored chain and stops at both ends - no wrap, no search', () => {
+  const { model } = systemScene();
+  assert.equal(model.defaultFocus, 'navSettings');
+  model.set(model.defaultFocus);
+  assert.equal(model.move('Down'), 'navPControls');
+  assert.equal(model.move('Down'), 'navMemory');
+  assert.equal(model.move('Down'), 'navNetwork');
+  // The last row has no NavDown, so the press is absorbed. null is what tells
+  // the caller nothing happened - which is why a held d-pad at the end of a
+  // list is silent on the console.
+  assert.equal(model.move('Down'), null);
+  assert.equal(model.move('Up'), 'navMemory');
+  // No control in the build sets NavLeft or NavRight: that axis is the blade
+  // switch and XuiTabScene owns it.
+  assert.equal(model.move('Left'), null);
+  assert.equal(model.move('Right'), null);
+});
+
+test('a hidden row is stepped over, not focused', () => {
+  const { model } = systemScene(['navMemory']);
+  model.set('navPControls');
+  assert.equal(model.move('Down'), 'navNetwork', 'the chain skips the hidden row');
+});
+
+test('the focus chain is walked UP, so a presenter inside a button finds its row', () => {
+  const { model } = systemScene();
+  const chain = model.chain('txt_navMemory').map((o) =>
+    o.properties.find((p) => p.def.name === 'Id')?.value);
+  assert.deepEqual(chain, ['txt_navMemory', 'navMemory', 'System'],
+    'the console compares each Id up the parent chain against the DashScene entry table');
 });

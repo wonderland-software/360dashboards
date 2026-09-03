@@ -94,6 +94,32 @@ export function updateNode(node: NodeRecord, keys?: Iterable<string>): void {
   if (wantsLayout || resized) relayout(node);
 }
 
+/**
+ * Change a control's Text and let its visual's presenters follow.
+ *
+ * A XuiTextPresenter shows its OWNER's text, and the owner is one object shared
+ * by reference with every node in the instantiated visual (DomRenderer builds
+ * it once per control and hands the same reference down). So the text lives in
+ * two places that must not drift: the control's own property, which is what
+ * anything reading the scene sees, and that shared owner, which is what the
+ * presenters render. Both are written here, then every presenter under the
+ * control re-derives its paint.
+ *
+ * This is how the metapane text arrives: CDashScene writes PanelStrings[i] onto
+ * the MetaPanelScene control (0x92159140) and metaScene_1line's Pane_txt, which
+ * has DataAssociation 0, is what draws it.
+ */
+export function setOwnerText(node: NodeRecord, text: string): void {
+  node.overrides.set('Text', text);
+  if (node.visualOwner) node.visualOwner.text = text;
+  updateNode(node, ['Text']);
+  const walk = (n: NodeRecord) => {
+    if (n !== node && (n.kind === 'text' || n.kind === 'textPresenter')) updateNode(n, ['Text']);
+    n.children.forEach(walk);
+  };
+  walk(node);
+}
+
 /** A resized element hands a new delta to its children, exactly as the first
  *  render does; a visual root instead takes its host control's new size. */
 function relayout(node: NodeRecord): void {
@@ -129,6 +155,37 @@ export class NodeIndex implements NodeSink {
 
   scope(obj: XuObject, node: NodeRecord): void {
     this.scopes.push({ obj, node, id: pathOf(node) });
+  }
+
+  /**
+   * Forget a whole subtree: the console's XuiSceneDestroy (0x9214d778) is
+   * called on every pop, and an index that kept the dead nodes would answer
+   * `byId` lookups with elements no longer in the document - which is exactly
+   * how a stale metapane or a stale focus target survives a back press.
+   * Returns the scope ids that went with it so the caller can drop them from
+   * the timeline engine too.
+   */
+  removeSubtree(root: NodeRecord): string[] {
+    const dead = new Set<NodeRecord>();
+    const collect = (n: NodeRecord) => { dead.add(n); n.children.forEach(collect); };
+    collect(root);
+    for (let i = this.all.length - 1; i >= 0; i--) if (dead.has(this.all[i]!)) this.all.splice(i, 1);
+    for (const [id, list] of this.byId) {
+      const kept = list.filter((n) => !dead.has(n));
+      if (kept.length === 0) this.byId.delete(id); else this.byId.set(id, kept);
+    }
+    const scopeIds: string[] = [];
+    for (let i = this.scopes.length - 1; i >= 0; i--) {
+      const s = this.scopes[i]!;
+      if (dead.has(s.node)) { scopeIds.push(s.id); this.scopes.splice(i, 1); }
+    }
+    const parent = root.parentNode;
+    if (parent) {
+      const at = parent.children.indexOf(root);
+      if (at >= 0) parent.children.splice(at, 1);
+    }
+    root.el.remove();
+    return scopeIds;
   }
 
   /** Every descendant of `node` that carries `elementId`, nearest first. A

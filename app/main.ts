@@ -4,7 +4,9 @@
 //   /?scene=<pack>/<path>   one scene
 //   /?gallery               every scene in the manifest, as a contact sheet
 //   &debug                  the inspector panel
-//   &console                apply the console's canvas->framebuffer transform
+//   &blade=N                drop onto blade N's rest state instead of booting
+//   &boot=<range>           play a named boot range (default BootLive);
+//                           &boot=none parks on DefaultTab without one
 //   &frame=N                freeze every timeline scope at frame N (deterministic)
 //   &play=<scope>:<a>-<b>   play a named-frame range on load; <scope> matches
 //                           the tail of a scope id, <a>/<b> are frame names
@@ -18,14 +20,16 @@
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
-  NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, walk, refreshVisibility,
-  InputRouter, Button, AudioBank, Strings, ListView, authoredItems,
+  NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, refreshVisibility,
+  InputRouter, Button, AudioBank, Strings, ListView,
   DEFAULT_LOCALE, isNativeLocale,
-  BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry, type ListItem,
+  BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry,
 } from '@runtime/index';
-import { CODE_TABLE_LISTS } from '@dash/blades/consoleSettings';
 import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
 import { DEFAULT_TAB } from '@dash/blades/tabs';
+import { populateLists } from '@dash/blades/lists';
+import { DEFAULT_BOOT } from '@dash/blades/boot';
+import type { NavDirection } from '@dash/blades/focus';
 
 /** The hook the smoke suites drive; nothing in the runtime depends on it. */
 interface DashApi {
@@ -38,6 +42,14 @@ interface DashApi {
     seekRest(tab?: number): void;
     openLevel(): boolean;
     closeLevel(): boolean;
+    /** A on the focused control: resolve its PressPath and push the scene. */
+    press(): Promise<boolean>;
+    /** B: pop the top scene. */
+    back(): boolean;
+    move(dir: NavDirection): string | null;
+    boot(range?: string): boolean;
+    /** Resolve once every load the shell started has finished. */
+    idle(): Promise<void>;
     report(): ShellReport;
   };
   input: InputRouter;
@@ -126,8 +138,9 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   const report = emptyReport('dashmain/dashmain.xur');
   const nodes = new NodeIndex();
   const engine = new TimelineEngine();
+  const strings = new Strings(assets);
   const shell = await BladeShell.mount({
-    assets, skin, nodes, engine, report, host: viewport.canvas,
+    assets, skin, nodes, engine, report, host: viewport.canvas, strings,
     state: {
       ...OFFLINE,
       signedIn: params.has('signedin'),
@@ -139,8 +152,20 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   });
   viewport.setCanvas({ w: report.canvas.w, h: report.canvas.h });
 
-  const startTab = Number(params.get('blade') ?? String(DEFAULT_TAB));
-  shell.seekRest(Number.isFinite(startTab) ? startTab : DEFAULT_TAB);
+  // ?blade=N drops straight onto a blade's rest state (what the stills and
+  // most of the smoke suites want). With no blade named, the console boots:
+  // the dispatcher's cold-boot default is BootLive, landing on Xbox LIVE.
+  // ?boot=<range> picks another of the fifteen; ?boot=none skips it.
+  const blade = params.get('blade');
+  const bootParam = params.get('boot');
+  if (blade !== null) {
+    const startTab = Number(blade);
+    shell.seekRest(Number.isFinite(startTab) ? startTab : DEFAULT_TAB);
+  } else if (bootParam === 'none') {
+    shell.seekRest(DEFAULT_TAB);
+  } else {
+    shell.boot(bootParam || DEFAULT_BOOT);
+  }
   // ?hide=a,b - ablation, to find which element paints a region. AFTER the
   // seek: applyNow rewrites cssText wholesale and would wipe an inline hide.
   for (const id of (params.get('hide') ?? '').split(',').filter(Boolean)) {
@@ -154,42 +179,61 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   const input = installBladeInput(shell, t, audio);
   installApi(engine, t, input, audio, []);
   window.__dashApi!.shell = {
-    go: (tab) => { const ok = shell.go(tab); syncShell(t, shell); return ok; },
-    left: () => { const ok = shell.left(); syncShell(t, shell); return ok; },
-    right: () => { const ok = shell.right(); syncShell(t, shell); return ok; },
-    seekRest: (tab) => { shell.seekRest(tab); syncShell(t, shell); },
-    openLevel: () => { const ok = shell.openLevel(); syncShell(t, shell); return ok; },
-    closeLevel: () => { const ok = shell.closeLevel(); syncShell(t, shell); return ok; },
+    go: (tab) => { const ok = shell.go(tab); syncShell(t, shell, audio); return ok; },
+    left: () => { const ok = shell.left(); syncShell(t, shell, audio); return ok; },
+    right: () => { const ok = shell.right(); syncShell(t, shell, audio); return ok; },
+    seekRest: (tab) => { shell.seekRest(tab); syncShell(t, shell, audio); },
+    openLevel: () => { const ok = shell.openLevel(); syncShell(t, shell, audio); return ok; },
+    closeLevel: () => { const ok = shell.closeLevel(); syncShell(t, shell, audio); return ok; },
+    press: async () => { const ok = await shell.press(); await shell.idle(); syncShell(t, shell, audio); return ok; },
+    back: () => { const ok = shell.back(); syncShell(t, shell, audio); return ok; },
+    move: (dir) => { const id = shell.moveFocus(dir); syncShell(t, shell, audio); void shell.idle().then(() => syncShell(t, shell, audio)); return id; },
+    boot: (range) => { const ok = shell.boot(range); syncShell(t, shell, audio); return ok; },
+    idle: async () => { await shell.idle(); syncShell(t, shell, audio); },
     report: () => shell.report(),
   };
-  syncShell(t, shell);
+  // A metapane sub-scene is fetched, so the first report has to wait for it or
+  // it would say "no scene" about one that is already on screen.
+  await shell.idle();
+  syncShell(t, shell, audio);
   runClock(engine, t);
 
   if (params.has('debug')) mountInspector(host, shell.dashmain.root, viewport.canvas);
 }
 
-/** Left/right switch the blade; A opens a level, B closes one. */
+/**
+ * Left/right and the shoulder buttons switch the blade; up/down walk the
+ * scene's own NavUp/NavDown chain; A presses the focused control and B goes
+ * back. Left/right are the blade switch because no control in the build sets
+ * NavLeft or NavRight - XuiTabScene owns that axis - and both LB/RB and the
+ * d-pad reach it. A locked tab (a page is open) simply refuses.
+ */
 function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
   const router = new InputRouter();
   router.push({
     id: 'blades',
     onButton: (b) => {
-      if (b === Button.Left) shell.left();
-      else if (b === Button.Right) shell.right();
-      else if (b === Button.A) shell.openLevel();
-      else if (b === Button.B) shell.closeLevel();
+      if (b === Button.Left || b === Button.LB) shell.left();
+      else if (b === Button.Right || b === Button.RB) shell.right();
+      else if (b === Button.Up) { shell.moveFocus('Up'); void shell.idle().then(() => syncShell(t, shell, audio)); }
+      else if (b === Button.Down) { shell.moveFocus('Down'); void shell.idle().then(() => syncShell(t, shell, audio)); }
+      else if (b === Button.A) void shell.press().then(() => shell.idle()).then(() => syncShell(t, shell, audio));
+      else if (b === Button.B) shell.back();
       else return;
-      syncShell(t, shell);
-      t.input = router.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer }));
-      t.cues = audio.log.slice(-40).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
+      syncShell(t, shell, audio);
     },
   });
   router.attach();
   return router;
 }
 
-function syncShell(t: DashTelemetry, shell: BladeShell): void {
-  t.shell = shell.report();
+function syncShell(t: DashTelemetry, shell: BladeShell, audio: AudioBank): void {
+  const r = shell.report();
+  t.shell = r;
+  t.focusId = r.focusId;
+  t.input = window.__dashApi?.input.log.slice(-40).map((e) => ({ button: e.button, repeat: e.repeat, layer: e.layer })) ?? t.input;
+  t.cues = audio.log.slice(-40).map((e) => ({ cue: e.cue, scope: e.scope, tick: e.tick, played: e.played }));
+  t.lastCue = audio.log.length ? audio.log[audio.log.length - 1]!.cue : t.lastCue;
 }
 
 async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: string): Promise<void> {
@@ -226,7 +270,14 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
   audio.attach(engine);
-  const lists = await populateLists(scene, ctx, nodes, engine, strings, t);
+  const filled = await populateLists(scene, ctx, nodes, engine, strings);
+  const lists = filled.lists;
+  if (lists.length) {
+    // The still route reproduces f0060, where the operator had scrolled to
+    // Locale; the shell arrives on row 0 the way a fresh list does.
+    const wanted = Number(params.get('focus') ?? String(filled.stillFocus));
+    t.focusId = lists[0]!.focus(Number.isFinite(wanted) ? wanted : 0, 'InitFocus');
+  }
   // The visibility snapshot inside renderScene measured the scene BEFORE the
   // lists were filled, so an empty lstSettings read as invisible. Retake it.
   refreshVisibility(viewport.canvas.firstElementChild as HTMLElement, report);
@@ -293,46 +344,6 @@ function installApi(engine: TimelineEngine, t: DashTelemetry, input: InputRouter
     stepFrames: (n) => { for (let i = 0; i < n; i++) engine.step(); t.timeline = { ...engine.report(), fps: t.timeline.fps }; },
     scopeIds: () => engine.all().map((s) => s.id),
   };
-}
-
-/* ------------------------------------------------------------------- lists */
-
-/**
- * Fill every list in the scene. A XuiCommonList that declares ItemsText fills
- * itself (31 scenes do); the Console Settings list does not, so its rows come
- * from the positional table the console indexed - see dashboards/blades.
- */
-async function populateLists(
-  scene: { id: string; root: import('@xur/index').XuObject; pack: string },
-  ctx: RenderCtx, nodes: NodeIndex, engine: TimelineEngine, strings: Strings, t: DashTelemetry,
-): Promise<ListView[]> {
-  const out: ListView[] = [];
-  const positional = CODE_TABLE_LISTS[scene.id];
-  let table: string[] = [];
-  if (positional) table = await strings.stringsByIndex(positional.pack, positional.table);
-
-  const listObjects: import('@xur/index').XuObject[] = [];
-  walk(scene.root, (o) => { if (o.className === 'XuiList' || o.className === 'XuiCommonList') listObjects.push(o); });
-
-  for (const list of listObjects) {
-    const node = nodes.all.find((n) => n.obj === list);
-    if (!node) continue;
-    let items: ListItem[] = authoredItems(list);
-    if (items.length === 0 && positional && table.length) {
-      items = positional.rows.map((r) => ({ text: table[r.label] ?? `#${r.label}` }));
-    }
-    if (items.length === 0) continue;
-    const view = new ListView(list, node, ctx, nodes, engine, xuiRegistry());
-    view.setItems(items);
-    out.push(view);
-  }
-
-  if (out.length) {
-    const first = out[0]!;
-    const wanted = Number(params.get('focus') ?? (positional ? positional.focus : 0));
-    t.focusId = first.focus(Number.isFinite(wanted) ? wanted : 0, 'InitFocus');
-  }
-  return out;
 }
 
 /* ------------------------------------------------------------------- input */

@@ -22,10 +22,10 @@ INFERRED, both here and in the source.
 | `src/render/controls/text.ts` | `XuiText` / `XuiTextPresenter` → a flex box, PointSize → px, alignment, drop shadow. |
 | `src/anim/interp.ts` | Keyframe arithmetic: Linear / None / Ease sampling, colour blending, quaternion slerp. DOM-free, so `tests/timeline.test.ts` drives it directly. |
 | `src/anim/TimelineEngine.ts` | The playhead. A scope per timeline-owning object, Flash-style named-frame commands, control states, a 60 Hz fixed-step clock. Also DOM-free. |
-| `src/anim/bind.ts` | Joins a scope's sampled values to the rendered nodes it animates. |
-| `src/render/update.ts` | `NodeRecord` + `updateNode`: re-applies only what changed, and cascades a resize to the children the way the first render laid them out. |
+| `src/anim/bind.ts` | Joins a scope's sampled values to the rendered nodes it animates, and turns a `XuiSoundXAudio.File` keyframe into a cue. |
+| `src/render/update.ts` | `NodeRecord` + `updateNode`: re-applies only what changed, and cascades a resize to the children the way the first render laid them out. `setOwnerText` pushes a control's new Text into its visual's presenters; `NodeIndex.removeSubtree` forgets a destroyed scene. |
 | `src/input/InputMap.ts` | The 360 pad over the Gamepad API's standard mapping, merged with a keyboard map, d-pad auto-repeat, and an `InputRouter` with a focus stack. |
-| `src/audio/AudioBank.ts` | The 16 extracted cues, one `AudioContext` unlocked on the first gesture, and the state→cue table. |
+| `src/audio/AudioBank.ts` | The 16 extracted cues and one `AudioContext` unlocked on the first gesture. `attach(engine)` plays whatever File keyframe the playhead lands on; there is no state→cue table. |
 | `src/text/Strings.ts` | `.xus` tables: `applyLocale` patches a parsed scene by (classIndex, propIndex, postorder objectId); `stringsByIndex` for positional tables. |
 | `src/ui/ListView.ts` | `XuiList`/`XuiCommonList` row population from the list visual's own template. |
 | `src/render/Viewport.ts` | The console's canvas→framebuffer transform, then a uniform fit to the window. |
@@ -99,10 +99,33 @@ the SVG never clips.
 Fill (`FillType`, DOCUMENTED, default SOLID because 372 fills carry a
 `FillColor` and no `FillType` while `FillType 0` is written 49 times):
 `0` none, `1` solid, `2` linear gradient, `3` radial, `4` texture.
-`Fill.Translation / Scale / Rotation` become one SVG `gradientTransform` in
-normalised (0…1) fill space; `Rotation` is degrees, 90 = top-to-bottom
-(DOCUMENTED), and the **origin it rotates about is INFERRED** to be the box
-centre (`GRADIENT_TRANSFORM`).
+**The fill transform is MEASURED, not inferred** (`GRADIENT_TRANSFORM`, whose
+comment carries the whole error table). `Fill.Translation / Scale / Rotation`
+become one SVG `gradientTransform` in normalised (0…1) fill space, and the six
+choices in that composite were swept as 40 candidates
+(`tests/smoke/sweep-gradient.mjs`) against the tab staircases of `f0051` and
+`f0034` — the staircase is drawn by `blade_grey_left` / `blade_grey_rt`, whose
+edge lines are radial-gradient rings, so nothing else on screen decides it.
+The winner, by a wide margin on both blades:
+
+| field | value | what it means |
+|---|---|---|
+| `direction` | `texture` | the matrix maps the box's own (u,v) INTO gradient space, so the SVG transform is its inverse |
+| `origin` | `centre` | scale and rotation act about the box centre |
+| `rotation` | `+1` | the standard matrix in y-down uv, so `Rotation 90` runs bottom-to-top |
+| `radial` | `axis` | the resting radial is the ellipse inscribed in the box (rx = w/2, ry = h/2) |
+| `translation` | `box` | `Translation` is a fraction of the box, not design pixels |
+| `order` | `SRT` | scale, then rotate, then translate |
+
+Summed luma MAD over both stacks, lower is better: **40.95** for this model,
+42.41 for `rotation -1`, 73.73 for `origin topleft`, 81.93 for
+`translation design`, 88.73 for `order TRS`, and **103.33 for the old
+`shape/centre/axis` rule** that this replaced. Per blade the change is
+`f0051` MAD 51.99 → 19.76 (NCC 0.225 → 0.877) and `f0034` 51.34 → 21.19
+(−0.021 → 0.889); the tab-edge valleys land within 3 px of the frame's where
+the old rule drew none deeper than 13 luma. The rotation SIGN is settled by
+`botd/defaultbanner1` rather than by the sweep, which barely exercises it — see
+the source comment for the four border strips that fix it.
 
 Stroke: `StrokeWidth` defaults to **0**, so a `Stroke` block with only a
 colour draws nothing. MEASURED: the width appears explicitly as 1–5 (64
@@ -224,6 +247,11 @@ peaks at 67 %; the endpoints of the measured span are fuzzy to ±2 frames
 the sign convention is settled and the exact shape is pinned to about ±10 % of
 the span. The opposite convention would peak at 33 %.
 
+**Play once.** `playOnce()` runs a scope's timeline from frame 0 and holds on
+the last frame. It exists for one thing: `XuiScene.TransFrom`/`TransTo` name
+visuals (`FadeIn`, `FadeOut`) that carry a single timeline and *no named
+frames*, so neither `playRange` nor the ambient loop describes them.
+
 **Ambient scopes.** A scope with timelines and no named frames has no `Play`
 command to start it, but the console clearly runs those — 12 of dashmain's 43
 are like this (`BG_animation/groupBackground1` is 990 frames) and reference
@@ -232,11 +260,30 @@ They free-run from frame 0 and loop at the last keyframe. That the wrap is a
 loop rather than a hold is INFERRED; a hold would freeze the background, which
 the frames rule out.
 
-**Control states.** `setState(controlId, state)` plays the visual's
+**Control states.** `setState(controlId, state[, underPath])` plays the visual's
 `<State>`…`End<State>` range down the documented fallback chain
 (`Focus→Normal`, `Press→Focus`, `PressDisable→NormalPress→Press`, and the
-INFERRED `Normal→Default`). A visual's `XuiSoundXAudio` child is the console's
-cue for that state; we record it as `lastCue` and play nothing.
+INFERRED `Normal→Default`). `underPath` scopes it to one subtree: ids are not
+unique in the document (`legend_a`, `legend_b` and `metaPanelScene` are in
+dozens of scenes at once), so an unscoped call fires one cue per copy.
+
+**Cues are keyframes, and a keyframe is an EVENT.** `XuiSoundXAudio.File` is an
+animated track and the File values are in the files — an earlier note here said
+they were empty and hand-mapped states to the five `shrdres` sounds, which was
+invented. What the data says: `btn_1line_icon` sets `btn_Focus.xma` on its
+Focus frame 15, `btn_Select.xma` on Press 269, `btn_InactiveSelect.xma` on
+PressDisable 283 and **nothing on InitFocus 296** — so a page arriving with
+focus somewhere is silent and moving focus is not. `legend_B` sets
+`btn_Back.xma` on frame 2 of its Press range. `RootScene`'s four emitters carry
+every blade and level cue.
+
+The event reading matters: `_2ndLevel_Sounds` writes `dash_2ndLevelClose.xma`
+on frames 435, 497, 581, 656, 1020 … with **no keyframe in between**, so
+"the sampled value changed" fires the first and swallows the rest — including
+the one inside `BootLive`. So `bind.ts` tabulates each sound's File frames at
+bind time and `TimelineScope.onFrame` reports the tick the playhead LANDS on
+(never a `seek`, so parking a blade at its rest frame is silent).
+`AudioBank.attach(engine)` plays the file the cue names.
 
 **Reference footage caveat.** The 6717 60 fps capture is 30 fps
 frame-doubled — every even frame duplicates the one before it, 0.03–0.18 units
@@ -303,7 +350,7 @@ longer re-enters the range (and fires no cue). `TimelineScope.entries` counts
 range starts — a `GoToAndPlay` loop does not increment it — which is what the
 unit and smoke assertions watch.
 
-## The Blades shell (M3b)
+## The Blades shell (M3c)
 
 The glue lives in `dashboards/blades/` and is described by
 `reference/glue/BLADES_GLUE_SPEC.md`. The one thing to hold on to: **the
@@ -318,7 +365,11 @@ composes, then plays ranges.
 | `panels.ts` | `PanelSettings`/`PanelStrings`/`PanelScenePaths`, and `MetaPanelScene::GotoIndex` |
 | `consoleSettings.ts` | the 11-row Console Settings table from the executable |
 | `nav.ts` | the eight System nav ids, the pack each resolves in, IPTV hiding |
-| `BladeShell.ts` | mount, `go`, `openLevel`/`closeLevel`, `updateContentPanelVisual` |
+| `BladeShell.ts` | mount, `go`, the scene stack (`press`/`back`), focus, the metapane, `boot`, `updateContentPanelVisual` |
+| `focus.ts` | `DefaultFocus` and the authored `NavUp`/`NavDown` chain |
+| `lists.ts` | which list a code table fills, shared by the shell and the `?scene=` route |
+| `transitions.ts` | `TransFrom`/`TransTo`/`TransBackFrom`/`TransBackTo` |
+| `boot.ts` | the fifteen boot/return ranges and their 0-based target tabs |
 
 Three things that are easy to get wrong and are each pinned by a test:
 
@@ -351,12 +402,76 @@ slipped in:
    `text_Label_r` (association 1), and both were showing the control's `Text` —
    every System nav caption was drawn twice, overlapping.
 
+### Navigation, boot and the metapane (M3c)
+
+**A press is a scene push.** `press()` reads the focused control's `PressPath`
+(or, on a code-table list, the row's destination from the executable's table),
+resolves it through the collision-free global basename index, creates the scene
+and pushes it into the pressed control's PARENT — which is what
+`NavigateToScenePath` (0x921a5c28) does. `RootScene` plays `%uOpen` at level 0
+and `%uBlink` deeper, `back()` plays `%uClose` or `%uBlink`, and the level is a
+counter, not a per-press choice. Tab switching is locked while a page is open.
+
+`NavigateToScenePath` also copies an x/y onto the new scene (0x9214d430 /
+0x9214e7f0). We read that as the source SCENE's x/y, i.e. (0,0): every
+second-level target in this build declares the full 1120×770 dashboard canvas,
+and offsetting Console Settings by `navSettings`' (297,153) would put its header
+off the plate. That is a reading, and it is the only place in the push that is.
+
+**Transitions come out of the skin.** `FadeIn` and `FadeOut` are one-timeline
+visuals whose single child is a proxy box carrying `Opacity` and `Show`:
+FadeOut 1→0 over 5 frames with Show false at 5, FadeIn 0→1 over frames 13…30.
+So the visual is a CURVE and the thing it drives is the scene. Measured on a
+push: the System blade goes 1 → 0.4 (frame 3) → 0 (frame 5) and Console
+Settings 0 → 1 by frame 30, then back the other way on B.
+
+**Focus** is authored, never searched. `DefaultFocus` when the scene declares
+one; otherwise, for a `DashScene`, `PanelSettings[0]` — which is why Games and
+Media come up with the metapane on "Create Gamer Profile" no matter which row
+you look at. `NavUp`/`NavDown` walk a linked list with no wrap; `NavLeft` and
+`NavRight` are unset everywhere in the build because that axis is the blade
+switch. A move that the end of the chain absorbs returns null, so it plays no
+state and fires no cue.
+
+**The metapane** follows focus exactly as `CDashScene` does: destroy the
+previous sub-scene, load `PanelScenePaths[i]` if it is non-empty, write the
+description into the placeholder's `Text`, then `GotoIndex` — `%dTo%d` for an
+adjacent step and `%dTo%dEnd` alone for a jump, 1-based, resolved through the
+`metaScene_1line` VISUAL. Console Settings is the exception the spec calls out:
+its text comes from the code table's description index, not `PanelStrings`.
+
+**Boot.** With no `?blade=`, the first load plays a boot range. The dispatcher's
+cold-boot default is `BootLive` (frames 462…533, 71 frames = 1.18 s against the
+73 presented frames the capture measures) landing on tab index 1 = Tab2 = Xbox
+LIVE, and it fires `dash_2ndLevelClose.xma` on frame 497 out of its own
+timeline. The Xbox logo sequence before it is not in this archive and is not
+faked (PLACEHOLDERS.md); we start on the frame the console hands over,
+`BootLive`'s own opening frame. `?boot=<range>` picks another of the fifteen and
+`?boot=none` parks on `DefaultTab` instead.
+
 **Five stills** (`tests/smoke/out/blade*.png`) are rendered through the console
-view at 1920x1080 so they overlay the reference frames directly. Fitting the
-top band (the tab staircase and the page edge) by normalised cross-correlation
-against f0034/f0026/f0042/f0047/f0051 gives dx = 0, −4, −5, −18, −33 px and
-kx = 0.99…1.07: the staircase is within a few px on Marketplace, Xbox LIVE and
-Games and drifts to about 33 px on System. Reported, not tuned away.
+view at 1920x1080 so they overlay the reference frames directly.
+`smoke-blades.mjs` measures each one against its frame with the same detector
+it runs over the frame — page left is the strongest falling luma edge in the
+y≈20 band, page right the darkest column one page-width to its right — and that
+detector reproduces all ten of §1.3's hand-read landmarks to within 3 px:
+
+| blade | page left ref/ours | page right ref/ours | label dx,dy | body NCC/MAD | stack NCC/MAD | body luma ref→ours |
+|---|---|---|---|---|---|---|
+| Marketplace | 148 / 148 | 1506 / 1506 | −1, 1 | 0.278 / 19.5 | 0.889 / 21.1 | 150 → 141 |
+| Xbox LIVE | 226 / 227 | 1575 / 1578 | −1, 0 | 0.160 / 28.7 | 0.826 / 25.3 | 158 → 161 |
+| Games | 292 / 292 | 1644 / 1643 | −1, 1 | 0.492 / 16.8 | 0.886 / 21.0 | 135 → 142 |
+| Media | 365 / 367 | 1711 / 1712 | 0, 0 | 0.521 / 13.8 | 0.882 / 20.4 | 117 → 121 |
+| System | 435 / 435 | 1758 / 1763 | −1, 0 | 0.578 / 10.8 | 0.875 / 19.7 | 120 → 116 |
+
+Every page edge is within 6 px of the spec's landmark (worst: System's right
+edge, 1763 against 1757, and 5 px against what the detector reads on the frame
+itself), and every tab label's ink is within 1 px on both axes. This replaces
+the earlier top-band fit that reported dx drifting to −33 px on System: that
+number came from correlating a band that mixed the staircase with the page and
+is superseded, not explained away. The body NCC on Xbox LIVE (0.160) is the
+weakest of the five and stays open — its panel is the one with the most
+Live-dependent content missing.
 
 ## What is honestly not implemented
 
@@ -365,8 +480,10 @@ Recorded per scene in `window.__dash`, never faked:
 - **`runtimeDrivenClasses`** — `XuiList` / `XuiCommonList` / `XuiListItem`,
   `XuiGamerCard`, `XuiEdit`, `XuiProgressBar`, video and HTML elements. Their
   rows and contents came from PowerPC code and `.xus` tables at run time, not
-  from the scene. Measured row pitch for when that lands: 45 design px, first
-  row at `list.y + 3`.
+  from the scene. `ListView` now fills a `XuiCommonList` that declares
+  `ItemsText`, and the glue fills Console Settings from the executable's table;
+  everything else on the list is still the authored skeleton. Measured row
+  pitch: 45 design px, row *k* top at `list.y + 45k` with **no** inset.
 - **`sceneTextures`** — an `ImagePath` naming a `.xur` (eleven scenes use
   `common://TitleMetadata.xur`). XUI renders a scene to a texture; M1 has no
   offscreen target. The file is present, so this is not a missing asset.
@@ -386,19 +503,34 @@ Recorded per scene in `window.__dash`, never faked:
   half their own children, i.e. the chrome only appears once console code plays
   a transition into it. `metaScene_1line` is the clear case.
 - **`invisibleAtRest` / `invisibleGroups`** — the whole scene, and which named
-  parts of it, draw nothing at rest. The default route is the case that matters:
-  53 of `dashmain.xur`'s named groups are invisible at rest, `Tab1..Tab6`
-  among them (all `Opacity 0` until console code opens a blade), so **the
-  default route renders only the blade-skin background** and will until the
-  glue drives the tabs.
+  parts of it, draw nothing at rest. This is a snapshot of `dashmain.xur` as
+  authored, where 53 named groups (`Tab1..Tab6` among them, all `Opacity 0`)
+  draw nothing: it is why the shell has to seek `RootScene` to a rest frame or
+  play a boot range before anything appears, and the shell re-takes it after
+  mounting and after every push and pop.
 - **`unresolvedVisuals` / `missingImages` / `deviceFiles` / `placeholders`** —
   see `tests/smoke/allowlist.json` for the three visuals and three paths the
   build itself cannot supply, each with its reason.
-- The shell composes and switches; it does not yet drive second-level
-  navigation (`PressPath` resolution exists and is tested, but pressing A does
-  not push the target scene), boot ranges, or the metapane focus wiring on a
-  live blade. `XuiScene.TransFrom`/`TransTo` are parsed and ignored.
-- No audio (state changes record a cue and play nothing), and no
-  scene-to-scene transitions: `XuiScene.TransFrom`/`TransTo` are parsed and
-  ignored. Nothing yet decides which state a control should be in, so states
-  change only through `__dashApi`; that is the shell's job.
+- **Second-level option lists are empty.** `consoles/dashSysCslSetDisplay.xur`,
+  `…Audio`, `…Language` and their siblings declare a `XuiCommonList` or
+  `XuiList` with `ItemsText=""`: the console filled those rows from code tables
+  we have not decoded, the way it filled Console Settings' own eleven rows from
+  the table at 0x920143d0. Pressing A on Display therefore pushes the page and
+  draws its chrome with no options in it. `runtimeDrivenClasses` records the
+  list; nothing is invented to fill it.
+- **The Xbox LIVE blade has no focus.** `live/liveSignedOutUI.xur` is a plain
+  `XuiScene` with no `DefaultFocus` and no `PanelSettings`; its rows are handled
+  entirely inside `DashLiveSignedOut`, so there is nothing in the data that says
+  which row comes up focused. `shell.focusId` is null there and every other
+  blade has an answer. Same for Marketplace's rows, which `marketplace.scb`
+  drives.
+- **The outgoing scene's `TransBackFrom` does not get to run.** `back()`
+  destroys the popped scene in the same call so the pop is synchronous and
+  testable; the console tears it down after the transition finishes. The
+  incoming `TransBackTo` does run, and so do both halves of a push.
+- **`navSystemSetUp` and the Themes row are code paths, and stay code paths.**
+  Neither has a `PressPath`: Initial Setup raises a confirmation dialog
+  (0x92114a98) and runs the OOBE, and Themes' alt handler opens
+  `Personalization.xur`, which is not in this archive. Both are recorded in
+  `__dash.shell.codePaths` and press to nothing.
+- The Guide is not implemented and is not in the archive (PLACEHOLDERS.md).

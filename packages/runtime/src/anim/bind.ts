@@ -1,6 +1,6 @@
 // Wiring the DOM-free engine to the rendered tree.
 import { idOf } from '@xur/index';
-import { TimelineEngine, TimelineScope } from './TimelineEngine';
+import { TimelineEngine, TimelineScope, trackKey } from './TimelineEngine';
 import { updateNode, type NodeIndex, type NodeRecord } from '../render/update';
 import { isA } from '../render/DomRenderer';
 
@@ -18,25 +18,49 @@ export function bindTimelines(index: NodeIndex, engine = new TimelineEngine()): 
       if (!targets.has(tl.elementId)) targets.set(tl.elementId, index.targets(node, tl.elementId));
     }
     // XuiSoundXAudio children draw nothing, so they have no node; a File
-    // keyframe on one is a cue and goes to the engine's sink instead.
+    // keyframe on one is a CUE, and a cue is an event on its own frame rather
+    // than a value that changed. dashmain's _2ndLevel_Sounds writes
+    // dash_2ndLevelClose.xma on 435, 497, 581 and 656 with nothing between, so
+    // reading the sampled value would fire once and swallow the other three -
+    // including the one inside BootLive. So the frames are tabulated here and
+    // the scope reports the tick it lands on.
     const sounds = new Set<string>();
-    for (const c of obj.children) if (isA(c.className, 'XuiSound')) sounds.add(idOf(c));
+    const cueFrames = new Map<string, Map<number, string>>();
+    for (const c of obj.children) {
+      if (!isA(c.className, 'XuiSound')) continue;
+      const sid = idOf(c);
+      sounds.add(sid);
+      for (const tl of obj.timelines) {
+        if (tl.elementId !== sid) continue;
+        const fi = tl.tracks.findIndex((t) => trackKey(t) === 'File');
+        if (fi < 0) continue;
+        const frames = cueFrames.get(sid) ?? new Map<number, string>();
+        for (const k of tl.keyframes) {
+          const v = k.values[fi];
+          if (typeof v === 'string' && v) frames.set(k.keyframe, v);
+        }
+        cueFrames.set(sid, frames);
+      }
+    }
     // A visual root knows the control that instantiated it; a control that owns
     // frames directly (a XuiScene's Normal/1to2 pairs) is its own host.
     const host = node.hostControlId ?? (isA(obj.className, 'XuiControl') ? idOf(obj) || null : null);
     const scope = new TimelineScope(id, obj, host);
+    if (cueFrames.size) {
+      scope.onFrame = (tick) => {
+        for (const [elementId, frames] of cueFrames) {
+          const file = frames.get(tick);
+          if (!file) continue;
+          scope.lastCue = file;
+          engine.onCue?.({ scopeId: scope.id, elementId, file, tick });
+        }
+      };
+    }
     engine.add(scope, (s, delta) => {
       node.el.dataset['xuiTick'] = String(s.tick);
       if (s.range) node.el.dataset['xuiRange'] = s.range.join('..');
       for (const [elementId, values] of delta) {
-        if (sounds.has(elementId)) {
-          const file = values.get('File');
-          if (typeof file === 'string' && file) {
-            s.lastCue = file;
-            engine.onCue?.({ scopeId: s.id, elementId, file, tick: s.tick });
-          }
-          continue;
-        }
+        if (sounds.has(elementId)) continue;   // a sound has no node; see above
         for (const t of targets.get(elementId) ?? []) {
           for (const [k, v] of values) t.overrides.set(k, v);
           updateNode(t, values.keys());

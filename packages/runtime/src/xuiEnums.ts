@@ -199,6 +199,31 @@ export const SCALE_STROKE_WITH_FIGURE = true;
  * Its corner squares carry Translation (+-0.5, +-0.5) with the top-left one at
  * (-0.5, -0.5): in the texture direction that puts the ring's centre on the
  * square's inner corner, where a rounded corner's centre is.
+ *
+ * That reading was re-derived independently from the same file's HORIZONTAL
+ * pair, which is sign-free and therefore settles the baseline before the sign
+ * is argued: the left strip (x 23.75..37.75, Rotation absent = 0) and the
+ * right strip (x 368.75..382.75, Rotation 180) sit either side of bg1
+ * (x 37.75..368.75), and both put the opaque stop at 1.0 on the edge TOUCHING
+ * bg1. So the frame's glow is dark inside and transparent outside. Apply that
+ * to the vertical pair - top strip y 23.5..37.5 Rotation -90, bottom strip
+ * y 115.1..129.1 Rotation 90, bg spanning y 30..122 - and rotation +1 puts
+ * Rotation 90's opaque end at the TOP of the bottom strip and Rotation -90's
+ * at the BOTTOM of the top strip, i.e. both inner. rotation -1 puts both on
+ * the outer edges, which would make the frame glow outwards on two sides and
+ * inwards on the other two. So +1 is the only self-consistent reading.
+ *
+ * The residual after all of this is NOT a transform question and is not
+ * claimed to be fixed. Re-measured on f0051 with the winning model, our tab
+ * stack is uniformly lighter than the frame and the gap GROWS towards the
+ * screen edge: mean RGB over a 40x300 column at x=60 is 161.6 on the frame and
+ * 191.9 in our render (+30), at x=200 174.7 vs 186.6 (+12), at x=340 191.0 vs
+ * 200.5 (+9). Both are neutral grey, so it is a missing darkening layer that
+ * increases to the left - black_cover (BlendMode 2), grey_trans_fade, or the
+ * blade-edge shadow - not a mis-placed gradient. Whole-blade numbers per blade
+ * are printed by tests/smoke/smoke-blades.mjs, where the page BODY now agrees
+ * to within 3-9 luma (frame -> ours: 150->141, 158->161, 135->142, 117->121,
+ * 120->116).
  */
 export interface GradientTransformModel {
   direction: 'texture' | 'shape';
