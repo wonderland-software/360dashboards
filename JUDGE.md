@@ -236,3 +236,53 @@ each is closed with what changed.
   darkness is carried as a number that cannot grow, beside the whole-screen
   bins which stay gated at 30. (2)-(4) recorded in PLACEHOLDERS as open
   residuals; not tuned.
+
+## Judge G: NXE 9199 behaviour (M4)
+
+Rubric: the plan's Judge E applied to the NXE shell - a scripted input path
+walked in the browser at 60 Hz and in the frame-stepped footage (Yrt 30 fps,
+Kpa 29.97 fps, Yv5), channel/slot/focus order, every string, cue, transition
+and legend, and every PLACEHOLDERS row checked for honesty.
+
+- **2026-09-03, round 1 @ 25f19ae: FAIL.** Gates reproduce (tsc 0, 73/73,
+  10/10); foundations not re-judged. Findings: (1) CRITICAL the Settings slot
+  never gets a rig - `buildStrip` culls slot 7 at build time and nothing
+  remounts it, so "8 of 8" is an empty front slot [Kpa f05580]; (2) CRITICAL
+  the channel change runs the queue the wrong way (Prev1 rises on Up) and on
+  the wrong model - the console scrolls the names DOWN over 4-5 f, the strip
+  FADES OUT IN PLACE in ~3 f, the new front panel fades in, the rest unfold
+  behind it, 10-18 f total [Yrt f07274-7285, Kpa f00736-0745]; ours takes
+  27-45 ticks with a collapse cascade. The "move, then fold, then unfold"
+  evidence (Judge F r2 N3, Yrt 238.48 s) was the Guide closing over the
+  profile page, not a channel change; the real changes are at Yrt 242.47/243.5
+  and Kpa 24.5/25.9 s and carry ONE audio onset; (3) HIGH the queue and the
+  counter stay on screen behind every pushed page [Kpa f05598-5605, Yrt
+  f0396]; (4) HIGH `<servicename>` is painted on System Settings (8 rows on
+  screen, `legacy.rows` reports 7) [Kpa f0391]; (5) HIGH Console Settings
+  never draws the metapane description (`dashCSettingsStrings.xus[325]`,
+  `[327]` are in the archive) [Kpa f0381, f05604]; (6) HIGH legacy-over-legacy
+  uses the `...Ex` pair where the console's 10-frame swap is exactly
+  LegacyFrom + LegacyTo [Kpa f05630-5639]; the PLACEHOLDERS window at Kpa
+  190.06-191.22 was list moves, not a page swap; (7) MEDIUM fold/unfold
+  geometry: the console rotates the front panel about its left edge and
+  fades it over ~7 f, never draws panels in front of the cursor, plays the
+  legend Hide first; on B the front slot rotates in, queue rows fade in,
+  panels emerge behind [Kpa f05587-5605, Yrt f06754-6775, f07172-7227];
+  (8) MEDIUM a passing panel does not fade to ~0 as it exits left [Kpa
+  f05561-5566]; (9) MEDIUM the queue wrap draws ghost rows on short lists
+  (N=2 console shows nothing above "Witamy") [Yv5 f0042]; (10) MEDIUM Media
+  Center's `<description2>` (`homepage/strings.xus[13]`) is not drawn -
+  `dressSlot` never writes DataAssociation 1 [Kpa f05545]; (11) MEDIUM cues:
+  three onsets per channel change vs one; SoundButtonSelect on a refused
+  command; select+fold+transitioninto on one tick vs select, +0.1 s, fold at
+  +0.3-0.4 s; the fold-to-unfold gap varies 2..17 ticks under `&manual`
+  because it waits on a fetch; (12) LOW counter fades during a change (the
+  console keeps it), home legend hides ~3 f earlier, list wrap authored not
+  verified, a "System Settings" Label_Head at (96,~70) with "565 GB free"
+  while the slot rests. PLACEHOLDERS rows rejected: the `...Ex` row, the
+  fold-order claim, "tokens are CLEARED" for 9199; missing rows: 9199
+  Console Settings current values (frames give "Auto-Play Enabled", "1920 x
+  1080 / Widescreen / DVI", "Both Remotes"), "565 GB free", `<description2>`.
+  Verified clean: home strings, queue names/ramp, counter, legend,
+  silhouette, channel targets, edge refusals, System/Console Settings rows
+  and pitch, focus restore, Blades untouched. Fixes in progress with M4d.
