@@ -111,3 +111,21 @@ each is closed with what changed.
   17 NXE sources are 44.1); the XuiElement tail wording overstated; two
   compile-time classes carried null ids. Observation for NXE timelines: 520
   of 570 Ease keyframes use negative ease values.
+
+## Phase E, the driven dashboard (M3) — Judge E
+
+- **2026-09-02, round 1 @ f6db297: FAIL.** Verified clean: one-scene
+  composition, rest frames and tab order, every blade-switch range and cue
+  tick against the data (32 cue keyframes re-read), the panel-level counter
+  with tab lock, TransFrom/TransTo fades, boot from frame 462, metapane
+  GotoIndex ranges, Console Settings table at 0x920143d0 (11 rows), page
+  edges within 1 px on all five blades, no invented rows or strings.
+  Findings: (1) the Xbox LIVE blade lacks offline content the data provides
+  (gamercard strings, default banner, tray strip); (2) "Sign Out" paints
+  with no profile; (3) Console Settings does not scroll (9-row window,
+  pinned selection); (4) no scroll chevron (ScrollMore state); (5) locale
+  not wired on the driven route; (6) Guide placeholder claim false; (7)
+  Display page shows the XuiTool caption; (8) Marketplace focus text wrong;
+  (9) option lists are code-built from hardware queries (addresses given),
+  not tables. Tab-stack residual attributed to the wing's rotated gradient
+  fill. Fixes in progress.
