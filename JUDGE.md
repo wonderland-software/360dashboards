@@ -162,3 +162,22 @@ each is closed with what changed.
   phase and every blend candidate are measured and refused; BlendMode 5 is
   now settled as screen. Judging rule adopted: achromatic flat blocks
   binned by luma, +-5 capture spread, never luma on a saturated surface.
+
+## NXE M4a, shell foundations — Judge F
+
+- **2026-09-03, round 1 @ 85db5ba: FAIL.** Verified clean: the build table
+  and 1:1 viewport (front slot 420.0x320.0 on two frames), Blades edges
+  unchanged, the thirty Moby/Rome constants read from controlp/Variables,
+  the XML parse and nine condition predicates, "1 of 8" on two captures,
+  the 8-row Console Settings table at 0x92016a90 re-read, the rig
+  geometry and mirror line 510, both build gates in code. Findings: (1)
+  channel queue composed backwards: channels stack ABOVE the current row
+  in file order with circular wrap, nothing below, plus distance dimming
+  and the marker bullet; (2) reflection ramp inverted (mirror appears 230
+  rig px below the floor); (3) projection constants over-fitted (judge's
+  18-landmark two-frame fit: f 1445, centre 148.5/353); (4) slot icons by
+  a hand rule, 30 px low; (5) no home legend ("A Select" from the slot's
+  helptext); (6) gamer-card slot shows the signed-in group; (7) legacy
+  page offsets real (empty LegacyControl visual; the frame is
+  BackgroundPanel's nine-grid), border attribution false; (8) nits. Fixes
+  in progress with M4b.
