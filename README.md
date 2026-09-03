@@ -185,6 +185,32 @@ their data section with every declared count matching. Where XUIHelper's
 hand-written 9199 XML and the 9199 binary disagree, the binary wins
 (LEARNINGS.md, "NXE 9199").
 
+## Deploy
+
+The site is https://xbox360.lol, a Vercel project (`360dashboards`, under
+Tag's team) connected to this GitHub repository. Every push to `main` is a
+production deploy built by Vercel itself: framework preset Vite, build
+command `vite build` (the type check is CI's job, see below), output `dist/`.
+`public/assets/` (the extracted scenes, art, audio, fonts and manifests for
+every build) is committed, so the build needs nothing but the repository;
+NOTICE says whose that material is. `vercel.json` carries the project
+settings and the cache headers: everything under `/assets/` is immutable for a
+year except each build's `manifest.json`, which must revalidate, so a
+re-extract shows up without a cache bust.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs `npm run typecheck` and
+`npm test` on every push and pull request to `main`; it deploys nothing. The
+headless smoke suites need Chrome and the local `extracted/` dumps, so
+`npm run smoke` stays a local gate.
+
+To deploy by hand from a working tree (the same output Vercel would build):
+
+```
+npx vercel@latest link --yes --project 360dashboards   # once; .vercel/ is gitignored
+npx vercel@latest build --prod
+npx vercel@latest deploy --prebuilt --prod
+```
+
 ## Verification
 
 - `node --import tsx tools/xur2json.ts --corpus extracted/6770/xuiz --strict`

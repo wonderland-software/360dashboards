@@ -1,0 +1,28 @@
+# CI: the type check and the unit tests, on every push and pull request to main.
+#
+# Deploys are NOT done here. The Vercel project is connected to this GitHub
+# repository, so Vercel builds every push to main itself (`vite build`, see
+# vercel.json) and serves dist/, which includes the committed public/assets
+# tree. The headless smoke suites (`npm run smoke`) need Chrome and the local
+# extracted/ dumps, so they stay a local gate (README "Verification").
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # The corpus tests skip themselves when extracted/ is absent, and say so.
+      - run: npm test

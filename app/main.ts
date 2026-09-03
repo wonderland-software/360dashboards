@@ -1,5 +1,7 @@
 // Routes:
-//   /                       the launcher: pick Blades or NXE (app/launcher.ts)
+//   /                       the launcher: pick Blades or NXE (app/launcher.ts),
+//                           drawn with dashmain's own boot; ?launcher opens it
+//                           with &manual, &mute, &boot=none, &frame=N honoured
 //   /?build=6770            the Blades shell: dashmain plus every blade's
 //                           panel scene, resting on the current blade
 //   /?scene=<pack>/<path>   one scene
@@ -173,8 +175,10 @@ async function main(): Promise<void> {
   // A bare `/` is the launcher: pick Blades or NXE. Every dashboard route
   // carries at least ?build= (or a scene/gallery switch), so nothing that the
   // suites or the judges open goes through here.
-  if (!location.search) {
-    launcher(host, onDispose);
+  // `?launcher` opens it explicitly so a suite can add &manual, &mute or
+  // &boot=none to it; the dashboards' own routes never come through here.
+  if (!location.search || params.has('launcher')) {
+    await launcher(host, onDispose, params);
     document.body.dataset['ready'] = 'true';
     return;
   }
