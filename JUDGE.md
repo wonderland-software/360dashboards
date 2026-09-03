@@ -447,3 +447,23 @@ here is self-certified.
   (cited to Kpa f0377-f0389), the slot's second line, the wrap, and the
   quieter cue. Reference cuts for every citation are regenerable into
   `reference/frames/<capture>-30fps/` under the judge's numbering.
+- **2026-09-03, round 2 @ c60ae4a: PASS.** All twelve findings re-walked at
+  60 Hz against the same frames: the Settings rig mounts at z 3220 and "8 of
+  8" fronts System Settings; an Up scrolls the names down (Next1 114→154,
+  Current 154→194 fading) with the strip gone over ticks 0-5, bare 6-9, new
+  front in over 10-22, one cue; queue and counter at opacity 0 behind every
+  page on both routes; no painted `<...>` token on the walked pages; the
+  metapane paints the table description and the cited Current Setting per
+  row; the plain pair measures 0.300 s (footage 0.267); on A the rows fold
+  top-down, the front slot rotates about the left hinge and nothing is drawn
+  in front of the cursor on any of 110 ticks, on B the slot rotates in and
+  the panels emerge behind; passing opacity 0.99→0.86→0.55→0.05→0; wrap
+  capped at N-1 and labelled; the second caption line paints; a refused
+  press is silent; the fold→page gap is frame-exact. The rotate() change
+  moved nothing on NXE (home-rest MAD 0.19 luma). Residuals, LOW, reported
+  not blocking: (R1) the name scroll runs 0.30 s where the footage settles in
+  ~0.17 s; (R2) the unfold on B takes 0.92 s vs 0.67 (UnfoldSpeed eased to
+  UnfoldMinSpeed, stated not tuned); (R3) rapid Ups collapse into one swap,
+  unverifiable; (R4) the legend Hide leads the footage by ~0.27 s; (R5) a
+  page with no code table (dashSysCslSetRemoteC.xur) still paints
+  `<setting>` - the token gate covers only SystemScene and dashSysCslSet.
