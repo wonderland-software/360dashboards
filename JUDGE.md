@@ -153,3 +153,12 @@ each is closed with what changed.
   the running build's own 2.0.6770.0 from the pack format string; F12 the
   tab-stack residual is unchanged on the System still (+30/+30/+17/+12
   luma at x=30/60/100/150) and stays open with that number.
+- Residual work after the verdict (commits through 85db5ba): the same-build
+  6770 capture confirms the geometry to 0.0005% and shows the residual is a
+  global few-percent lightness in the 160-200 band on page and chrome
+  alike (frame = 1.119 x ours - 29.4) plus an under-saturated page purple;
+  FillColor modulation, gradient stop colour space (linearRGB, linear,
+  the 360 PWL curve), linear-light compositing, backdrop/z-order, ambient
+  phase and every blend candidate are measured and refused; BlendMode 5 is
+  now settled as screen. Judging rule adopted: achromatic flat blocks
+  binned by luma, +-5 capture spread, never luma on a saturated surface.
