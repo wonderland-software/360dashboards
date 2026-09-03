@@ -1131,9 +1131,14 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   authored frame and the spinner's arrows sit outside it) and LiveVision's
   three disabled chooser rows **480 → 419 at x 31** (239-in-300 stretched by
   the 180 delta), all three measured in the browser. No footage shows the last two, and they are disclosed here
-  rather than gated. On 9199 the affected lists are all EMPTY offline (the
-  spinners, the timer durations and the camera lists are exactly the ones
-  `codeLists9199` leaves unfilled with a reason), so nothing there moves:
+  rather than gated. **On 9199 two pages DO move** - the summary that said
+  nothing there moves was wrong, and Judge G round 4 caught it by diffing
+  every page against its round-3 screenshot (45 of 50 pixel-identical, three
+  diffs expected from F1 and F4): `dashSysLiveVision`'s three disabled
+  chooser rows **480 at x575 → 419 at x606** and `dashSysCslSetClockTime`'s
+  `lstAMPM` **70 → 72 wide** ("AM" ink centre 845.0 → 846.0). Both are the
+  `rowSpan` anchor read, not `pathKey`; neither page has footage, so which
+  geometry is the console's is unknown and neither is gated.
   `tests/smoke/smoke-nxe.mjs` **SMOKE_PASS** after the change.
 - **Not closed, stated.** COVERAGE B12 (a list row's Down firing `btn_Focus`
   twice on the skin's `XuiList` template) is untouched: §8a still gates one
@@ -1148,3 +1153,28 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   That is the window arithmetic in `ListView.layout` against a chooser
   template's height, it predates M3f (the row WIDTH is all that moved here),
   and no capture of that page exists to fit it against.
+- **2026-09-03, Judge G round 4 @ 9bc9e3d: PASS.** Gates reproduced (typecheck
+  0, 120/120, smoke-nxe full and completeness, smoke-boot, smoke-gallery). The
+  judge disassembled 0x92219790 itself: the SetShow(SwitchImage, 0) at
+  0x922197ac is unconditional and the re-show at 0x92219874 sits behind two
+  branches whose flag is written 1 only where string 571 is loaded; ink over a
+  box wider than the suite's reads 0 on both Display pages and 626/627 under
+  `&avpack0`. **Round 3's F1(b) is withdrawn by the judge**: SwitchImage is a
+  direct child of scDisplaySettings at (35,170) and scnCurrentFormat has zero
+  children; the live DOM places the group at page origin (198.80,114.69) +
+  (35,170) exactly, so the proposed ~(788,366) would have been wrong. The
+  overlap sweep is not vacuous (all 50 pages carry 4-165 candidate pictures,
+  22 carry both a list and loose art, 0 overlap; the `&avpack0` control
+  reports 15450 px² on 2 of 2). F2 verified deterministically over two visit
+  orders: 50 pops each, 0 without the carrier's btn_Back, all three
+  Id-collision parents exercised. F3 and F4 verified independently (the judge
+  re-read li r3,45..48 at 0x922913a8 and 41..44 at 0x9229154c and the XUS
+  strings). Findings, all LOW: (1) the claim that nothing on 9199 moves under
+  rowSpan was wrong - dashSysLiveVision and dashSysCslSetClockTime move
+  (corrected above); (2) the sweep's overlap arm is weakly exercised on 20 of
+  22 eligible pages (their only loose art is the legend glyphs far below the
+  lists); (3) the queue-bullet rule is stated but the profile property that
+  drives it is untraced. Could not verify: that 0x92740924 is literally
+  XGetAVPack (no ordinal table; the string it loads settles the semantics),
+  the new LiveVision/AM-PM geometry (no footage), and LiveVision's
+  two-rows-stacked chooser (reproduced, nothing to fit against).
