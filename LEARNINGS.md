@@ -180,6 +180,11 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   skin cannot plausibly differ from ours: the 4-5% light chrome is a
   rendering rule, not authoring. Candidate: FillColor stored beside a
   texture/gradient fill modulating it.
+- **A same-build capture exists:** the 2160p60 "boot to blades" video
+  (YouTube RUlH_f9GIJY) shows Console Settings with "Dashboard:
+  2.0.6770.0", i.e. build 6770 itself, from a different capture chain than
+  the 6717 footage; it is the arbiter for absolute-luma questions
+  (reference/frames/6770-boot).
 - **Rendered screenshots are Microsoft artwork too:** tests/smoke/out is
   gitignored like the assets.
 
