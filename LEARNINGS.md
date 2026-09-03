@@ -505,3 +505,82 @@ for the artwork.
   slides from late 2009/2010, so its label may be wrong; perspective
   defaults, fold curve, SceneTransitions resolution, missing
   SolutionsSlotScene.xur.
+
+## NXE 9199 shell, M4a (2026-09-03)
+
+The home page composes offline and one legacy page is hosted inside it;
+`?build=9199` serves both from the same app, and Blades 6770 is byte-identical
+in behaviour (64 tests, 8 smoke suites, all green).
+
+- **The NXE projection is NOT about the front anchor, and the spec's one-edge
+  focal length is refuted.** `NXE_GLUE_SPEC` §2.2 calibrated `f ≈ 1748` from a
+  single measured edge under that assumption. On the same frame the assumption
+  puts panel 2's bottom at 577.8 where the frame has 519.8 — a 58 px error —
+  and `f = 1749` with the centre free still leaves rms 25 px. Fitting a plain
+  pinhole `s(z) = 1/(1+z/f)` about a centre `C` to **ten** landmarks on three
+  panels gives `f = 1428, Cu = 154.5, Cv = 356.5`, rms **0.46 px**, worst
+  0.86 px, with panel 3 (which fixes nothing) landing within 0.62 px on all
+  three edges. **The tell is in the frame and is free**: as panels recede their
+  bottoms RISE (568 → 520 → 492) and their tops FALL (248 → 284 → 305), so they
+  converge on a point, and any model that slides them along the floor is wrong
+  before you measure anything. CSS `perspective: f` + `perspective-origin: C`
+  computes exactly that projection for a child at `translateZ(-z)`, so the DOM
+  needs no arithmetic of ours.
+- **A one-landmark calibration cannot be checked, so it will be wrong in a way
+  that looks right.** The spec's `f` reproduced the edge it was fitted to, to
+  2 px. The cheapest guard is a landmark of a different KIND (an edge on the
+  other axis), not another of the same kind.
+- **`PanelScene` is authored for a bottom-aligned 320-tall slot, and two
+  independent numbers say so.** The rig's `Reflection` is 512 tall at y = 1022
+  with `Scale.y = -1`, so the mirror line is at 1022 − 512 = 510; and the rig's
+  `Shadow` is authored at y = 190 with height 320, where 512 − 320 − 2 = 190.
+  Put the rig's origin one full surface (512) above the strip anchor and the
+  slot's foot lands on the mirror line, the reflection starts at the panel's
+  foot, and the surface's own `-2` is exactly why the panel's foot measures 568
+  against a `MobyFrontPosition` of 570. Reading "bottom-aligned" as the
+  surface's local bottom instead of the mirror line puts everything 2 px low.
+- **A nine-grid with `ColorWriteFlags 8` is a MASK, not a picture.** Every
+  `mobyslot*` visual ends with a `common://CornerMask.png` nine-grid that
+  writes the alpha channel only, to round the panel's corners. Rendered as a
+  picture it covers the whole slot — the first NXE home page came out black,
+  and the black looked like a missing background image. **Check
+  `ColorWriteFlags` before blaming an asset.**
+- **`DataAssociation` gates a XuiImagePresenter's picture too**, not just a
+  text presenter's text — but only on 9199: build 6770 has 31 image presenters
+  with a non-zero association that draw today (30 in `dashuisk/skin.xur`), so
+  the rule has to be gated by build or Blades changes.
+- **The `IDS_` → `homepage/strings.xus` map is two parallel `.rdata` arrays,
+  read with a one-slot offset**: 25 name pointers at 0x927f26b8 and 25 indices
+  at 0x927f25f0. The offset is not a guess — it resolves eighteen consecutive
+  names to exactly the string they are called ("Disc in Tray", "Gamer Card",
+  "Game Library", …). It does NOT hold at both ends:
+  `IDS_CHANNELNAME_XBOX360` and `IDS_CHANNELNAME_FRIENDS` come out swapped, so
+  those two are settled by the strings and the frame and are tagged as such.
+  **An offset that works for eighteen entries and fails for two is still worth
+  shipping, provided the two are named.**
+- **A slot's picture is code, its caption is data.** The eleven `slots` scenes
+  declare neither `ImagePath` nor `Text`. The captions turn out to be each
+  slot's own `<description>` in the channel XML resolved through
+  `homepage/strings.xus` (no inference at all); the pictures are all in the
+  archive but their binding to a class is materialised in code, not stored as a
+  pointer array, so it is inferred from one `.rdata` literal cluster
+  (0x9202a064–0x9202a2bc) laid out in the emission order of the slot classes,
+  and every row is tagged `inferred` in the telemetry.
+- **The Console Settings LIST pitch is 45, not the 46 the spec reads off
+  `SystemScene`'s hand-placed nav buttons.** Measured on both the frame and our
+  render with the same detector: 45.14 vs 45.00. The pitch comes from the
+  `XuiList` visual's `control_ListItem`, not from the scene's own copies.
+- **Frame-number correction:** `NXE_GLUE_SPEC` §5 and `nxe-README.md` cite
+  `Kparblu6r14 f0375` for Console Settings. `f0375` is SYSTEM Settings (seven
+  rows); the eight-row Console Settings page is `f0381`. The row set and order
+  the spec gives are exactly right.
+- **Four images and five visuals the 9199 build names and the 9199 dump does
+  not have:** `common://updis.png`, `sharedres://GScore.png` (the pack carries
+  `GScore_white.png`), `sharedres://ico_96x_MSPoints.png`,
+  `sharedres://splash_360.png`; `prgbr_VideoPreload`, `box_green`,
+  `box_orange`, `tab_active_glow_2`, `tab_active_glow_3`. All nine are real
+  absences, each named by exactly one scene, and all nine are allowlisted with
+  the reason rather than substituted.
+- **zsh does not word-split an unquoted variable.** `set -- $b` inside a loop
+  hands the whole string to `$1`, which silently turned two measurement
+  arguments into `NaN` and printed a table of NaNs rather than failing.

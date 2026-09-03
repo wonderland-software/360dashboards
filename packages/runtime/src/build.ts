@@ -47,6 +47,21 @@ export interface BuildProfile {
    *  in that corpus carries one - the gate is a promise that Blades cannot
    *  change, not a capability difference. */
   renderNineGrid: boolean;
+  /**
+   * Gate a XuiImagePresenter's picture on its DataAssociation, the way a
+   * XuiTextPresenter's text has been gated since M3: a non-zero association
+   * names a SECONDARY channel only console code could fill, so the presenter
+   * draws nothing rather than repeating the owner's primary image.
+   *
+   * TRUE on 9199 only, and the reason is a measurement, not caution: build
+   * 6770 has 31 image presenters with a non-zero association (30 in
+   * dashuisk/skin.xur, one in videocha/VideoChatMain.xur) that draw today, so
+   * turning the rule on there would change the Blades render. 9199's Moby
+   * slots depend on it - TraySlotScene's `imgIcon` is association 20 and would
+   * otherwise paint the slot's 420x320 background a second time, stretched
+   * into a 208x342 box.
+   */
+  gateImageDataAssociation: boolean;
 }
 
 export const BUILD_PROFILES: Readonly<Record<BuildId, BuildProfile>> = {
@@ -58,6 +73,7 @@ export const BUILD_PROFILES: Readonly<Record<BuildId, BuildProfile>> = {
     skin: 'dashuisk/skin.xur',
     label: 'Blades 6770',
     renderNineGrid: false,
+    gateImageDataAssociation: false,
   },
   '9199': {
     id: '9199',
@@ -69,6 +85,7 @@ export const BUILD_PROFILES: Readonly<Record<BuildId, BuildProfile>> = {
     skin: 'dashuisk/skin.xur',
     label: 'NXE 9199',
     renderNineGrid: true,
+    gateImageDataAssociation: true,
   },
 };
 

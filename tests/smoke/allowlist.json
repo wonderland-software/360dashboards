@@ -3,11 +3,21 @@
   "unresolvedVisuals": {
     "XuiScrollEnd": "The Visual named by dashuisk/skin.xur's own XuiEdit/ScrollDown, and by nothing else: a byte search of all 263 scenes for UTF-16 'ScrollEnd' finds only skin.xur, arcade/250x_CompareAchievementsScene (XuiScrollEndRight/Left) and music/1003_IndividualDevice (scr_ScrollEndDownWrap). No skin in Blades 6770 defines a XuiVisual with this Id, so the edit box's down arrow is what goes undrawn. This says NOTHING about a list's scroll chevrons: XuiList names scr_ScrollEndUp / scr_ScrollEndDown outright, both are defined, and both are drawn - see ListView.updateEnds and reference/frames/6717/f0060.png, f0066.png.",
     "XuiScrollEndUp": "Same, for skin.xur's XuiEdit/ScrollUp. Referenced only from within dashuisk/skin.xur, defined nowhere in the build.",
-    "txt_Starting": "network/Status.xur asks for it and no skin in the build defines it. The only unresolved visual named by a real scene; recorded, never substituted."
+    "txt_Starting": "network/Status.xur asks for it and no skin in the build defines it. The only unresolved visual named by a real scene; recorded, never substituted.",
+    "prgbr_VideoPreload": "NXE 9199 only: dvd/XmfPrebufferingScene.xur asks for it and no skin in the 9199 build defines it (a byte search over all 311 scenes finds the name only in the scene that asks). Recorded, never substituted - the same fact as txt_Starting in Blades.",
+    "box_green": "NXE 9199 only: homepage/GreenBox.xur is a one-line 'boxstyle' binder scene whose whole content is a XuiScene naming this visual, and dashuisk/skin.xur 9199 does not define it. Its sibling binders that DO resolve (picture, nogradient, Transpic, Transnograd) name the mobyslot* visuals, which the skin has; the two colour boxes are dead names.",
+    "box_orange": "NXE 9199 only: homepage/OrangeBox.xur, same as box_green.",
+    "tab_active_glow_2": "NXE 9199 only: network/2004_NetworkDetails.xur names it and no skin defines it. The scene's tab_active_glow_1 resolves; the second and third do not.",
+    "tab_active_glow_3": "NXE 9199 only: network/2004_NetworkDetails.xur, same as tab_active_glow_2."
   },
   "missingImages": {
     "..\\..\\Common\\Star.png": "An XuiTool source-tree path that escapes the pack, inside skin.xur's btn_4high_ratings visual. That visual is referenced by nothing outside skin.xur. A file of the same basename exists in shrdres and gamercar but nothing proves the console resolved it that way, so we do not guess.",
     "..\\..\\..\\dash\\main\\media\\ico_32x_camera.PNG": "Same, in skin.xur's Finding_Camera_Large visual, which no scene references.",
-    "..\\..\\..\\dash\\apps\\ConsoleSettings\\media\\ico_32x_camera.PNG": "Same visual, second slot."
+    "..\\..\\..\\dash\\apps\\ConsoleSettings\\media\\ico_32x_camera.PNG": "Same visual, second slot.",
+    "common://updis.png": "NXE 9199 only: named by dashuisk/skin.xur 9199 (and inherited by every scene that mounts one of those visuals). The 9199 dashcomm pack has no entry of that name - checked against the manifest, which is the extraction's own record of the pack's bytes. Nothing is substituted.",
+    "sharedres://GScore.png": "NXE 9199 only: the 9199 shrdres pack carries GScore_white.png and no GScore.png (82 entries, all hash-matched). Substituting the white one would be inventing artwork.",
+    "sharedres://ico_96x_MSPoints.png": "NXE 9199 only: accountm/15XX_AboutMSPointsList.xur names it; the 9199 shrdres pack has ico_96x_ZuneLogo.png and no MSPoints icon.",
+    "sharedres://splash_360.png": "NXE 9199 only: dvd/DvdSplash169.xur and DvdSplash43.xur name it; it is in no pack of the 9199 dump.",
+    "..\\..\\..\\..": "NXE 9199 only: a TRUNCATED XuiTool source-tree path inside dashuisk/skin.xur 9199, beside a full one that reads '..\\..\\..\\..\\..\\..\\..\\..\\Users\\a-jamont\\Desktop\\volume_slider.JPG'. It never named a file in the pack even on the console."
   }
 }

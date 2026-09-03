@@ -113,7 +113,6 @@ async function main(): Promise<void> {
   setActiveBuild(build);
   const assets = await AssetIndex.load(base, build);
   const telemetry = createTelemetry(assets.build);
-  if (error) telemetry.errors.push(error);
   startFpsMeter(telemetry);
   await loadFont(assets.base + `assets/${build}/fonts/`, telemetry.placeholders);
 
@@ -122,6 +121,9 @@ async function main(): Promise<void> {
   else if (params.has('scene')) await single(assets, skin, telemetry, params.get('scene')!);
   else if (build === '9199') await nxe(assets, skin, telemetry);
   else await blades(assets, skin, telemetry);
+  // AFTER the route: publish() replaces the telemetry's errors with the
+  // scene report's, so a message pushed before it would vanish.
+  if (error) telemetry.errors.push(error);
   document.body.dataset['ready'] = 'true';
 }
 

@@ -507,6 +507,233 @@ is superseded, not explained away. The body NCC on Xbox LIVE (0.160) is the
 weakest of the five and stays open — its panel is the one with the most
 Live-dependent content missing.
 
+## NXE 9199 (M4a)
+
+The same app serves both builds. `?build=9199` is the only switch: it picks the
+manifest under `public/assets/9199/`, the class registry generated from that
+build's own `dash.xex`, the audio directory, and the canvas -> framebuffer view.
+`packages/runtime/src/build.ts` is the one table of what differs, and it is
+three things and no more:
+
+| | Blades 6770 | NXE 9199 |
+|---|---|---|
+| root canvas | 1120x770 | 1280x720 |
+| view transform | `x*8/7`, `y*12/11 - 64` (MEASURED) | identity (MEASURED) |
+| glyph counter-scale | `scaleY(21/22)` | `scaleY(1)` |
+
+The third follows from the second: the console rasterises glyphs isotropically
+at the canvas's horizontal scale, so Blades text has to undo the view
+transform's extra vertical stretch and NXE has nothing to undo.
+
+**The 1:1 mapping is measured, not assumed.** The front Moby slot is authored
+420x320 at `MobyFrontPosition` (96, 570) and its own edges land at left 95.3,
+right 515.6, top 248.0, bottom 568.0 on the default-theme home frame - 420.3 x
+320.0 against 420 x 320, and the 2 px in y is the rig's own `-2`
+[FRAME `nxe-9199-YrtwSj1f6aY/f0483`]. The 202 scenes whose *canvas* is 1120x770
+are Blades-era pages whose canvas is an authoring leftover; their root scene is
+880x480 and it is the root scene that gets positioned.
+
+Two shared-module changes are gated on the build, and both gates are backed by
+a corpus sweep rather than by caution:
+
+- **`XuiNineGrid` renders** (`border-image` from the four offsets). No scene in
+  build 6770 carries one, so Blades cannot reach the branch; 9199's
+  `PanelScene` shadow and eleven `firstrun` scenes depend on it. An
+  **alpha-only** nine-grid (`ColorWriteFlags & 7 == 0`) draws NOTHING and is
+  recorded: every `mobyslot*` visual ends with a `common://CornerMask.png`
+  nine-grid at `ColorWriteFlags 8`, which rounds the panel's corners on the
+  console and, drawn as a picture, covers the whole slot.
+- **`DataAssociation` gates a XuiImagePresenter's picture**, the way it has
+  gated a text presenter's text since M3. Build 6770 has 31 image presenters
+  with a non-zero association that draw today (30 in `dashuisk/skin.xur`, one
+  in `videocha/VideoChatMain.xur`), so the rule is 9199-only; without it
+  `TraySlotScene`'s `imgIcon` (association 20) repaints the slot's 420x320
+  background stretched into a 208x342 box.
+
+### What renders
+
+`?build=9199` composes the home page the way `CEpixHomePageScene` does.
+`homepage/homepage.xur` is three empty groups; everything on screen is put
+there by `dashboards/nxe/`:
+
+| file | what it holds |
+|---|---|
+| `epix.ts` | `emb_homepage.xml` + the three `epix://` files, the `<condition>` evaluator, the Epix-path -> `.xur` table, and the `IDS_` -> `homepage/strings.xus` map |
+| `variables.ts` | `controlp/Variables.xur`, read by the 43 names in the code's own table at `.rdata` 0x927f7108 |
+| `projection.ts` | `XuiPerspectiveScene` as a CSS `perspective` |
+| `panelRig.ts` | `controlp/PanelScene.xur`: the texture surface, the mirror, the shadow |
+| `slotArt.ts` | which picture and caption each Moby slot wears |
+| `legend.ts` | `controlp/LegendScene.xur` as a shell service |
+| `consoleSettings9199.ts` | the eight-row 16-byte table at 0x92016a90 |
+| `NxeShell.ts` | mount, compose, the strip at rest, `LegacyControl` hosting, `__dash.nxe` |
+
+`&page=<pack>/<file>` hosts an 880x480 legacy page in the same shell instead of
+the strip.
+
+### The projection, and a correction to the spec
+
+`XuiPerspectiveScene` owns `ProjectionScale`, `ProjectionCenterU`,
+`ProjectionCenterV` [CODE 0x9217f544]. Their defaults are NOT recovered and the
+only scene that sets one sets `ProjectionScale = 0`, so the projection is
+measured off the footage. The model is a pinhole,
+`s(z) = 1/(1 + z/f)`, `screen = C + (P - C)·s`, which is exactly what CSS
+`perspective: f` with `perspective-origin: C` computes for a child at
+`translateZ(-z)` - so `PanelLayer` wears those two properties and each panel
+wears its own 3D position. Panel *k* sits at `z = k · MobyDefaultSpacing` on
+the straight line from `MobyFrontPosition` to `MobyBackPosition`.
+
+Fitted to ten landmarks on three panels of one frame, each read by the same
+gradient detector:
+
+```
+f = 1428    Cu = 154.5    Cv = 356.5      rms 0.46 px, worst 0.86 px
+```
+
+| landmark | measured | model | d |
+|---|---|---|---|
+| panel 1 left / right / top / bottom | 95.3 / 515.6 / 248.0 / 568.0 | 96.0 / 516.0 / 248.0 / 568.0 | +0.70 / +0.40 / 0.00 / 0.00 |
+| panel 2 right / top / bottom | 826.6 / 284.0 / 519.8 | 827.5 / 283.8 / 520.2 | +0.86 / −0.19 / +0.41 |
+| panel 3 right / top / bottom | 1010.5 / 305.0 / 491.9 | 1009.9 / 304.8 / 492.2 | −0.62 / −0.22 / +0.31 |
+
+Two of the three unknowns are fixed by panel 2 alone, so **panel 3 is the
+independent check** the phase asked for: all three of its edges land within
+0.62 px.
+
+**This corrects `NXE_GLUE_SPEC` §2.2.** The spec calibrated `f ≈ 1748` from one
+number - the second slot's left edge - under the assumption that the projection
+is about the FRONT ANCHOR. The same frame refutes it: projecting about the
+front anchor puts panel 2's bottom edge at 577.8 where the frame has 519.8, a
+58 px error, and `f = 1749` with the centre free still leaves rms 25 px. The
+panels do not slide along the floor as they recede; they converge on a point
+356.5 px down the screen, which is why the frame's panel bottoms RISE
+568 -> 520 -> 492 while the tops fall 248 -> 284 -> 305.
+
+Still INFERRED: that these three numbers are what the console put in
+`ProjectionScale` / `ProjectionCenterU` / `ProjectionCenterV`, and in what
+units. `Cv = 356.5` is within 3.5 px of the screen's own vertical centre;
+`Cu = 154.5` is near nothing obvious. A reader in `.text` near 0x9217f544 would
+settle it.
+
+### Composition, offline
+
+`emb_homepage.xml` declares eight channels; seven pass with no Live account.
+The predicates are console state the archive cannot answer, so every one is a
+switch and `__dash.nxe.conditions` reports its value and whether it is
+evidenced:
+
+| channel | condition | offline | name |
+|---|---|---|---|
+| Games | `EcoInLiveLocale()` | yes | Game Marketplace |
+| Video | `EcoVideoMarketplaceAvailable()` | yes | Video & Music Marketplace |
+| Friends | `EcoInLiveLocale()` | yes | Friends |
+| Inside Xbox | `EcoInsideXboxAvailable()` | yes | Inside Xbox |
+| Promotions | `EcoEventsAvailable()` | yes | Events |
+| WELCOME | `EcoShowWelcomeChannel()` | yes | Welcome |
+| XBOX360 | — | yes | My Xbox |
+| COMMUNITY | `!EcoLiveTier(None)` | **no** | Friends |
+
+`EcoLiveTier(None)`, `EcoHdDvdInstalled()` and `EcoMediaroomEnabled()` are
+evidenced by the footage - with the last two false and Solutions gated on a Live
+tier, My Xbox is **8 slots**, which is what "1 of 8" under the front panel says
+[FRAME `Yrt f0483`]. The other five are INFERRED and say so.
+
+`MobyVisiblePanelDistance` (3225) then culls: 3225 / 505 = 6.4, so seven panels
+are built and the eighth (Settings, z = 3535) is not - the front slot plus six
+receding ones, which is what the frame shows.
+
+**The `IDS_` map.** Channel and slot captions are `%EvResStr(IDS_…)%` against
+`homepage/strings.xus` (25 positional entries). The mapping is a pair of
+parallel `.rdata` arrays - 25 name pointers at 0x927f26b8 and 25 indices at
+0x927f25f0 - read with the name array offset one slot against the index array,
+which resolves EIGHTEEN CONSECUTIVE names to exactly the string they are called
+("Disc in Tray", "Gamer Card", "Game Library", "Video Library", "Music
+Library", "Picture Library", "Windows Media Center", "TV and media from your
+PC", "System Settings", "Solutions", "Help, How-to, and Tips", "HD-DVD",
+"Events", "Primetime", "Video & Music Marketplace", "Friends", "Game
+Marketplace", "Inside Xbox"). **The offset does not hold at both ends and that
+is stated, not papered over**: `IDS_CHANNELNAME_WELCOME` comes out "Welcome"
+under it but `IDS_CHANNELNAME_XBOX360` and `IDS_CHANNELNAME_FRIENDS` come out
+swapped, so those two are settled by the strings themselves and by the frame,
+and are tagged `string+frame` in the table. `IDS_SELECT`, `IDS_SELECTSLOT` and
+`IDS_TELLMEMORE` resolve outside this table and are not mapped.
+
+### The panel rig
+
+The mirror geometry is the file's, not ours. `Reflection` is 528x512 at
+y = 1022 with `Scale = (1,-1,1)`, so its top edge - the mirror line - is at
+1022 - 512 = 510, and the hosted scene is LEFT- and BOTTOM-aligned in the
+512x512 surface so that its foot sits on that line. Two independent things say
+that alignment is right: the reflection then starts exactly at the panel's foot
+(which is what the footage shows), and the rig's `Shadow` is authored at
+y = 190 with height 320, and 512 − 320 − 2 = 190 is precisely where a
+bottom-aligned 320-tall slot starts. The rig's origin therefore goes one full
+surface (512) above the strip anchor, and the surface's own −2 is exactly why
+the panel's foot lands at 568 against a `MobyFrontPosition` of 570.
+
+`XuiTextureSurface` is a live DOM subtree and the reflection is a second, live
+copy of it with a CSS alpha ramp standing in for `reflection.uxfx`. Both are
+approximations and both are in PLACEHOLDERS.md.
+
+### `LegacyControl`
+
+An 880x480 Blades-era `DashScene` centred at x = 640 inside the 1280x720 shell,
+with its own `legend_a/b/x/y` and `labHeader` parked far outside its own scene
+(y = 1111/1139 and y = −467.8) so the shell's `LegendScene` can hoist them.
+`consoles/dashSysCslSet.xur` is the worked example: eight rows from the 16-byte
+table at 0x92016a90, the metapane on the right, "Console Settings" in `LTitle`
+and "Ⓐ Select Ⓑ Back" on the legend row.
+
+Measured against the Console Settings still, with the same detector on both
+(`tests/smoke/smoke-nxe.mjs`):
+
+| | frame | ours | d |
+|---|---|---|---|
+| page left | 192.3 | 193.5 | +1.17 |
+| page top | 109.7 | 107.5 | −2.17 |
+| page bottom | 593.7 | 589.5 | −4.17 |
+| **list row pitch** | **45.14** | **45.00** | **−0.14** |
+
+The three page edges are the OUTER edge of the framed page: the frame measures
+890.7 x 484.0 around an authored 880 x 480, i.e. about 5.4 px each side and
+2 px top and bottom of border the rig draws and this milestone does not, which
+is the sign and the size of all three offsets. The row pitch is the landmark no
+border can shift, and it settles a number the spec leaves open: the spec reads
+46 px off `SystemScene`'s hand-placed nav buttons (y = 10, 56, 102), but the
+Console Settings LIST runs at **45**, the same pitch as Blades - because the
+pitch comes from the `XuiList` visual's own `control_ListItem`, not from the
+scene's.
+
+**Where Blades' machinery is reused, and where it is not.** `ListView`,
+`FocusModel`'s arrival rule, the `DashScene` panel tables and the
+`MetaPanelScene` visual are unchanged - §4 of the spec is explicit that "the
+second-level page machinery is Blades'; only the frame around it is new". What
+is NOT the same: the code table is 16 bytes an entry rather than 20 (no
+`altHandler`) and has eight rows rather than eleven, and the page's legend and
+header are hoisted instead of drawn in place.
+
+**Frame-number correction.** `NXE_GLUE_SPEC` §5 and
+`reference/frames/nxe-README.md` both cite `Kpa f0375` for Console Settings.
+`f0375` is SYSTEM Settings (seven rows); the eight-row Console Settings page is
+`f0381`. The row set and order the spec gives are exactly right.
+
+### What M4a does not do
+
+`__dash.nxe.physics` names it on every load, and the smoke suite asserts the
+list is not empty:
+
+- **the strip does not move.** Navigation is a per-frame velocity integrator
+  over `Moby{Channel,Panel}Input{Acceleration,Deceleration,MaxVelocity}`;
+  panels sit at their resting depths.
+- **no fold/unfold.** `Moby{Fold,Unfold}Speed`, `{Fold,Unfold}NextRange` and
+  `UnfoldMinSpeed` describe a cascade that is not integrated.
+- **no navigation cues.** The eight `controlp/snd_*.xma` are named in a CODE
+  table (`.rdata` 0x927f7194) and played by the glue on the console - the
+  opposite of the Blades rule - and nothing plays them here because nothing
+  moves yet.
+- **no scene transitions.** `LegacyTo`/`LegacyFrom` and their `…Ex` forms are in
+  the skin and are not driven.
+- **no Aura background, no avatars, no shaders.** PLACEHOLDERS.md.
+
 ## What is honestly not implemented
 
 Recorded per scene in `window.__dash`, never faked:
@@ -544,8 +771,13 @@ Recorded per scene in `window.__dash`, never faked:
   still open; the `lines` radial has no model in this fill family that avoids
   the opaque disc, and the obvious escape is refused by `blade_grey_left/back1`,
   whose 0.263→0.886 opaque-ended linear fill `f0051` draws solid. The wing gate
-  in `tests/smoke/sweep-gradient.mjs` holds the order of operations, and that
-  suite is now on the `npm run smoke` board.
+  in `tests/smoke/sweep-gradient.mjs` holds the order of operations, and it is
+  on the `npm run smoke` board — **by name**. It was not, for a while, and
+  nothing said so: the board listed the file bare, bare ran the 40-candidate
+  exploratory sweep, and that program prints a ranking and exits 0 whatever it
+  finds, so `wing`, `stack` and `space` never gated while the board reported
+  PASS. Each board entry now names its mode and the file refuses to run without
+  one.
 - **The flat tab-stack residual is the skin CHROME, not a layer under it, and
   not the left of the screen.** Ablated element by element from the live DOM at
   the System rest frame; `sweep-gradient.mjs stack` is the gate, and it prints
@@ -702,19 +934,75 @@ Recorded per scene in `window.__dash`, never faked:
   our page purple is already ~50 low in blue **before** any translucent layer
   (147.4 with `white_cover` hidden, against a frame that reads 197.8 *with* it),
   and no alpha over our `color_front` backdrop can reach the frame — solving
-  `a·C + (1−a)·B = frame` on red wants `a = 2.03`. The suspect is what
-  `color_back` (multiply) resolves against: our opaque black `bg`, where the
-  console appears to have had the `thing1/2/3` ambient wash under it. That is a
-  z-order / backdrop question and it is open.
+  `a·C + (1−a)·B = frame` on red wants `a = 2.03`.
+- **The page purple is NOT a z-order, a `Show` state, a backdrop or a
+  BlendMode, and that is now measured rather than suspected** (2026-09-03,
+  `sweep-gradient.mjs purple`, which is on the board). Ten things paint the
+  patch at the System rest frame (dashmain 168). Rendered alone, then
+  cumulatively back to front, against 6770 `f0042`:
+
+  | # | layer | blend | opacity | alone R/G/B | cumulative R/G/B |
+  |---|---|---|---|---|---|
+  | 1 | `bg` (BG_animation) | normal | 1.0 | 0/0/0 | 0/0/0 |
+  | 2 | `thing2` (BlendMode 4) | plus-lighter | 0.5 | 0/0/0 | 0/0/0 |
+  | 3 | `thing1` (BlendMode 3) | difference | 0.8 | 0/0/0 | 0/0/0 |
+  | 4 | `thing3` (BlendMode 4) | plus-lighter | 1.0 | 43/43/43 | 43/43/43 |
+  | 5 | `color_back` (BlendMode 2) | multiply | 1.0 | 101/52/178 | **17/9/30** |
+  | 6 | `color_front` | normal | 0.7 | 80/46/134 | 85/48/143 |
+  | 7 | `white_cover` (BlendMode 5) | screen | 0.6 | 49/49/49 | 117/88/165 |
+  | 8 | `bottom` (of `black_cover`) | normal | 1.0 | 0/0/0 | 117/88/165 |
+  | 9 | `Main_Panel` | normal | 1.0 | 14/14/14 | 123/96/167 |
+  | 10 | `grey_trans_fade` | normal | 0.0 | 0/0/0 | 123/96/167 |
+  | | frame 6770 `f0042` | | | | **133/92/198** |
+
+  The divergence is row 5 and only row 5: the multiply against a wash of 43
+  takes the blade colour from 101/52/178 down to 17/9/30, and rows 6–9 are
+  light washes putting grey back. That is why the page lands at the right
+  *luma* with the wrong *saturation* — down the whole page band our channel
+  spread is 69–74 against the frame's 104–109, at every y from 340 to 740.
+
+  Four findings, none of them a defect we could fix:
+  **(a)** `bg` is authored opaque black — a solid `FillColor` (255,0,0,0) with
+  no `FillType`, in `dashuisk/skin.xur` — so our black is the file's, not a
+  fallback of ours. **(b)** The paint order over the patch *is* dashmain's
+  authored child order, `Background` is shown and `BG_color_1` hidden at rest,
+  and `bottom` and `grey_trans_fade` are in the stack painting nothing (alpha
+  ≈0, `Opacity` 0); the gate holds all ten rows. **(c)** The ambient does
+  free-run and does paint under the blade colour, but it is dark over this
+  patch for its whole 990-frame cycle: the wash reads 35 (frame 540) to 109
+  (frame 315), 43 at frame 0 where `?manual` parks it, and the best phase still
+  leaves the purple at −3.4/+7.3/−20.0. The capture's unknown phase is worth
+  about ±6 blue here. **(d)** No backdrop of any brightness works. Forcing the
+  wash to a flat grey `W`: 128 → −1.8/+8.1/−17.0, 192 → +4.1/+11.1/−7.0, 224 →
+  +6.8/+12.6/−1.9, 255 → +9.6/+13.9/+2.7. A multiply by grey scales all three
+  channels together and the frame wants **green down** relative to red and
+  blue, so green sticks at +11..+14 for every `W` that fixes blue. What is left
+  is the same global lightness residual the chrome carries, seen on a saturated
+  surface as lost saturation.
 - **`unverifiedBlendModes`** — `BlendMode` 1 is alpha (DOCUMENTED); 2–5 are
-  guesses. They are **not** confined to `dashmain.xur` and the blade skins, as
-  an earlier note here claimed: 2 is in `arcade/2500_LiveArcadeHome`,
+  guesses. The page purple is the first figure that separates any of them,
+  because nothing occludes `white_cover` (5), `color_back` (2) or
+  `thing1`/`thing2`/`thing3` (3 and 4) over the page — the tab stack does, which
+  is why `stack` reports 0.0 for every remap. Sweeping all fourteen CSS modes
+  per value against `f0042` on three regions at once (`purplesweep bm=N`; mean
+  per-channel |error| on the purple / the page interior / the top band):
+  **2 stays `multiply`** — `difference` (4.9), `hard-light` (6.7) and `normal`
+  (8.8) beat it on the purple and each destroys the top band, the figure 2 was
+  measured on (−60/+8/−142 and +88/+125/+47), so no mode wins both and the
+  purple *closes* the mismapping rather than settling it. **5 loses half its
+  candidates**: every darkening mode is refused by 20–27 luma (`multiply` 42.1,
+  `darken` 40.8, `soft-light` 31.4, `overlay` 27.5), the first real separation
+  any frame has given 5; `screen` stays. **3 and 4 stay unsettled** — every
+  candidate for 3 leaves the purple at exactly −9.2/+4.3/−30.6, and where they
+  do rank (the page interior) the ranking is monotone in how much light the
+  candidate adds, on a surface where we are blue-low everywhere, so it measures
+  the residual and not the mode. `plus-lighter` for 4 is already the top of that
+  ranking. What would settle 3 and 4 is a frame of a screen where they are not
+  under a wash: 2 also appears in `arcade/2500_LiveArcadeHome`,
   `arcade/2502_TwistSelectorScene`, `videos/VideoCategories` and
-  `videos/VideoDetails`, and 5 is in `gamercar/GamerCard`,
-  `messenge/FriendRequestMain` and `messenge/SignupComplete`. Settling them
-  needs a frame showing one of those screens, or the blade composition (the
-  elements carrying 2 and 4 in dashmain sit on tabs that are `Opacity 0` at
-  rest). The raw value is on `data-xui-blendmode`.
+  `videos/VideoDetails`, and 5 in `gamercar/GamerCard`,
+  `messenge/FriendRequestMain` and `messenge/SignupComplete`. The raw value is
+  on `data-xui-blendmode`.
 - **`blendIsolated`** — CSS isolates a blend inside the nearest stacking
   context and an ancestor `opacity < 1` makes one; the console has no such
   rule. Every blended element under a faded ancestor is listed.

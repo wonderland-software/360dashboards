@@ -62,6 +62,23 @@ console's 1280x720 output (the measured anisotropic mapping of the 1120x770
 canvas, filling the window uniformly); `&design` shows the raw design canvas
 instead.
 
+`?build=9199` serves **NXE 9199** from the same app and the same runtime: the
+manifest, the class registry, the skin, the string tables, the audio bank and
+the canvas -> framebuffer view all take the build (`packages/runtime/src/build.ts`
+is the one table of what differs). `?scene=` and `?gallery` take it too. The
+NXE home page is not a scene - `homepage/homepage.xur` is three empty groups -
+so `dashboards/nxe/` composes it from `homepage/emb_homepage.xml`, the three
+`epix://` channel files and the thirty constants in `controlp/Variables.xur`,
+and hangs each slot's `controlpack://PanelScene.xur` clone on a 3D line through
+a measured perspective. `&page=<pack>/<file>` hosts an 880x480 Blades-era page
+inside the NXE shell instead of the strip
+(`&page=consoles/dashSysCslSet.xur` is Console Settings, eight rows from the
+table at 0x92016a90). `&channel=<id>` picks another channel; `&hddvd`,
+`&mediaroom`, `&live` and `&nowelcome` flip the console-state predicates the
+`<condition>` elements ask about. NXE scenes are 1280x720 and land 1:1 on the
+output, so the Blades view transform does not apply to them - measured, see
+`packages/runtime/README.md`.
+
 ## Stack (verified 2026-09-02, don't re-litigate)
 
 - Vite 8 + TypeScript 5.6 strict, zero runtime dependencies.
@@ -92,6 +109,11 @@ The same chain runs for NXE with `--build 9199` (`extracted/9199/`,
   timeline engine, input, audio, strings, inspector).
 - `dashboards/blades` — hand-written glue that lived in PowerPC code on the
   console: which scene loads, what buttons do, blade navigation.
+- `dashboards/nxe` — the same for NXE 9199, where there is much more of it:
+  the XML channel manifest and its `<condition>` predicates, the Epix
+  path -> scene binding, the strip constants, the `XuiPerspectiveScene`
+  projection, the `PanelScene` reflection rig, the `LegendScene` hoist and the
+  `LegacyControl` host.
 - `tools/` — extraction and reverse-engineering tools (see LEARNINGS.md for
   what each one established).
 
@@ -142,6 +164,10 @@ hand-written 9199 XML and the 9199 binary disagree, the binary wins
   batch-run by `tools/xuihelper-convert.sh <build>`) on every scene it can
   read: `XUIDIFF_PASS`; the same with `extracted/9199/... --registry 9199`.
   Every normalisation the diff applies is documented in the tool.
+- `npm run smoke` runs eight headless suites serially, including
+  `smoke-gallery` (both builds: 263 + 311 scenes, zero unknown classes) and
+  `smoke-nxe` (the composed NXE home page and one hosted legacy page, each
+  measured against its reference still with the same detector run over both).
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.

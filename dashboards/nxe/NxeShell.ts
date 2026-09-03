@@ -40,9 +40,10 @@ import {
   type Channel, type ConsoleState, type Slot,
 } from './epix';
 import { PANEL_SCENE, PANEL_SURFACE_SIZE, RIG_IDS, mountReflection, rigParts } from './panelRig';
-import { LEGEND_SCENE, hoistLegend, type LegendReport } from './legend';
+import { LEGEND_SCENE, hoistLegend, settleLegend, type LegendReport } from './legend';
 import { formatCounter, renderHtmlText } from './html';
 import { LEGACY_CODE_TABLES } from './consoleSettings9199';
+import { SLOT_ART, TRAY_CAPTION, TRAY_SCENES } from './slotArt';
 
 export const HOME_SCENE = 'homepage/homepage.xur';
 export const CHANNEL_SCENE = 'controlp/MobyChannelScene.xur';
@@ -85,6 +86,8 @@ export interface NxeReport {
   physics: readonly string[];
   /** Epix paths that named a scene the archive does not carry. */
   unresolvedEpix: string[];
+  /** What each slot was dressed with, and why (dashboards/nxe/slotArt.ts). */
+  slotArt: { scene: string; image: string; icon: string | null; caption: string; inferred: string }[];
   errors: string[];
 }
 
@@ -136,6 +139,8 @@ export class NxeShell {
   private legacy: LegacyReport | null = null;
   private legend: LegendReport | null = null;
   private homeStrings: string[] = [];
+  private readonly legendPending: NodeRecord[] = [];
+  private readonly slotArt: { scene: string; image: string; icon: string | null; caption: string; inferred: string }[] = [];
   private readonly pending = new Set<Promise<unknown>>();
 
   private constructor(
@@ -178,6 +183,7 @@ export class NxeShell {
     );
     await shell.compose();
     bindTimelines(opts.nodes, opts.engine);
+    shell.settle();
     refreshVisibility(el, opts.report);
     return shell;
   }
@@ -193,7 +199,12 @@ export class NxeShell {
     this.homeStrings = await this.strings.stringsByIndex(HOME_STRINGS.pack, HOME_STRINGS.table, this.locale);
 
     await this.readChannels();
-    await this.mountChannelScene();
+    // The channel queue belongs to the HOME page. Leaving the home page folds
+    // the strip away and swaps to a Rome shell whose overlay is
+    // controlp/RomeOverlayScene.xur - one XuiHtmlElement called `Description`
+    // and nothing else [SCENE]. The fold is not implemented (see PHYSICS_NOT_
+    // IMPLEMENTED), so a hosted page simply does not build the queue.
+    if (!this.state.page) await this.mountChannelScene();
 
     if (this.state.page) await this.mountLegacyPage(this.state.page);
     else await this.mountStrip();
@@ -204,7 +215,16 @@ export class NxeShell {
       assets: this.assets, skin: this.skin, ctx: this.ctx, nodes: this.nodes,
       engine: this.engine, host: this.rootScene(), strings: this.strings,
       locale: this.locale, source: this.legacyRoot ?? this.frontSlotRoot(),
+      pending: this.legendPending,
     });
+  }
+
+  /** Park the legend's bound groups on the last frame of their Show range;
+   *  see settleLegend. Runs after bindTimelines, because there is no scope to
+   *  seek until the timelines are bound. */
+  settle(): void {
+    if (!this.legend) return;
+    this.legend.settled = settleLegend(this.engine, this.legendPending);
   }
 
   /** The homepage's own XuiScene node (CEpixHomePageScene), not the canvas. */
@@ -348,7 +368,13 @@ export class NxeShell {
 
     for (const [k, slot] of slots.entries()) {
       const z = k * spacing;
-      if (z > this.strip.visiblePanelDistance) break; // VisiblePanelDistance culls
+      if (z > this.strip.visiblePanelDistance) {
+        // MobyVisiblePanelDistance is the cull distance in the same z units:
+        // 3225 / 505 = 6.4 panels, so the front slot plus six receding ones,
+        // which is exactly what the home frame shows [FRAME Yrt f0483].
+        this.panels.push({ slot, path: entry.channel.epix.get(slot.epixid) ?? '', scene: null, z, rig: null, wrapper: document.createElement('div') });
+        continue;
+      }
       const path = entry.channel.epix.get(slot.epixid) ?? '';
       const bound = EPIX_SCENES[path];
       const scene = bound?.scene ?? null;
@@ -360,7 +386,7 @@ export class NxeShell {
         this.unresolvedEpix.push(`${path} -> ${scene}: ${bound?.note ?? 'not in the manifest'}`);
         continue;
       }
-      mounted.rig = await this.buildRig(wrapper, scene);
+      mounted.rig = await this.buildRig(wrapper, scene, slot, entry.channel);
     }
   }
 
@@ -368,11 +394,18 @@ export class NxeShell {
    * One panel's place on the strip.
    *
    * `FrontPosition` is the front panel's BOTTOM-LEFT anchor in screen units at
-   * z = 0 [SPEC §2.2, and re-measured: the front slot's own edges land at
-   * (96, 568) against an authored (96, 570) with the rig's own -2, within
-   * 0.7 px]. The wrapper carries the rig's 512x512 box with its ORIGIN at
-   * (anchor.x, anchor.y - 320), because the hosted 420x320 scene sits at the
-   * rig's (0,-2) and must reach the anchor at its foot.
+   * z = 0, and the hosted scene is LEFT- and BOTTOM-aligned inside the rig's
+   * 512x512 texture surface. That alignment is not a choice: the surface sits
+   * at the rig's (0,-2), so its own foot is at rig y = 510, and the rig's
+   * `Reflection` mirrors about exactly that line - which is why the footage
+   * shows the reflection starting at the PANEL's foot and not 192 px below it.
+   * The rig's `Shadow` agrees independently: it is authored at y = 190 with
+   * height 320, and 512 - 320 - 2 = 190 is precisely where a bottom-aligned
+   * 320-tall slot starts.
+   *
+   * So the wrapper's origin is (anchor.x, anchor.y - 510), and the front slot's
+   * own edges then land at (96, 248) top-left and (516, 568) bottom-right
+   * against the frame's (95.3, 248.0) and (515.6, 568.0) [FRAME Yrt f0483].
    */
   private placePanel(layer: NodeRecord, z: number): HTMLElement {
     const p = pointOnStrip(this.strip.frontPosition, this.strip.backPosition, z);
@@ -386,14 +419,18 @@ export class NxeShell {
       'position:absolute', 'left:0', 'top:0',
       `width:${PANEL_SURFACE_SIZE}px`, `height:${PANEL_SURFACE_SIZE}px`,
       'transform-origin:0 0',
-      `transform:translate3d(${p.x}px, ${p.y - SLOT_HEIGHT}px, ${-z}px)`,
+      `transform:translate3d(${p.x}px, ${p.y - SURFACE_FOOT}px, ${-z}px)`,
     ].join(';');
-    layer.el.appendChild(w);
+    // Nearer panels paint OVER further ones, so the strip is inserted deepest
+    // first: each new (deeper) panel goes to the front of the layer's children
+    // and the front panel ends up last. The layer is `transform-style: flat`,
+    // so paint order is document order and z alone does not sort it.
+    layer.el.insertBefore(w, layer.el.firstChild);
     return w;
   }
 
   /** A PanelScene clone with `scene` mounted into its texture surface. */
-  private async buildRig(wrapper: HTMLElement, scene: string): Promise<NodeRecord | null> {
+  private async buildRig(wrapper: HTMLElement, scene: string, slot?: Slot, channel?: Channel): Promise<NodeRecord | null> {
     const holder = this.nodes.all[0]!;
     const rigScene = await this.load(PANEL_SCENE);
     if (!rigScene) return null;
@@ -411,25 +448,97 @@ export class NxeShell {
 
     const hosted = await this.load(scene);
     if (!hosted) return rig;
-    this.renderInto(parts.surface, hosted);
+    const mounted = this.renderInto(parts.surface, hosted);
     const size = this.sizeOf(hosted.root);
+    // Bottom-aligned in the surface (see placePanel). Left-aligned needs no
+    // write: the scene's own x is 0.
+    if (mounted) {
+      mounted.el.style.top = `${PANEL_SURFACE_SIZE - size.h}px`;
+      mounted.el.dataset['nxeAlign'] = 'bottom';
+    }
 
+    if (mounted && slot) await this.dressSlot(mounted, scene, slot, channel);
+
+    // The reflection is built AFTER the slot is dressed: it is a copy of the
+    // surface's DOM, so it has to be taken once the surface is finished.
     if (parts.reflection) mountReflection(parts.surface, parts.reflection);
 
-    // The shadow. The rig authors it at (465,190) 32x320 for a 512x512
-    // surface; the console re-places it per hosted scene through the rig's own
-    // SHADOW parameter (.rdata 0x920b0f48) and that rule is NOT recovered. It
-    // is anchored to the hosted scene's right edge at its authored width, which
-    // is where the frame puts it - a dark band from x 516 to about 528 against
-    // the front panel's right edge at 515.6 [FRAME Yrt f0483] - and its
-    // vertical extent is the hosted scene's, not the authored 320 of 512.
-    if (parts.shadow) {
-      parts.shadow.overrides.set('Position', { x: size.w, y: 0, z: 0 });
-      parts.shadow.overrides.set('Height', size.h);
-      updateNode(parts.shadow, ['Position', 'Height']);
-      parts.shadow.el.dataset['nxeApprox'] = 'shadow placement';
+    // The shadow keeps its AUTHORED geometry, (465,190) 32x320. Nothing is
+    // repositioned: y = 190 is exactly 512 - 320 - 2, the top of a
+    // bottom-aligned 320-tall slot, so the rig is already authored for a Moby
+    // slot. A hosted scene of another size would need the console's own SHADOW
+    // parameter (.rdata 0x920b0f48) and that rule is not recovered - which is
+    // recorded rather than guessed at.
+    if (parts.shadow && size.h !== SLOT_HEIGHT) {
+      parts.shadow.el.dataset['nxeApprox'] = `shadow authored for a ${SLOT_HEIGHT}-tall slot, hosting ${size.h}`;
     }
     return rig;
+  }
+
+
+  /**
+   * Fill a Moby slot's owner properties, which is what its visual draws.
+   *
+   * The slot scene declares neither: the console's slot class sets the picture
+   * and the caption. The picture comes from slotArt.ts (files in the archive,
+   * bound by the .rdata literal cluster); the caption is the slot's own
+   * `<description>` out of the channel XML, resolved through
+   * `homepage/strings.xus` - so "Gamer Card", "Game Library", "Video Library"
+   * are the build's own strings, not ours. The disc tray is the one exception
+   * and it is device state, exactly as in Blades.
+   */
+  private async dressSlot(mounted: NodeRecord, scene: string, slot: Slot, channel?: Channel): Promise<void> {
+    const art = SLOT_ART[scene];
+    const sceneNode = mounted.children[0] ?? mounted;
+
+    let caption = '';
+    const trayIx = TRAY_SCENES[scene];
+    if (trayIx !== undefined) {
+      const t = await this.strings.stringsByIndex(TRAY_CAPTION.pack, TRAY_CAPTION.table, this.locale);
+      caption = t[trayIx] ?? '';
+      if (!caption) this.errors.push(`${TRAY_CAPTION.table}[${trayIx}] (tray caption) is missing`);
+    } else if (slot.description) {
+      const r = resolveResString(slot.description, this.homeStrings);
+      caption = r.text ?? '';
+    }
+
+    const pack = scene.split('/')[0]!;
+    if (art) {
+      const file = this.assets.entry(pack, art.image) ? art.image : '';
+      if (!file) this.errors.push(`${scene}: ${art.image} is not in the ${pack} pack`);
+      if (sceneNode.visualOwner) {
+        sceneNode.visualOwner.imagePath = file;
+        sceneNode.visualOwner.text = caption;
+      }
+      sceneNode.overrides.set('ImagePath', file);
+      sceneNode.overrides.set('Text', caption);
+      updateNode(sceneNode, ['ImagePath', 'Text']);
+      const repaint = (n: NodeRecord): void => {
+        if (n !== sceneNode && (n.kind === 'imagePresenter' || n.kind === 'textPresenter')) updateNode(n, ['ImagePath', 'Text']);
+        n.children.forEach(repaint);
+      };
+      repaint(sceneNode);
+      // The big icon is the scene's OWN `imgIcon` presenter, on a secondary
+      // DataAssociation, so it is drawn as a plain image rather than left to
+      // repeat the background.
+      const icon = art.icon && this.assets.entry(pack, art.icon) ? art.icon : null;
+      const iconNode = this.findIn(sceneNode, 'imgIcon');
+      if (icon && iconNode) {
+        const img = document.createElement('img');
+        img.src = this.assets.url(pack, icon)!;
+        img.draggable = false;
+        img.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain';
+        img.dataset['nxeSlotIcon'] = icon;
+        iconNode.el.replaceChildren(img);
+      }
+      this.slotArt.push({ scene, image: file, icon, caption, inferred: art.inferred });
+    } else {
+      if (sceneNode.visualOwner) sceneNode.visualOwner.text = caption;
+      sceneNode.overrides.set('Text', caption);
+      updateNode(sceneNode, ['Text']);
+      this.slotArt.push({ scene, image: '', icon: null, caption, inferred: 'no art binding recovered for this scene' });
+    }
+    void channel;
   }
 
   /* ----------------------------------------------------------- legacy pages */
@@ -632,6 +741,7 @@ export class NxeShell {
       legend: this.legend,
       physics: PHYSICS_NOT_IMPLEMENTED,
       unresolvedEpix: this.unresolvedEpix,
+      slotArt: this.slotArt,
       errors: this.errors,
     };
   }
@@ -640,6 +750,18 @@ export class NxeShell {
 /** A Moby slot's authored size; every one of the 31 is 420x320 [SCENE]. */
 export const SLOT_WIDTH = 420;
 export const SLOT_HEIGHT = 320;
+
+/**
+ * Where the rig's origin goes relative to the strip anchor.
+ *
+ * The rig mirrors about rig y = 510 (the `Reflection` element is 512 tall at
+ * y = 1022 with Scale.y = -1, so its top edge - the mirror line - is at
+ * 1022 - 512), and the hosted scene's foot has to sit on that line. Putting
+ * the rig's origin one full surface (512) above the anchor does it, and the
+ * surface's own -2 is then exactly why the panel's foot lands at 568 against a
+ * FrontPosition of 570: measured 568.0 [FRAME Yrt f0483].
+ */
+export const SURFACE_FOOT = PANEL_SURFACE_SIZE;
 
 /**
  * Where an 880x480 legacy page lands. MEASURED: the "Storage Devices" page

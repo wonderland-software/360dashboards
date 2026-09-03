@@ -1,11 +1,17 @@
-// Sweep the fill-transform model (GRADIENT_TRANSFORM in xuiEnums.ts) against
-// the reference frames. Not part of npm run smoke: it is the experiment whose
-// result is recorded in xuiEnums.ts, kept so the table can be regenerated.
+// Five programs behind one file: three GATES that the smoke board runs and
+// two EXPLORATORY sweeps that regenerate the tables recorded in xuiEnums.ts.
+// A mode is mandatory - see MODES below for why.
 //
-//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs [stage2]
-//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs wing
-//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs stack
-//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs space
+//   node tests/smoke/sweep-gradient.mjs wing     GATE, on the board
+//   node tests/smoke/sweep-gradient.mjs stack    GATE, on the board
+//   node tests/smoke/sweep-gradient.mjs purple   GATE, on the board
+//   node tests/smoke/sweep-gradient.mjs space    experiment (colour space)
+//   node tests/smoke/sweep-gradient.mjs stage1   experiment (40 candidates)
+//   node tests/smoke/sweep-gradient.mjs stage2   experiment (refine the winner)
+//   node tests/smoke/sweep-gradient.mjs purplesweep   experiment (BlendMode)
+//
+// with SMOKE_URL=http://localhost:5231 (or whatever port vite is on) in the
+// environment; tests/run-all.mjs sets it.
 //
 // Each candidate renders the System blade (f0051) and the Marketplace blade
 // (f0034) through the console view at 1920x1080 and is scored on the tab stack
@@ -24,11 +30,20 @@
 // hypotheses ablation CLOSED for it, so nobody re-opens them by hand. It also
 // exits non-zero.
 //
+// `purple` is the third gate. It holds the LAYER STACK over the System page at
+// rest - the eleven things that paint the page purple, in paint order, with
+// their blend and opacity - plus the two per-channel numbers that close the
+// BlendMode hypotheses for it. Measured against the SAME-BUILD 6770 capture.
+//
 // `space` is the COLOUR-SPACE experiment, not a gate: it regenerates every
 // table in the GradientStopSpace block of xuiEnums.ts. It is the only part of
 // this file that measures against the SAME-BUILD 6770 capture rather than the
 // 6717 one, and it never reads a region mean - achromatic flat blocks binned
 // by luma for the chrome, per-channel means for the saturated page.
+//
+// `purplesweep` is the BlendMode experiment behind the tables in the BlendMode
+// block of xuiEnums.ts: every CSS mode for 2, 3, 4 and 5 scored on the page
+// purple, the page interior and the top band at once.
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -49,7 +64,23 @@ const CASES = [
   { blade: 1, ref: 'f0034', stack: { x: 1515, y: 140, w: 405, h: 740 }, body: { x: 1530, y: 300, w: 380, h: 500 } },
 ];
 
-const stage2 = process.argv.includes('stage2');
+// A MODE IS MANDATORY, and this is the reason. `npm run smoke` used to invoke
+// this file with no arguments, which ran the 40-candidate exploratory sweep -
+// a program that prints a ranking and exits 0 whatever it finds. The board
+// therefore reported PASS while `wing`, `stack` and `space` never ran at all.
+// Refusing to guess turns that class of mistake into a loud failure.
+const MODES = ['wing', 'stack', 'purple', 'space', 'stage1', 'stage2', 'purplesweep'];
+// `only=k=v,...` names one candidate of the exploratory sweep, so it IS a mode.
+const mode = process.argv.slice(2).find((a) => MODES.includes(a))
+  ?? (process.argv.some((a) => a.startsWith('only=')) ? 'stage1' : undefined);
+if (!mode) {
+  console.error(`sweep-gradient: name a mode - ${MODES.join(' | ')}`);
+  console.error('  gates (exit non-zero on failure): wing, stack, purple');
+  console.error('  experiments (always exit 0):       space, stage1, stage2, purplesweep');
+  process.exit(2);
+}
+
+const stage2 = mode === 'stage2';
 const only = process.argv.find((a) => a.startsWith('only='))?.slice(5);
 
 const candidates = [];
@@ -129,7 +160,7 @@ function wingLandmarks(im) {
   return { plateau, knee, min: v[mi], minY: ys[mi], end: v[v.length - 1] };
 }
 
-if (process.argv.includes('wing')) {
+if (mode === 'wing') {
   const shot = `${OUT}/f0051-wing.png`;
   const hideLines = () => {
     document.querySelectorAll('[data-xui-id="wing_left"] [data-xui-id="lines"]')
@@ -219,7 +250,7 @@ function stackProfile(im) {
   };
 }
 
-if (process.argv.includes('stack')) {
+if (mode === 'stack') {
   // Ablations that must do nothing (occluded), then blend remaps that must do
   // nothing, then the two that DO paint there - the whole list of what covers
   // 1080p x < 350 at the System rest frame.
@@ -412,7 +443,166 @@ function recomposite(base, off, ref, mode, src) {
   return { changed, m, b: fm(sumb), s: fm(sums), l: fm(suml), f: fm(sumf), errS: errS / m, errL: errL / m };
 }
 
-if (process.argv.includes('space')) {
+/* --------------------------------------------------------- the page purple */
+
+/**
+ * THE PAGE-PURPLE GATE (`purple`) and its experiment (`purplesweep`).
+ *
+ * The patch is the one xuiEnums.ts quotes: 1080p x 1450..1650, y 620..740 on
+ * the System blade at rest (dashmain frame 168), against the SAME-BUILD 6770
+ * capture `f0042`. Eleven things paint it. The gate holds three numbers:
+ *
+ *   1  the PAINT ORDER, read off the live DOM - id, blend and opacity, back to
+ *      front. It is the authored child order of dashmain's RootScene, so a
+ *      z-order regression fails here and nowhere else.
+ *   2  the composite, and the AMBIENT WASH under the blade colour. `bg` is
+ *      authored opaque black (a solid FillColor 0,0,0,255 - not a fallback of
+ *      ours), so `color_back`'s BlendMode 2 multiply resolves against a dark
+ *      backdrop and the blade colour comes out desaturated.
+ *   3  the same render with the wash forced to WHITE - the strongest backdrop
+ *      there is. It still misses, which is what closes the backdrop as the
+ *      explanation: see the BlendMode block in xuiEnums.ts.
+ *
+ * The ambient free-runs (990 frames, no named frames) and the capture's phase
+ * is unknown, so every number here is taken at ambient frame 0 - `?manual`
+ * parks it there - and the phase's own range is recorded in xuiEnums.ts.
+ */
+const PURPLE = { x: 1450, y: 620, w: 200, h: 120 };   // the page purple
+const PURPLE_PAGE = { x: 700, y: 300, w: 700, h: 500 }; // page interior
+const PURPLE_TOP = { x: 600, y: 30, w: 700, h: 60 };  // the black_cover/top band
+const PURPLE_FRAME = `${F70}/f0042.png`;
+// Everything from the blade colour forward: hide it and what is left is the
+// ambient wash the multiply resolves against.
+const ABOVE_WASH = 'color_back,color_front,white_shine_panel,white_cover,black_cover,content_panel_blink,Tab5';
+// The paint order over the patch, back to front, as `id:blend@opacity`.
+// `bg` and thing1/2/3 are BG_animation; color_back/color_front are
+// BG_color_2's blade_4_bgcolor; the rest are RootScene's own children.
+const PURPLE_STACK = [
+  'bg:normal@1', 'thing2:plus-lighter@0.5', 'thing1:difference@0.8', 'thing3:plus-lighter@1',
+  'color_back:multiply@1', 'color_front:normal@0.7',
+  // `bottom` is black_cover's lower vignette (alpha 0 -> 100/255 down its own
+  // box, so ~0 where it clips the patch) and `grey_trans_fade` is Opacity 0 at
+  // rest: both are in the order and neither paints. Holding them here is the
+  // point - a timeline that started showing either would fail this line.
+  'white_cover:screen@0.6', 'bottom:normal@1', 'Main_Panel:normal@1', 'grey_trans_fade:normal@0',
+];
+
+/** The painting elements over the patch, back to front, off the live DOM. */
+async function purpleStack(url) {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+  await page.goto(url, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  const rows = await page.evaluate((P) => {
+    const stage = document.querySelector('.xui-stage');
+    const sr = stage.getBoundingClientRect();
+    const out = [];
+    const walk = (el) => {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return;
+      const r = el.getBoundingClientRect();
+      const hit = r.left < sr.left + P.x + P.w && r.right > sr.left + P.x
+        && r.top < sr.top + P.y + P.h && r.bottom > sr.top + P.y;
+      // Only the leaf boxes that carry paint: an element with an <svg> child.
+      if (hit && el.dataset.xuiId && el.querySelector(':scope > svg')) {
+        out.push({ id: el.dataset.xuiId, cls: el.dataset.xuiClass, blend: cs.mixBlendMode, op: cs.opacity,
+          rect: [Math.round(r.left - sr.left), Math.round(r.top - sr.top), Math.round(r.width), Math.round(r.height)] });
+      }
+      for (const c of el.children) walk(c);
+    };
+    walk(stage);
+    return out;
+  }, PURPLE);
+  await page.close();
+  return rows;
+}
+
+if (mode === 'purple') {
+  const url = (q = '') => `${BASE}/?zoom=1.5&mute&manual&blade=5${q}`;
+  const whiteWash = () => {
+    for (const id of ['thing1', 'thing2', 'thing3']) {
+      document.querySelectorAll(`[data-xui-id="${id}"]`).forEach((e) => e.style.setProperty('display', 'none', 'important'));
+    }
+    document.querySelectorAll('[data-xui-id="bg"] path').forEach((e) => e.setAttribute('fill', 'rgb(255,255,255)'));
+  };
+  let rows = [];
+  try {
+    await render(url(), `${OUT}/purple-baseline.png`);
+    await render(url(`&hide=${ABOVE_WASH}`), `${OUT}/purple-wash.png`);
+    await render(url(), `${OUT}/purple-white-backdrop.png`, whiteWash);
+    rows = await purpleStack(url());
+  } finally {
+    await browser.close();
+  }
+  const ref = readPng(PURPLE_FRAME);
+  const base = readPng(`${OUT}/purple-baseline.png`);
+  const fails = [];
+  const sign = (v) => (v >= 0 ? '+' : '') + v.toFixed(1);
+
+  console.log('System blade at rest (dashmain frame 168), patch 1080p x 1450..1650 y 620..740');
+  console.log('  paint order over the patch, back to front:');
+  for (const r of rows) console.log(`    ${r.id.padEnd(20)} ${r.cls.padEnd(12)} ${r.blend.padEnd(13)} opacity ${r.op.padEnd(5)} box ${r.rect.join(',')}`);
+  const got = rows.map((r) => `${r.id}:${r.blend}@${r.op}`);
+  if (got.join(' ') !== PURPLE_STACK.join(' ')) {
+    fails.push(`paint order changed\n      was  ${PURPLE_STACK.join(' ')}\n      now  ${got.join(' ')}`);
+    console.log('  FAIL paint order changed');
+  } else {
+    console.log(`  ok   paint order: ${PURPLE_STACK.length} painting layers, unchanged`);
+  }
+
+  // The three colour numbers. Two luma is twice the run-to-run spread of a
+  // headless render, the same tolerance the stack gate uses.
+  const CHECKS = [
+    ['frame 6770 f0042', meanRgbOf(ref, PURPLE), [132.6, 91.7, 197.8]],
+    ['ours, shipped', meanRgbOf(base, PURPLE), [123.4, 96.1, 167.2]],
+    ['the ambient wash under the blade colour', meanRgbOf(readPng(`${OUT}/purple-wash.png`), PURPLE), [43.3, 43.3, 43.3]],
+    ['ours with the wash forced WHITE', meanRgbOf(readPng(`${OUT}/purple-white-backdrop.png`), PURPLE), [142.3, 105.7, 200.5]],
+  ];
+  for (const [name, c, want] of CHECKS) {
+    const ok = c.every((v, i) => Math.abs(v - want[i]) <= 2);
+    console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(40)} ${c.map((v) => v.toFixed(1).padStart(7)).join('')}   recorded ${want.map((v) => v.toFixed(1)).join('/')}`);
+    if (!ok) fails.push(`${name}: recorded ${want.map((v) => v.toFixed(1)).join('/')}, now ${c.map((v) => v.toFixed(1)).join('/')}`);
+  }
+  const e = meanRgbOf(base, PURPLE).map((v, i) => v - meanRgbOf(ref, PURPLE)[i]);
+  console.log(`  (residual R ${sign(e[0])} G ${sign(e[1])} B ${sign(e[2])}; a white backdrop overshoots R and G and still does not explain it - xuiEnums.ts, BlendMode)`);
+  if (fails.length) { for (const f of fails) console.log(`  FAIL ${f}`); console.log('SWEEP_FAIL'); process.exit(1); }
+  console.log('SWEEP_PASS');
+  process.exit(0);
+}
+
+/**
+ * THE BLENDMODE EXPERIMENT (`purplesweep`). Not a gate - the record behind the
+ * BlendMode tables in xuiEnums.ts. Every CSS mode for one of 2, 3, 4 and 5,
+ * scored on three regions at once: the page purple (which only 2 and 5 reach),
+ * the page interior (the control) and the top band (where BlendMode 2 was
+ * measured in the first place). A candidate has to win all three.
+ */
+if (mode === 'purplesweep') {
+  const CSS = ['multiply', 'normal', 'screen', 'plus-lighter', 'lighten', 'darken', 'difference',
+    'exclusion', 'overlay', 'hard-light', 'soft-light', 'color-dodge', 'color-burn', 'luminosity'];
+  const which = process.argv.find((a) => /^bm=[2345]$/.test(a))?.slice(3) ?? '5';
+  const ref = readPng(PURPLE_FRAME);
+  const [rp, rg, rt] = [meanRgbOf(ref, PURPLE), meanRgbOf(ref, PURPLE_PAGE), meanRgbOf(ref, PURPLE_TOP)];
+  const s = (a) => a.map((v) => (v >= 0 ? '+' : '') + v.toFixed(1).padStart(6)).join('');
+  console.log(`BlendMode ${which} against 6770 f0042 - purple ${rp.map((v) => v.toFixed(1)).join('/')}, page ${rg.map((v) => v.toFixed(1)).join('/')}, top band ${rt.map((v) => v.toFixed(1)).join('/')}`);
+  console.log('  CSS mode'.padEnd(18) + '  purple err R/G/B     mean   page err R/G/B      top-band err R/G/B');
+  try {
+    for (const m of CSS) {
+      const shot = `${OUT}/purple-bm${which}-${m}.png`;
+      if (!existsSync(shot)) await render(`${BASE}/?zoom=1.5&mute&manual&blade=5&blend=${which}:${m}`, shot);
+      const im = readPng(shot);
+      const ep = meanRgbOf(im, PURPLE).map((v, i) => v - rp[i]);
+      console.log('  ' + m.padEnd(16) + s(ep) + (ep.reduce((a, v) => a + Math.abs(v), 0) / 3).toFixed(1).padStart(7)
+        + '  ' + s(meanRgbOf(im, PURPLE_PAGE).map((v, i) => v - rg[i]))
+        + '  ' + s(meanRgbOf(im, PURPLE_TOP).map((v, i) => v - rt[i])));
+    }
+  } finally {
+    await browser.close();
+  }
+  process.exit(0);
+}
+
+if (mode === 'space') {
   const shot = (blade, tag) => `${OUT}/6770-blade${blade}-${tag.replace(/[^a-z0-9]+/gi, '_')}.png`;
   const url = (blade, hide, sp) => `${BASE}/?zoom=1.5&mute&manual&blade=${blade}&hide=lines${hide ? ',' + hide : ''}${sp && sp !== 'sRGB' ? `&gradxf=stopSpace=${sp}` : ''}`;
   const jobs = [];

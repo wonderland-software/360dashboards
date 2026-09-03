@@ -4,6 +4,7 @@ import * as E from '../../xuiEnums';
 import type { PropBag } from '../props';
 import type { RenderCtx } from '../DomRenderer';
 import { note, noteNum } from '../../telemetry';
+import { activeBuild } from '../../build';
 
 export function renderImage(
   p: PropBag, w: number, h: number, ctx: RenderCtx, ownerPath: string | null, ownPath: boolean,
@@ -12,7 +13,17 @@ export function renderImage(
   const mode = p.num('SizeMode', E.DEFAULT_SIZE_MODE);
   noteNum(ctx.report.sizeModesSeen, mode);
   if (!E.KNOWN_SIZE_MODES.includes(mode)) note(ctx.report.unknownClasses, `SizeMode=${mode}`);
-  if (!ownPath) noteNum(ctx.report.dataAssociationsSeen, p.num('DataAssociation', E.DATA_ASSOCIATION_PRIMARY));
+  if (!ownPath) {
+    const assoc = p.num('DataAssociation', E.DATA_ASSOCIATION_PRIMARY);
+    noteNum(ctx.report.dataAssociationsSeen, assoc);
+    // See BuildProfile.gateImageDataAssociation: a secondary channel is
+    // console data, so the presenter draws nothing instead of repeating the
+    // primary image. Recorded, not silent.
+    if (activeBuild().gateImageDataAssociation && assoc !== E.DATA_ASSOCIATION_PRIMARY) {
+      note(ctx.report.runtimeDrivenClasses, `XuiImagePresenter#DataAssociation=${assoc}`);
+      return null;
+    }
+  }
   if (!raw) return null;
 
   const res = ctx.assets.resolveImage(ctx.pack, raw);

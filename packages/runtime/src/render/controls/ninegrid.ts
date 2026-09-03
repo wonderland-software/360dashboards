@@ -20,6 +20,18 @@ import { note } from '../../telemetry';
 export function renderNineGrid(p: PropBag, w: number, h: number, ctx: RenderCtx): Element | null {
   const path = p.str('TextureFileName');
   if (!path) return null;
+  // ColorWriteFlags is a XuiElement property and it is load-bearing here: the
+  // `mobyslot*` visuals end with a nine-grid of `common://CornerMask.png` at
+  // ColorWriteFlags 8, i.e. it writes the ALPHA channel only and no colour -
+  // it rounds the panel's corners, it does not paint them. Drawing it as a
+  // picture covers the whole slot. There is no destination-alpha write in the
+  // DOM, so a colour-less nine-grid draws NOTHING and is recorded; the corners
+  // stay square, which is a visible approximation and is in PLACEHOLDERS.md.
+  const write = p.num('ColorWriteFlags', 15);
+  if ((write & 7) === 0) {
+    note(ctx.report.approximatedClasses, `XuiNineGrid#ColorWriteFlags=${write} (alpha-only mask, not drawn)`);
+    return null;
+  }
   const res = ctx.assets.resolveImage(ctx.pack, path);
   if (res.deviceFile) { note(ctx.report.deviceFiles, res.path); return null; }
   if (!res.url) { note(ctx.report.missingImages, res.path); return null; }

@@ -26,7 +26,7 @@
 import { idOf, propByName, type XuObject } from '@xur/index';
 import {
   loadScene, renderElement, indexVisuals, VisualScope, Skin, walk,
-  NO_DELTA, updateNode, isNativeLocale, xuiRegistry,
+  NO_DELTA, updateNode, isNativeLocale, xuiRegistry, pathOf,
   type AssetIndex, type RenderCtx, type NodeIndex, type NodeRecord,
   type Strings, type TimelineEngine,
 } from '@runtime/index';
@@ -77,6 +77,8 @@ export interface LegendReport {
   titleGroup: string | null;
   /** Buttons the page authors that carry no caption (disabled, or Live-only). */
   empty: string[];
+  /** Scopes parked on the END of their Bind/Show range, with the frame. */
+  settled: { scope: string; frame: number }[];
 }
 
 export interface HoistOpts {
@@ -91,6 +93,34 @@ export interface HoistOpts {
   locale: string;
   /** The hosted page whose parked controls are read, or null. */
   source: NodeRecord | null;
+  /** Filled with the groups that need settling once timelines are bound. */
+  pending: NodeRecord[];
+}
+
+/**
+ * Park each bound group on the END of its `Show` range.
+ *
+ * The legend's artwork is Show=false as authored: `Images` inside every button
+ * group and the whole of `LTitle`/`RTitle`/`SLTitle`/`SRTitle` only appear once
+ * the group's `Show` timeline (frames 1..20, with a 1.0 -> 1.2 -> 0.8 -> 1.0
+ * overshoot on the icon and the text fading in over 2..20) has run [SCENE]. So
+ * a bound legend at REST is that range's last frame, and the shell seeks it -
+ * the same rule the Blades shell uses for a blade's rest frame, and for the
+ * same reason: a state range is motion, and arriving is not motion.
+ */
+export function settleLegend(engine: TimelineEngine, groups: readonly NodeRecord[]): { scope: string; frame: number }[] {
+  const out: { scope: string; frame: number }[] = [];
+  for (const node of groups) {
+    const id = pathOf(node);
+    const scope = engine.get(id);
+    if (!scope) continue;
+    const end = scope.frameOf('ShowEnd') ?? scope.frameOf('EndShow');
+    if (end === null) continue;
+    scope.seek(end);
+    engine.applyNow(scope);
+    out.push({ scope: id, frame: end });
+  }
+  return out;
 }
 
 /**
@@ -119,7 +149,8 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
   const root = o.nodes.all[before];
   if (!root) return null;
 
-  const report: LegendReport = { scene: LEGEND_SCENE, buttons: [], title: '', titleGroup: null, empty: [] };
+  const report: LegendReport = { scene: LEGEND_SCENE, buttons: [], title: '', titleGroup: null, empty: [], settled: [] };
+  const settle: NodeRecord[] = [];
 
   // What the page parks, by id.
   const parked = new Map<string, XuObject>();
@@ -155,6 +186,7 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
     updateNode(node, ['Show', 'Position']);
     const label = find(node, 'Text');
     if (label) { label.overrides.set('Text', text); updateNode(label, ['Text']); }
+    settle.push(node);
     report.buttons.push({ group, from, text, x, enabled });
     x += LEGEND_ICON_W + (LEGEND_TEXT_X - LEGEND_ICON_W) + text.length * LEGEND_CHAR_W + LEGEND_GAP;
   }
@@ -172,8 +204,10 @@ export async function hoistLegend(o: HoistOpts): Promise<LegendReport | null> {
       updateNode(label, ['Text']);
       node.overrides.set('Show', true);
       updateNode(node, ['Show']);
+      settle.push(node);
     }
   }
+  o.pending.push(...settle);
   return report;
 }
 

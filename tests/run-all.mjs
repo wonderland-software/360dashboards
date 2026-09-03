@@ -9,17 +9,35 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 
+// A suite is a COMMAND LINE, not a path. sweep-gradient.mjs is four programs
+// behind one file and only its gates belong on a board.
+//
+// The bug that shape fixes (2026-09-03): the board listed `sweep-gradient.mjs`
+// bare, and bare is the 40-candidate EXPLORATORY sweep - forty renders that
+// print a ranking and exit 0 whatever they find. So `wing`, `stack` and
+// `space` never ran and the board reported PASS on a file whose whole point is
+// its gates. The file now REFUSES to run with no mode named, so the same
+// mistake fails loudly instead of passing quietly.
 const SUITES = [
-  'tests/smoke/smoke-boot.mjs',
-  'tests/smoke/smoke-gallery.mjs',
-  'tests/smoke/smoke-timeline.mjs',
-  'tests/smoke/smoke-input.mjs',
-  'tests/smoke/smoke-blades.mjs',
-  'tests/smoke/smoke-nav.mjs',
-  // The gradient sweep is a suite like any other and has to run on the board:
-  // it now carries the wing gate, which is the only thing standing between the
-  // gradient transform's order of operations and a silent regression.
-  'tests/smoke/sweep-gradient.mjs',
+  ['tests/smoke/smoke-boot.mjs'],
+  ['tests/smoke/smoke-gallery.mjs'],
+  ['tests/smoke/smoke-timeline.mjs'],
+  ['tests/smoke/smoke-input.mjs'],
+  ['tests/smoke/smoke-blades.mjs'],
+  ['tests/smoke/smoke-nav.mjs'],
+  // NXE 9199: the composed home page and one LegacyControl page, both measured
+  // against the reference stills. It also re-checks that the DEFAULT route
+  // still serves Blades 6770 on its own 1120x770 canvas.
+  ['tests/smoke/smoke-nxe.mjs'],
+  // The fill-transform gate: the only thing standing between the gradient
+  // transform's order of operations and a silent regression.
+  ['tests/smoke/sweep-gradient.mjs', 'wing'],
+  // The tab-stack gate: the flat lightness residual, and the three hypotheses
+  // ablation closed for it.
+  ['tests/smoke/sweep-gradient.mjs', 'stack'],
+  // The page-purple gate: the layer stack over the System page at rest, and
+  // the BlendMode hypotheses the purple closed.
+  ['tests/smoke/sweep-gradient.mjs', 'purple'],
 ];
 
 let server = null;
@@ -43,9 +61,11 @@ if (!base) {
 }
 
 const results = [];
-for (const suite of SUITES) {
+for (const cmd of SUITES) {
+  const suite = cmd.join(' ');
   console.log(`\n== ${suite}`);
-  const r = spawnSync(process.execPath, [suite], { stdio: 'inherit', env: { ...process.env, SMOKE_URL: base } });
+  const r = spawnSync(process.execPath, cmd, { stdio: 'inherit', env: { ...process.env, SMOKE_URL: base } });
+  // A suite that dies on a signal has no status; that is a failure, not a pass.
   results.push({ suite, ok: r.status === 0 });
 }
 stopServer();

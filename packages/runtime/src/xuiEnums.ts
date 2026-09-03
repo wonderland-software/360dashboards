@@ -552,10 +552,64 @@ export const GRADIENT_TRANSFORM: GradientTransformModel = {
  * (147.4 under `white_cover`, against a frame that reads 197.8 WITH it), and
  * no alpha over our `color_front` backdrop can reach the frame: solving
  * a*C + (1-a)*B = frame on the red channel wants a = 2.03. So the page purple
- * is not a compositing-space error and not a stop-space error; something
- * upstream - the multiply layer `color_back` resolving against our opaque
- * black `bg` where the console had the thing1/2/3 ambient wash under it - is
- * the open question. That is a z-order / backdrop question, not a colour one.
+ * is not a compositing-space error and not a stop-space error.
+ *
+ * THE Z-ORDER / BACKDROP HALF OF THAT IS NOW CLOSED (2026-09-03,
+ * `sweep-gradient.mjs purple` and `purplesweep`). Every layer over the patch
+ * was read off the live DOM at the System rest frame (dashmain 168), rendered
+ * alone and then cumulatively back to front:
+ *
+ *   layer (paint order)   blend      op    alone R/G/B      cumulative R/G/B
+ *   bg                    normal     1.0     0/  0/  0        0/  0/  0
+ *   thing2 (BlendMode 4)  +lighter   0.5     0/  0/  0        0/  0/  0
+ *   thing1 (BlendMode 3)  difference 0.8     0/  0/  0        0/  0/  0
+ *   thing3 (BlendMode 4)  +lighter   1.0    43/ 43/ 43       43/ 43/ 43
+ *   color_back (Blend 2)  multiply   1.0   101/ 52/178       17/  9/ 30  <-
+ *   color_front           normal     0.7    80/ 46/134       85/ 48/143
+ *   white_cover (Blend 5) screen     0.6    49/ 49/ 49      117/ 88/165
+ *   bottom (black_cover)  normal     1.0     0/  0/  0      117/ 88/165
+ *   Main_Panel            normal     1.0    14/ 14/ 14      123/ 96/167
+ *   grey_trans_fade       normal     0.0     0/  0/  0      123/ 96/167
+ *   frame 6770 f0042                                        133/ 92/198
+ *
+ * The divergence is one row: `color_back`'s multiply against a wash of 43
+ * takes the blade colour from 101/52/178 to 17/9/30, and every layer after it
+ * is a light wash adding grey back. That is why the page comes out at the
+ * right LUMA with the wrong SATURATION - down the whole page band our channel
+ * spread is 69..74 against the frame's 104..109, at every y from 340 to 740.
+ *
+ * FOUR THINGS THE DATA SETTLES, none of which is a bug in the render:
+ * 1. `bg` IS authored opaque black - a solid `FillColor` (255,0,0,0) with no
+ *    FillType, in `dashuisk/skin.xur`'s `BG_animation/groupBackground1`. Our
+ *    black is the file's, not a fallback.
+ * 2. The paint order over the patch IS dashmain's authored child order
+ *    (Background 0, BG_color_2 2, white_cover 6, black_cover 7,
+ *    content_panel_blink 13, grey_trans_fade 15). `Background` is shown and
+ *    `BG_color_1` hidden at rest, exactly as §1.3 says. `bottom` and
+ *    `grey_trans_fade` are in the stack and paint nothing (alpha ~0, Opacity
+ *    0). The gate holds all ten rows.
+ * 3. The ambient DOES free-run and DOES paint under the blade colour, but it
+ *    is dark over this patch for its whole cycle: stepping
+ *    `groupBackground1` (990 frames) the wash reads 35 (frame 540) to 109
+ *    (frame 315) grey, 43 at frame 0 where `?manual` parks it. Best phase
+ *    still leaves the purple at -3.4/+7.3/-20.0. So the capture's unknown
+ *    phase is worth about +-6 blue on this patch and cannot be the answer.
+ * 4. Nor can the backdrop at any brightness. Forcing the wash to a flat grey W
+ *    and re-measuring (`bg` fill overridden, thing1/2/3 hidden):
+ *
+ *      W    purple R/G/B          err R/G/B          mean |err|
+ *      43  123.4  95.9  167.2    -9.2  +4.2 -30.6      14.7   (the real wash)
+ *     128  130.8  99.9  180.8    -1.8  +8.1 -17.0       9.0
+ *     192  136.7 102.8  190.8    +4.1 +11.1  -7.0       7.4
+ *     224  139.4 104.3  195.9    +6.8 +12.6  -1.9       7.1
+ *     255  142.3 105.7  200.5    +9.6 +13.9  +2.7       8.8
+ *
+ *    A multiply by grey scales all three channels together, and the frame
+ *    wants green DOWN relative to red and blue: green sticks at +11..+14 for
+ *    every W that fixes blue. No backdrop reproduces the capture, so "the
+ *    multiply resolved against something brighter" is refused as the whole
+ *    explanation. What is left is the same global lightness residual the
+ *    chrome carries, showing up on a saturated surface as lost saturation.
  */
 export type GradientStopSpace = 'sRGB' | 'linearRGB-attr' | 'linear' | 'pwl';
 
@@ -746,19 +800,60 @@ export const KNOWN_SIZE_MODES: readonly number[] = [0, 1, 2, 4, 8, 16];
  * color-burn are its near neighbours and a frame with a stronger backdrop
  * could still separate them.
  *
- * 3, 4 and 5 remain UNVERIFIED. 3 and 4 occur only in the blade skins, which
- * the footage never loads (no dash user, so no DashStyle). 5 is only
- * white_cover, a 50-100/255 alpha wash: the same sweep moves its NCC by 0.005
- * on f0051 and the MAD ordering disagrees between the two blades, so nothing
- * separates it.
+ * 3, 4 and 5 remain UNVERIFIED, but not for the reason first written here: 3
+ * and 4 are NOT confined to the blade skins. `dashuisk/skin.xur`'s
+ * `BG_animation` - the animated background the footage shows on Tabs 2-5 -
+ * carries thing1 at BlendMode 3 and thing2/thing3 at BlendMode 4 over an
+ * opaque black `bg`, and 5 is white_cover, a 50-100/255 alpha wash over the
+ * whole canvas. All three paint the PAGE.
  *
- * AND THE TAB STACK CANNOT SEPARATE THEM EITHER, which is worth writing down
- * because it looks like the obvious place to try. Every element carrying a
- * BlendMode over 1080p x < 350 at the System rest frame - white_cover (5),
- * black_cover/top (2), BG_color_2's color_back (2), BG_animation's thing1 (3)
- * and thing2/thing3 (4) - sits BEHIND the opaque wing and tab figures. Remap
- * any of 2, 3, 4 or 5 to any CSS mode and all three sample columns move by
- * 0.0 luma; tests/smoke/sweep-gradient.mjs `stack` asserts that they do.
+ * THE TAB STACK CANNOT SEPARATE THEM, which is worth writing down because it
+ * looks like the obvious place to try. Every element carrying a BlendMode over
+ * 1080p x < 350 at the System rest frame - white_cover (5), black_cover/top
+ * (2), BG_color_2's color_back (2), thing1 (3) and thing2/thing3 (4) - sits
+ * BEHIND the opaque wing and tab figures. Remap any of 2, 3, 4 or 5 to any CSS
+ * mode and all three sample columns move by 0.0 luma;
+ * tests/smoke/sweep-gradient.mjs `stack` asserts that they do.
+ *
+ * THE PAGE PURPLE CAN, PARTLY (2026-09-03, `sweep-gradient.mjs purplesweep
+ * bm=N`). Nothing occludes those layers over the page, so the same remaps DO
+ * move it. Scored per channel on three regions of the same-build 6770 capture
+ * f0042 at once - the page purple (x 1450..1650 y 620..740), the page interior
+ * (x 700..1400 y 300..800) and the top band where 2 was first measured
+ * (x 600..1300 y 30..90). Mean per-channel |error|, lower is better:
+ *
+ *   BlendMode 2   purple   page   top      BlendMode 5   purple   page   top
+ *   multiply *     14.7    11.6    7.1     screen *       14.7    11.6    7.1
+ *   color-burn     17.4    12.3    5.9     color-dodge    14.3    11.3    6.9
+ *   hard-light      6.7    14.9   96.1     luminosity     13.7    10.7    6.4
+ *   difference      4.9    22.9   70.1     normal         15.6    12.6    7.8
+ *   normal          8.8    14.8   86.6     plus-lighter    7.9    10.6   11.7
+ *                                          multiply       42.1   34.0   19.0
+ *                                          darken         40.8   32.4   17.7
+ *   (* = shipped)                          soft-light     31.4   24.1   12.5
+ *
+ * What that settles and what it does not:
+ * 2 STAYS multiply. Three candidates beat it on the purple alone (difference
+ *   4.9, hard-light 6.7, normal 8.8) and every one of them destroys the top
+ *   band, which is the figure 2 was measured on - difference takes it to
+ *   -60/+8/-142, normal to +88/+125/+47. No CSS mode wins both, so the purple
+ *   CLOSES the "BlendMode 2 is mismapped" hypothesis rather than settling it.
+ * 5 loses half its candidates. Every DARKENING mode is refused by 20-27 luma
+ *   on the purple (multiply 42.1, darken 40.8, soft-light 31.4, overlay 27.5,
+ *   difference 31.1, exclusion 28.3) - the first real separation any frame has
+ *   given BlendMode 5. What survives is the lightening family, and inside it
+ *   the ranking is monotone in how much light the candidate adds, which is the
+ *   degeneracy below. `screen` stays.
+ * 3 and 4 are NOT settled. Every candidate for 3 leaves the purple patch at
+ *   exactly -9.2/+4.3/-30.6 (thing1's gradient is black there at every phase),
+ *   and for 4 the fourteen candidates split into just two values (-9.2 or
+ *   -13.1). On the page interior they do rank - but the ranking is monotone in
+ *   brightness (3: multiply -28.7 ... plus-lighter -17.7; 4: color-burn -38.8
+ *   ... plus-lighter -23.4, which is what we ship), and our render is BLUE-LOW
+ *   everywhere on this surface, so the sweep is measuring the global residual
+ *   and not the mode. Nothing is adopted on a monotone ranking. `plus-lighter`
+ *   for 4 is already the top of it; `difference` for 3 is mid-pack and stays
+ *   because no non-degenerate figure prefers anything else.
  *
  * THE ISOLATION TRAP, and why this took a second pass. CSS `mix-blend-mode`
  * blends only within the nearest stacking context, and `transform` creates
@@ -778,8 +873,10 @@ export const BlendMode = {
   ADD: 4,
   SCREEN: 5,
 } as const;
-/** 2 is settled; 3 and 4 occur only in the blade skins and 5 only on
- *  white_cover, neither of which any frame we have can separate. */
+/** 2 is settled (multiply, and the page purple closes the alternatives). 3, 4
+ *  and 5 all paint the page, so the purple CAN rank them: it refuses every
+ *  darkening candidate for 5, and leaves 3 and 4 on a ranking that is monotone
+ *  in brightness and therefore decides nothing. See the sweep above. */
 export const UNVERIFIED_BLEND_MODES: readonly number[] = [3, 4, 5];
 
 /**
