@@ -37,6 +37,9 @@ const ok = (cond, msg) => { if (!cond) fails.push(msg); };
 // The home screen: default green theme, My Xbox channel, front slot "Open Tray"
 // [FRAME nxe-9199-YrtwSj1f6aY/f0483]. Ten landmarks on three panels, in 1280x720
 // units; the same list dashboards/nxe/projection.ts fitted the projection to.
+// The Aura floor's carried residual (ours - frame, by frame-luma bin, rows
+// 584-712), measured at 9bbda7f after Judge F round 3; see auraFloor().
+const AURA_FLOOR_RESIDUAL = { 100: -16, 120: -32, 140: -52, 160: -64, 180: -81 };
 const HOME_FRAME = `${FRAMES}/nxe-9199-YrtwSj1f6aY/f0483.png`;
 // Panel indices are 0-BASED here and in dashboards/nxe/projection.ts. The
 // numbers are the refit's own measurements (32 landmarks over two frames); the
@@ -629,28 +632,39 @@ async function load(url) {
  *
  * This is the measurement Judge F round 2 made to find the white plates: with
  * them drawn, the dark end of the range read +157/+177 and the light end
- * -39/-72/-87. The gate holds both ends. It is deliberately a WHOLE-SCREEN
- * statistic - the floor under the front panel is a separate, still-open
- * residual and is printed beside it rather than folded into the pass.
+ * -39/-72/-87. Two statistics, gated separately, because Judge F round 3
+ * caught the first one hiding the second: over the WHOLE SCREEN the sky
+ * agrees within +5 and averages the floor's error away, so a whole-screen
+ * gate at 30 would pass a regression on the largest surface on screen. The
+ * FLOOR rows (580-700) are therefore binned on their own and held to the
+ * residual they measure today, bin by bin, so the still-open SolidBack
+ * darkness is carried as a number that cannot silently grow, not as a pass.
  */
 function auraFloor(ourPath, framePath) {
   const ours = readPng(ourPath), frame = readPng(framePath);
   const k = frame.w / 1280;
-  const bins = new Map();
-  for (let y = 8; y < 712; y += 16) {
-    for (let x = 8; x < 1272; x += 16) {
-      const f = mean(frame, { x: Math.round(x * k), y: Math.round(y * k), w: Math.round(16 * k), h: Math.round(16 * k) });
-      const o = mean(ours, { x, y, w: 16, h: 16 });
-      const b = Math.floor(f / 20) * 20;
-      const e = bins.get(b) ?? { n: 0, s: 0 };
-      e.n++; e.s += o - f;
-      bins.set(b, e);
+  const binned = (y0, y1) => {
+    const bins = new Map();
+    for (let y = y0; y < y1; y += 16) {
+      for (let x = 8; x < 1272; x += 16) {
+        const f = mean(frame, { x: Math.round(x * k), y: Math.round(y * k), w: Math.round(16 * k), h: Math.round(16 * k) });
+        const o = mean(ours, { x, y, w: 16, h: 16 });
+        const b = Math.floor(f / 20) * 20;
+        const e = bins.get(b) ?? { n: 0, s: 0 };
+        e.n++; e.s += o - f;
+        bins.set(b, e);
+      }
     }
-  }
-  const rows = [...bins.entries()].filter(([, e]) => e.n >= 20).sort((a, b) => a[0] - b[0]);
-  console.log(`  aura, ours - frame by frame-luma bin: ${rows.map(([b, e]) => `${b}:${(e.s / e.n).toFixed(1)}`).join(' ')}`);
-  for (const [b, e] of rows) {
-    ok(Math.abs(e.s / e.n) < 30, `the Aura background is ${(e.s / e.n).toFixed(1)} luma off in the ${b}..${b + 19} bin`);
+    return [...bins.entries()].filter(([, e]) => e.n >= 20).sort((a, b) => a[0] - b[0]).map(([b, e]) => [b, e.s / e.n, e.n]);
+  };
+  const whole = binned(8, 712), floor = binned(584, 712);
+  console.log(`  aura, ours - frame by frame-luma bin (whole screen): ${whole.map(([b, d]) => `${b}:${d.toFixed(1)}`).join(' ')}`);
+  console.log(`  aura, ours - frame by frame-luma bin (floor rows 584-712): ${floor.map(([b, d, n]) => `${b}:${d.toFixed(1)}(${n})`).join(' ')}`);
+  for (const [b, d] of whole) ok(Math.abs(d) < 30, `the Aura background is ${d.toFixed(1)} luma off in the ${b}..${b + 19} bin`);
+  for (const [b, d] of floor) {
+    const base = AURA_FLOOR_RESIDUAL[b];
+    if (base === undefined) ok(Math.abs(d) < 30, `the Aura floor is ${d.toFixed(1)} luma off in the ${b}..${b + 19} bin`);
+    else ok(d >= base - 8, `the Aura floor regressed: ${d.toFixed(1)} in the ${b}..${b + 19} bin, carried residual ${base}`);
   }
   // The floor under the front slot, printed with its number and NOT gated:
   // it is the residual the README carries.

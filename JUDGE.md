@@ -218,3 +218,21 @@ each is closed with what changed.
   within 2 px of [FRAME Kpa f0048] in position and 4.9 % in height; one Rome
   panel mounts from `RomeFrontPosition` and measures within 1.5 px of
   [FRAME Yrt f0396] on all four edges.
+- **2026-09-03, round 3 @ 9bbda7f: PASS.** N1-N5 re-measured closed. The
+  judge decoded the queue table at 0x9248b548 independently (every `lfs`
+  resolved to its `.rdata` float, the `stfs` block laid out as ten 12-byte
+  rows) and matched f0048 within 3 px on every row; the integrator lands on
+  the exact frame; the fold order is the footage's; the silhouette's load
+  site and the Rome panel's four edges verified. Findings: (1) MEDIUM the Aura
+  gate was whole-screen and the sky averaged the floor away - floor rows
+  580-700 alone read -30/-50/-72/-87 in the 120-199 bins; (2) LOW the fold
+  and unfold clicks are ~0.17 s early against the footage (console has a beat
+  between landing and folding); (3) LOW a grey wedge remains at x<96, y
+  400-560 (the `Color` figure's rotated edge); (4) LOW the mirrored caption ~10
+  px low, stays with the shader placeholder.
+  **Closed after the verdict (this commit):** (1) `auraFloor` bins the floor
+  rows on their own and holds each bin to the residual measured at 9bbda7f
+  (100:-16 120:-32 140:-52 160:-64 180:-81, -8 tolerance), so the SolidBack
+  darkness is carried as a number that cannot grow, beside the whole-screen
+  bins which stay gated at 30. (2)-(4) recorded in PLACEHOLDERS as open
+  residuals; not tuned.
