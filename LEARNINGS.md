@@ -861,3 +861,68 @@ output).
   capstone` works and Capstone's PPC mode reads the flat-mapped basefile
   (`skipdata` on, or it stops at the first VMX128 word); a scratch script
   named `dis.py` shadows the stdlib `dis` that Capstone imports.
+
+## Metro 17559 shell (from reference/glue-metro/METRO_GLUE_SPEC.md, 2026-09-03)
+
+- **Metro is a scene graph assembled from XML by C++ and driven by Lua, four
+  layers deep.** `hubui/hubhomepage.xur` (1280x720; the same 1088x612 @
+  (96,54) safe box as NXE) holds one `ControlPackHubScene` whose
+  `TemplatePath` is `controlpack://HubSceneHomepage.xur` (title, the
+  `XuiTwist` hub strip 937x84 @ (153,97), a `ControlPackHorizonControl`
+  with `_PanelsContainer` 1280x400 @ (0,181), `ScenePadding 100`); the
+  offline home is `epix/dashhome-offline.xml` (id `nuihub`, channels HOME ·
+  social · GAMES · VIDEO (conditional) · APPS · SETTINGS, in that order);
+  each channel names a layout template (`epix/TemplateOffline1HD.xur`:
+  three 174x130 tiles at x=0 plus a 640x398 hero at x=178 in 818x398;
+  `Template6HD.xur`: eight 197x197 in 4x2, 4 px gutters everywhere) whose
+  children `"1".."n"` are empty XuiScenes the slots are mounted into; and
+  every tile is `slots/LiveTileSlot.xur`, one object wearing the skin's
+  `LiveTile` visual (#008a00 glass, 48 px icon, caption). The only Epix
+  scene format left is `EsLiveTile` (table 0x92032510 → `slots.xzp` +
+  `LiveTileSlot.xur` at 0x92330798); `slot://DiscInTray` is a built-in
+  provider (0x92102e2c) loading `DvdTraySlotScene.xur`.
+- **The Lua needs no VM.** 204 Lua 5.1 chunks (big-endian, debug info kept
+  - a 150-line lister reads them). `hubapp` contains no channel names, no
+  coordinates, no timeline or cue calls and no string lookups: it asks the
+  native Epix root (`Xbox.PamDash.CreateDashRoot("Epix","")`) for
+  ChannelCount/GetChannel/LayoutTemplate/GetUI and only sets the title,
+  legend captions (B disabled on the boot app), aura attributes, focus and
+  the mini gamercard. Reimplement the ~15 rules by hand; the provider
+  contract is the data model. `dashlua` is pins/rules/EDS plumbing that
+  draws nothing; `soclua` is the social channel; `contapp` the libraries.
+- **Boot is hard-wired in code**: `dashuiskin#skin.xur` → `dashmain#
+  DashLoading.xur` → `DashBkgnd.xur` (a `XuiPerspectiveScene`, the runtime
+  root, sized by 0x9225e050 to 1280x720 on widescreen else 960x720) →
+  `LaunchPamApp("BuiltIn.Hub.xzp", "Provider=Epix;IsBootApp=true;")`
+  (strings 0x9200396c / 0x9200394c, built-in app table 0x9295b850) →
+  `DashAppHost.xur` hosts the app → `UI#hubhomepage.xur` = `section://%X,
+  hubui#hubhomepage.xur`. With no profile at all the boot app redirects to
+  `SigninOnBoot` first; "no profile" on hardware means the sign-in page,
+  then the home with an empty gamercard corner.
+- **Animation is all in the scenes**: `HostScene` `TransTo` 90 frames (hub
+  rises 90 px with an exponential ease-out, cue `control_kinect` at f1);
+  tile `Focus` = scale 1.08 over 16 frames (KEYD type 3, direction 1) with
+  `slot_roll_on`, `Press` dips to 1.0 with `snd_buttonselect`; the twist
+  buttons cross-fade Segoe Light 24 pt text into bold; templates carry only
+  `RangePeek` (dim to 0.4). Hub switching has NO named range: the horizon
+  control computes it (unrecovered). Home-path KEYD types: 0, 1, 2, 3 (d0/1/2),
+  4 (d1/2), 5, 0xa with exponents 1..8.
+- **Sound**: 44 `XuiSoundXACT`s, all on `common://dash.xsb` / `dash.xwb`,
+  cues only via timelines. `dash.xsb` = 51 simple cues over `dash.xwb` =
+  36 unnamed XMA entries (bank `UI_sounds`); the cue→entry table is in the
+  spec. Nine cues duplicate the loose `.xma`; `slot_roll_on`, `roll_on`,
+  `control_kinect`, `btn_Inactive*` exist only in the bank.
+- **Fonts**: registration is 0x922655d8: ConvectionUI (the `xam` per-language
+  file) is the default, "Segoe Light" → `file://media:/SegoeXbox-Light.xtt`
+  (absent from the archive) with fallback ConvectionUI; a face whose file
+  fails to load is not registered, and the layout path retries with the
+  default. Only 30 elements ask for Segoe (the unselected twist names, the
+  32 pt titles, OOBE).
+- **Settings survive as legacy**: all 57 `consoles/` pages are 880x480
+  `LegacyControl` hosts; the Console Settings table grew to 11 rows at
+  0x9201edb8 (Display sub-table 10 rows at 0x9294b950); `EcNavToSettings` →
+  `consolesettings.xzp#SystemScene.xur`; `LegacyControl` places a page at
+  x = 96 + (1088 − w)/2, y = 114.
+- **No Metro footage in reference/ yet**; candidates with ids and formats
+  are in the spec (§15). `tools/scb-decode.py` (6770 grammar) fails on all
+  seven 17559 `videos/*.scb`.
