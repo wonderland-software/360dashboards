@@ -1178,3 +1178,39 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   XGetAVPack (no ordinal table; the string it loads settles the semantics),
   the new LiveVision/AM-PM geometry (no footage), and LiveVision's
   two-rows-stacked chooser (reproduced, nothing to fit against).
+- **2026-09-03, Judge E round 4 @ 9bc9e3d: FAIL.** Reproduced (typecheck 0,
+  120/120, four Blades suites); the judge's walk of 447 screens found 21
+  findings where round 3 found 34, 0 painted tokens, and empty
+  missingStrings/unresolvedPresses. **All seven round-3 findings verified
+  closed** by its own measurement, not the implementer's: every pushed page's
+  root at (0,0) of the canvas on every blade that pushes one; the Clock page
+  18 leaves / 2,170,284 px painted before the push and identical after every
+  pop on all three collisions, popped both ways, 0 leaves with the root
+  hidden; five spinner rows with lstAMPM hidden and the year row 105 px
+  painting "2025"; SwitchImage display:none with the binary confirming
+  this+0x70 and the AV-pack-0 arm; two labelPleaseWaitText both hidden;
+  btn_Back exactly where a carrier exists; btnDone's string 447 read at
+  0x921bd1c8. Round 3's unverifiables are now verified (Time Zone rows
+  0/1/74/37/24 each writing their index and DST bit with labCurrentSettings
+  following, PControlContent's btnYes/btnNo writing 0/255, the Family Timer's
+  row and radios). NEW findings: (1) HIGH the blade's own header and legends
+  paint THROUGH every page pushed from the Games and Media blades - the
+  arcade home reads "GamesGaLibrrary" with two X/Y pairs and "Select" twice,
+  MSS reads "Select Sderdia" - because push() never hides the level it pushes
+  from and hosting at TabN laid the page's header on the blade's; round 3's
+  258 px offset was masking it; the System blade is clean only because its
+  chrome belongs to the pushed scene [6717 f0053 shows one header, one legend
+  set]; (2) HIGH System Info paints another screen's authored text ("Do you
+  want to reset your console?") where the console's init at 0x921c8568
+  formats dashCSettingsStrings[546] into edInfo and SetTexts it at
+  0x921c879c - undisclosed anywhere, and the token gate cannot see prose;
+  (3) MED LiveVision's three choosers do draw two rows stacked (480x74 list,
+  33-tall template, visibleCount 2), pre-existing and ungated; (4) LOW the
+  round-3 carrier survey was wrong in both halves - 87 scenes lack a carrier,
+  not ten (16 of them full-canvas pages), and the ids are five (legend_b 107,
+  btnB 54, navB 8, legend_B 4, backButton 3), not three; four network scenes
+  author an enabled XuiBackButton with no PressKey that the rule cannot find
+  (none reachable offline). Could not verify: the exhaustive origin sweep of
+  all 40 System-blade pages (12 measured, all (0,0)), which AV pack the
+  reference console runs, whether the doubled chrome also affects
+  oobeProfileCreation. Fixes pending with M3g.
