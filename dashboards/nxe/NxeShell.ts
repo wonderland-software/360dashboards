@@ -29,7 +29,7 @@ import {
   bindTimelines, refreshVisibility, updateNode, setOwnerText, walk,
   NO_DELTA, PropBag, NO_OVERRIDES, authoredRect, xuiRegistry,
   isNativeLocale, DEFAULT_LOCALE, ListView, FRAMES_PER_SECOND,
-  setOwnerSlot, setOwnerImageSlot,
+  setOwnerSlot, setOwnerImageSlot, note,
   type AssetIndex, type RenderCtx, type NodeIndex, type NodeRecord, type Strings,
   type TimelineEngine, type SceneReport, type LoadedScene,
 } from '@runtime/index';
@@ -66,6 +66,27 @@ export const COUNTER_STRINGS = { pack: 'dashcomm', table: 'dashStrings.xus', ind
 export const SLOT_ICON_ASSOCIATION = 20;
 
 export const GAMER_CARD_SCENE = 'slots/GamerCardSlotScene.xur';
+
+/**
+ * The signed-out avatar. The FILE is the build's; the three placement numbers
+ * are MEASURED off [FRAME Kpa f0048] and are named as such in
+ * `__dash.nxe.avatars`. See NxeShell.dressAvatar for the derivation.
+ */
+export const AVATAR_SILHOUETTE = {
+  pack: 'dashcomm',
+  file: 'AvatarSilhouette.png',
+  /** Loaded by the same code and NOT drawn; recorded, not guessed at. */
+  shadow: 'AvatarShadow.png',
+  naturalW: 436,
+  naturalH: 730,
+  /** The ink inside that canvas, so a measurement can be made on the FIGURE
+   *  and not on the transparent margin: x 155..285, y 256..600 [FILE]. */
+  ink: { x: 155, y: 256, w: 131, h: 345 },
+  /** MEASURED [FRAME Kpa f0048]: where the console's camera puts the figure,
+   *  in the slot's own 420x320 design space, relative to a `contain` fit of
+   *  the authored 776x776 box. The SIZE is not measured - see dressAvatar. */
+  cameraOffset: { x: -37.0, y: -193.6 },
+} as const;
 /** The signed-out gamer card's two captions, out of the build's own table. */
 export const GAMER_CARD_STRINGS = {
   pack: 'dashcomm', table: 'dashStrings.xus',
@@ -73,18 +94,73 @@ export const GAMER_CARD_STRINGS = {
 };
 
 /**
- * How much of full strength each queue row above the current one is drawn at.
+ * The channel queue's per-slot appearance, straight out of `dash.xex`.
  *
- * The rows recede: the current channel's name is white and the ones above it
- * fade out with distance. MEASURED off the default-theme home frame
- * [FRAME Yrt f0483] and confirmed in shape on [FRAME Kpa f0048], where the
- * stack reads My Xbox (full), Game Marketplace, Video & Music Marketplace,
- * Friends, Inside Xbox in falling brightness. Rows past the fifth continue the
- * ramp and are effectively invisible, which is what the frames show.
+ * M4b reported the ramp as MEASURED off the frames and the SIZE ramp as not
+ * modelled at all. Both are in the executable, as a ten-entry table of three
+ * floats built on the stack by the queue's layout routine at `.text`
+ * 0x9248b548 - the function whose caller (0x9248ca20) hands it the signed
+ * channel-scroll progress. Read off the `stfs` block at 0x9248b624-0x9248b680,
+ * each row `(dy, scale, opacity)`:
  *
- * MEASURED, not authored: the file gives all nine rows the same colour.
+ * ```
+ *   [0] (-140, 0.35, 0.00)      [5] ( -70, 0.55, 0.35)
+ *   [1] (-140, 0.35, 0.00)      [6] ( -40, 0.75, 0.50)
+ *   [2] (-140, 0.35, 0.00)      [7] (   0, 1.00, 1.00)   <- Current
+ *   [3] (-120, 0.40, 0.10)      [8] (  40, 0.75, 0.00)   <- Prev1
+ *   [4] ( -95, 0.45, 0.20)      [9] (  40, 0.75, 0.00)
+ * ```
+ *
+ * The routine walks the eight `Queue` elements in the order the binder stored
+ * them - `Next6, Next5, Next4, Next3, Next2, Next1, Current, Prev1` at object
+ * offsets +8..+36 [CODE 0x9248b8d0-0x9248b980] - and for element *i*:
+ *
+ *   a = SLOT[i + 1]                      the row's own slot
+ *   b = SLOT[i] when the progress is >= 0, SLOT[i + 2] when it is < 0
+ *   v = lerp(a, b, |progress|)
+ *   Position = (0, Current's authored y + v.dy, 0)   [0x92189cb8 -> 0x921a71d0]
+ *   Scale    = (v.scale, v.scale, 1)                 [0x92189da8 -> 0x92197eb8]
+ *   Opacity  = v.opacity                             [0x92189e98 -> 0x92194428]
+ *
+ * So the rows do not sit at increasing DEPTH and the scene applies no scale:
+ * the code sets an explicit per-slot `Scale`, and the two extra entries at each
+ * end are what the stack lerps INTO while the channel cursor is between two
+ * channels. That closes the M4b residual and the size ramp is now the file's
+ * rather than absent:
+ *
+ * | slot | scale | cap height at 33 px | measured [FRAME Kpa f0048] |
+ * |---|---|---|---|
+ * | Current | 1.00 | 33.0 | 33 |
+ * | Next1 | 0.75 | 24.8 | 25 |
+ * | Next2 | 0.55 | 18.2 | 18 |
+ * | Next3 | 0.45 | 14.9 | 15 |
+ * | Next4 | 0.40 | 13.2 | 14 |
+ *
+ * Five slots, five agreements within a pixel, off a table nothing was fitted
+ * to. The base y is `Queue\Current`'s own authored 154, which the console
+ * reads once at bind time [CODE 0x9248b988-0x9248b994] - not a constant here.
  */
-export const QUEUE_DIM: readonly number[] = [1, 0.75, 0.55, 0.35, 0.2, 0.12, 0.07];
+export interface QueueSlot { dy: number; scale: number; opacity: number }
+export const QUEUE_SLOTS: readonly QueueSlot[] = [
+  { dy: -140, scale: 0.35, opacity: 0 },
+  { dy: -140, scale: 0.35, opacity: 0 },
+  { dy: -140, scale: 0.35, opacity: 0 },
+  { dy: -120, scale: 0.40, opacity: 0.10 },
+  { dy: -95, scale: 0.45, opacity: 0.20 },
+  { dy: -70, scale: 0.55, opacity: 0.35 },
+  { dy: -40, scale: 0.75, opacity: 0.50 },
+  { dy: 0, scale: 1, opacity: 1 },
+  { dy: 40, scale: 0.75, opacity: 0 },
+  { dy: 40, scale: 0.75, opacity: 0 },
+];
+
+/**
+ * The order the code's binder stores the eight `Queue` children in, which is
+ * also the order the layout routine walks them and the order that indexes
+ * `QUEUE_SLOTS` (element *i* rests on `QUEUE_SLOTS[i + 1]`)
+ * [CODE 0x9248b8d0..0x9248b980].
+ */
+export const QUEUE_WALK = ['Next6', 'Next5', 'Next4', 'Next3', 'Next2', 'Next1', 'Current', 'Prev1'] as const;
 
 /** `%EvResStr(IDS_SELECTSLOT)%` - the A caption on the home page. Both "Select"
  *  strings in homepage/strings.xus ([18] and [22]) are the same word, so which
@@ -126,7 +202,7 @@ export interface NxeReport {
   currentChannel: string;
   /** What the queue actually shows, with the strength each row is drawn at
    *  (1 = the current channel, 0 = not drawn). */
-  queue: { row: string; text: string; dim: number }[];
+  queue: { row: string; text: string; dim: number; scale: number; y: number }[];
   /** The current channel's slots, in order, with the scene each mounted.
    *  `z` is the LIVE depth: it moves with the panel cursor every frame. */
   panels: { name: string; epixid: string; path: string; scene: string | null; z: number; mounted: boolean; visible: boolean; fold: number; screen: { x: number; y: number; s: number } }[];
@@ -148,8 +224,8 @@ export interface NxeReport {
   legend: LegendReport | null;
   /** The live state of the two servoed cursors and the fold cascade. */
   motion: {
-    channel: { cursor: number; velocity: number; target: number; moving: boolean };
-    panel: { cursor: number; velocity: number; target: number; moving: boolean };
+    channel: { cursor: number; velocity: number; target: number; moving: boolean; elapsedSeconds: number; lastMoveSeconds: number };
+    panel: { cursor: number; velocity: number; target: number; moving: boolean; elapsedSeconds: number; lastMoveSeconds: number };
     fold: { phase: string; progress: number[] };
     /** Frames stepped since the shell attached, so a duration in the report is
      *  countable against the engine's own clock and never a wall clock. */
@@ -170,6 +246,8 @@ export interface NxeReport {
   physics: readonly string[];
   /** Epix paths that named a scene the archive does not carry. */
   unresolvedEpix: string[];
+  /** Every XuiAvatar the shell reached, and what stands in for it. */
+  avatars: { scene: string; element: string; drawn: string; box: { x: number; y: number; w: number; h: number }; shadow: string }[];
   /** What each slot was dressed with, and why (dashboards/nxe/slotArt.ts). */
   slotArt: { scene: string; image: string; icon: string | null; caption: string; inferred: string }[];
   errors: string[];
@@ -177,6 +255,9 @@ export interface NxeReport {
 
 export interface LegacyReport {
   scene: string;
+  /** `legacy` = an 880x480 Blades-era DashScene in a LegacyControl frame;
+   *  `rome` = a 460x495 NXE-native Rome panel on the Rome strip. */
+  kind: 'legacy' | 'rome';
   /** The DashScene's own size and where it was placed. */
   size: { w: number; h: number };
   centreX: number;
@@ -258,7 +339,7 @@ export class NxeShell {
   private channels: { channel: Channel; passed: boolean; name: string }[] = [];
   private current = 0;
   private panels: MountedPanel[] = [];
-  private queue: { row: string; text: string; dim: number }[] = [];
+  private queue: { row: string; text: string; dim: number; scale: number; y: number }[] = [];
   private counter = '';
   private conditions: NxeReport['conditions'] = [];
   private readonly unresolvedEpix: string[] = [];
@@ -367,6 +448,7 @@ export class NxeShell {
     const vars = await loadScene(this.assets, VARIABLES_SCENE);
     this.variables = new Variables(vars.root);
     this.strip = this.variables.strip('Moby');
+    this.romeStrip = this.variables.strip('Rome');
     // Both cursors and the cascade come out of the same thirty constants.
     this.channelAxis = new Axis('channel', this.strip.channel);
     this.panelAxis = new Axis('panel', this.strip.panel);
@@ -542,51 +624,70 @@ export class NxeShell {
   }
 
   /**
-   * Rewrite the nine queue rows and the counter for the current cursors.
+   * Rewrite the eight queue rows and the counter for the current cursors.
    *
    * The queue is a NAME LIST, not a scroller: the code writes a channel name
-   * into each of the nine `Queue\*` children by child path [SPEC §1.3], so a
-   * channel change rewrites nine strings rather than moving anything. The
-   * fractional part of the channel cursor slides the whole `Queue` group by the
-   * scene's own 36 px pitch while the cursor is between two channels, which is
-   * the one [INFER] here and is named in `__dash.nxe.physics`.
+   * into each of the eight `Queue\*` children by child path [SPEC §1.3], so a
+   * channel change rewrites eight strings rather than moving anything. What
+   * DOES move is each row's own `Position`, `Scale` and `Opacity`, which the
+   * executable lerps between two rows of `QUEUE_SLOTS` by the signed channel
+   * progress - so the whole ramp, the size one included, is the file's and not
+   * a fit. See QUEUE_SLOTS for the table and the addresses it was read at.
    */
   private refreshQueue(): void {
     const node = this.queueNode;
     const passing = this.channels.filter((c) => c.passed);
     const n = passing.length;
+    // The signed channel progress the console's layout routine is handed:
+    // 0 at rest, +1 while the stack climbs one channel, -1 while it falls.
+    const frac = Math.max(-1, Math.min(1, this.channelAxis.cursor - this.current));
+    const t = Math.abs(frac);
+    // Queue\Current's own authored y, read once from the scene exactly as the
+    // console reads it at bind time [CODE 0x9248b988].
+    if (node && this.queueBaseY === null) {
+      const cur = this.findIn(node, 'Current');
+      const pos = cur ? propByName(cur.obj, 'Position')?.value : null;
+      this.queueBaseY = pos && typeof pos === 'object' && 'y' in pos ? Number((pos as { y: number }).y) : null;
+      if (this.queueBaseY === null) this.noteOnce(`${CHANNEL_SCENE}: Queue\\Current has no Position`);
+    }
+    const baseY = this.queueBaseY ?? 0;
     this.queue = [];
-    for (const row of QUEUE_ROWS) {
+    for (let i = 0; i < QUEUE_WALK.length; i++) {
+      const row = QUEUE_WALK[i]!;
       // Next1..Next6 are the FOLLOWING channels in file order, wrapping past
-      // the end of the list; Prev1 is empty at rest. See QUEUE_ROWS' header for
-      // the frames that settle both.
+      // the end of the list; Prev1 carries the one before. See QUEUE_ROWS'
+      // header for the frames that settle both.
       const up = row === 'Current' ? 0 : row === 'Prev1' ? -1 : Number(row.slice(4));
-      const text = up < 0 || !n ? '' : passing[(this.current + up) % n]?.name ?? '';
-      const dim = up < 0 ? 0 : QUEUE_DIM[Math.min(up, QUEUE_DIM.length - 1)] ?? 0;
-      this.queue.push({ row, text, dim });
+      const text = !n ? '' : passing[((this.current + up) % n + n) % n]?.name ?? '';
+      const a = QUEUE_SLOTS[i + 1]!;
+      const b = QUEUE_SLOTS[frac >= 0 ? i : i + 2]!;
+      const dy = a.dy + (b.dy - a.dy) * t;
+      const scale = a.scale + (b.scale - a.scale) * t;
+      const opacity = a.opacity + (b.opacity - a.opacity) * t;
+      this.queue.push({ row, text, dim: Number(opacity.toFixed(4)), scale: Number(scale.toFixed(4)), y: Number((baseY + dy).toFixed(2)) });
       if (!node) continue;
       const target = this.findIn(node, row);
       if (!target) { this.noteOnce(`${CHANNEL_SCENE}: no Queue\\${row}`); continue; }
       target.overrides.set('Text', text);
-      target.overrides.set('Opacity', dim);
-      updateNode(target, ['Text', 'Opacity']);
+      target.overrides.set('Opacity', opacity);
+      target.overrides.set('Position', { x: 0, y: baseY + dy, z: 0 });
+      target.overrides.set('Scale', { x: scale, y: scale, z: 1 });
+      updateNode(target, ['Text', 'Opacity', 'Position', 'Scale']);
     }
-    // The bullet beside the current name. `Marker1` and `Marker2` are two 16x64
-    // groups authored at the Current row's own y with Opacity 0 and
-    // Scale (-1,1,1) - the file parks them and the code lays them out, exactly
-    // as it does the legend buttons. ONE is raised here, because one bullet is
-    // what the frames show; the second is recorded as unresolved rather than
-    // drawn on top of the first.
+    // The bullet beside the current name, and the "N of M" description. Both
+    // are faded by the same rule the executable uses on a channel change:
+    // Marker1/Marker2 keep their own opacity times (1 - |progress|)
+    // [CODE 0x9248b868-0x9248b8ac] and `Description` is set to 1 - |progress|
+    // outright [CODE 0x9248b8b0-0x9248b8bc]. `Marker1` is the one raised,
+    // because one bullet is what the frames show; `Marker2` is left as
+    // authored rather than drawn on top of the first.
     if (node) {
       const marker = this.findIn(node, 'Marker1');
-      if (marker) { marker.overrides.set('Opacity', 1); updateNode(marker, ['Opacity']); }
-    }
-    if (node) {
+      if (marker) { marker.overrides.set('Opacity', 1 - t); updateNode(marker, ['Opacity']); }
       const queue = this.findIn(node, 'Queue');
-      // A channel cursor between two rows slides the group by the pitch. At
-      // rest the offset is exactly 0, so a still frame is unaffected.
-      const frac = this.channelAxis.cursor - this.current;
-      if (queue) queue.el.style.setProperty('translate', `0 ${(frac * QUEUE_PITCH).toFixed(2)}px`);
+      // M4b slid the whole group by a 36 px pitch. It does not: every row
+      // carries its own interpolated Position now, so the group stays put.
+      if (queue) queue.el.style.removeProperty('translate');
     }
 
     const total = this.slotsOf(passing[this.current]?.channel).length;
@@ -596,9 +697,13 @@ export class NxeShell {
     this.counter = html.replace(/<[^>]*>/g, '').trim();
     if (!this.counterNode) return;
     const r = renderHtmlText(html);
-    for (const t of r.unknownTags) this.noteOnce(`XuiHtmlElement: unimplemented tag <${t}>`);
+    for (const t2 of r.unknownTags) this.noteOnce(`XuiHtmlElement: unimplemented tag <${t2}>`);
     this.counterNode.el.replaceChildren(r.el);
+    this.counterNode.overrides.set('Opacity', 1 - t);
+    updateNode(this.counterNode, ['Opacity']);
   }
+
+  private queueBaseY: number | null = null;
 
   private noteOnce(msg: string): void {
     if (!this.errors.includes(msg)) this.errors.push(msg);
@@ -785,7 +890,7 @@ export class NxeShell {
       const n = Math.max(1, this.channels.filter((c) => c.passed).length);
       const landed = ((Math.round(this.channelAxis.cursor) % n) + n) % n;
       this.channelAxis.set(landed);
-      if (landed !== this.current) { this.current = landed; void this.track(this.onChannelLanded()); }
+      if (landed !== this.current) { this.current = landed; this.startFold(true); }
       this.refreshQueue();
     }
     this.channelWasMoving = channel;
@@ -798,7 +903,15 @@ export class NxeShell {
     // The unfold that follows a fold is a separate cascade, started only once
     // the fold has finished - so a channel change is fold, swap, unfold, never
     // two cascades at once.
-    if (!fold && this.pendingUnfold) { this.pendingUnfold = false; this.startUnfold(); }
+    // The rebuild waits for the cascade to REACH `folded`, not merely for
+    // `step` to return false: the fold is started from inside this same tick
+    // (the channel cursor lands, then the fold begins), and `step` has already
+    // run by then, so testing its return value would rebuild on the same frame
+    // the fold started and skip the fold entirely.
+    if (this.pendingUnfold && this.foldCascade.phase === 'folded') {
+      this.pendingUnfold = false;
+      void this.track(this.onChannelLanded());
+    }
   }
   private pendingUnfold = false;
   private channelWasMoving = false;
@@ -856,10 +969,13 @@ export class NxeShell {
     this.channelAxis.setBounds(-Infinity, Infinity);
     if (!this.channelAxis.nudge(dir)) return false;
     this.cue(dir > 0 ? 'SoundChannelUp' : 'SoundChannelDown');
-    // Leaving a channel folds its panels away; the UNFOLD waits for the rebuild
-    // (onChannelLanded sets pendingUnfold), because the new channel's scenes
-    // are fetched and the console's were already in memory.
-    this.startFold(false);
+    // The strip does NOT fold on the key press. The footage puts the three
+    // events in order: the channel cue on the press, the fold click 0.30 s
+    // later - which is one channel move, `stepDuration(50/40)` exactly - and
+    // the unfold click 0.10 s after that, which is 1/`FoldSpeed`
+    // [FRAME Yrt, channel change at t = 238.48 s: cue onsets +0.03 / +0.47 /
+    // +0.57 s, unfold burst at +0.83 s; Judge F round 2, N3]. So the move runs
+    // first and `stepMotion` starts the fold when the cursor LANDS.
     return true;
   }
 
@@ -877,14 +993,22 @@ export class NxeShell {
     this.cue('SoundPanelUnfold');
   }
 
-  /** Rebuild the strip for the channel the cursor landed on, then unfold it. */
+  /**
+   * The strip has finished folding away behind a channel change: rebuild it for
+   * the channel the cursor landed on and unfold it.
+   *
+   * The order is the footage's - move, fold, rebuild, unfold - and the rebuild
+   * is what the console's quiet 0.30 s between the fold click and the unfold
+   * motion covers. Our fetch is asynchronous where the console's scenes were
+   * already resident, so `track()` holds it for `idle()`.
+   */
   private async onChannelLanded(): Promise<void> {
     await this.buildStrip();
     this.foldCascade.reset(this.panels.length, true);
     this.refreshQueue();
     this.place();
     this.refreshLegend();
-    this.pendingUnfold = true;
+    this.startUnfold();
   }
 
   /**
@@ -1082,11 +1206,74 @@ export class NxeShell {
     }
     setOwnerSlot(sceneNode, 5, signin);
     setOwnerSlot(sceneNode, 6, this.state.profiles > 0 ? some.replace('%d', String(this.state.profiles)) : none);
+    this.dressAvatar(sceneNode);
   }
+
+  /**
+   * `XuiAvatar` with no profile: the console's own silhouette, which IS in the
+   * archive.
+   *
+   * M4b drew nothing here and PLACEHOLDERS said the model, the textures and the
+   * user's avatar data all come from `xam`/Live. Two of those three are still
+   * true, but the SIGNED-OUT case is not a model at all: `dash.xex` loads
+   * `AvatarSilhouette.png` (436x730) and `AvatarShadow.png` (128x128) out of
+   * `dashcommon.xzp` at start-up, one after the other, and caches them
+   * [CODE 0x921421ec / 0x92142230]. Both files are in this dump. And the
+   * signed-out home frame shows exactly that: a flat dark figure standing in
+   * front of the gamer-card slot, breaking its right edge - which is what the
+   * avatar's deliberate `z = -50` is for [FRAME Kpa f0048, "Sign In" over
+   * "3 Profiles Found"].
+   *
+   * So the ARTWORK is the build's and is not invented. What the archive does
+   * NOT carry is the avatar viewport's camera: the element is authored 776x776
+   * and the figure on screen is nothing like 776 design px tall. The three
+   * numbers below are therefore MEASURED off that one frame, the same standing
+   * as the projection's f/Cu/Cv, and they are asserted in
+   * `tests/smoke/smoke-nxe.mjs` rather than left to drift:
+   *
+   *   the figure spans screen y 268.0..550.7 and its head x 760..820 on
+   *   [FRAME Kpa f0048]; panel 1 is scaled 0.7395 there, so the figure is
+   *   382.7 design px tall against the file's 730 - a factor of 0.524 - and its
+   *   head centre sits 370.0 design px right of the slot's own left edge.
+   *
+   * `AvatarShadow.png` is loaded by the same code and is NOT drawn: nothing in
+   * the archive says where the console puts it and the frame's floor under the
+   * figure carries the panel's reflection, so a shadow cannot be separated from
+   * it. It is recorded instead.
+   */
+  private dressAvatar(sceneNode: NodeRecord): void {
+    const node = this.findIn(sceneNode, 'Avatar');
+    if (!node) return;
+    const res = this.assets.resolveImage(AVATAR_SILHOUETTE.pack, AVATAR_SILHOUETTE.file);
+    if (!res.url) { this.noteOnce(`${AVATAR_SILHOUETTE.file} is not in the ${AVATAR_SILHOUETTE.pack} pack`); return; }
+    // `contain` in the element's own authored box: the box is square and the
+    // file is 436x730, so the height fills and the width follows.
+    const box = node.authored;
+    const h = box.h;
+    const w = (h * AVATAR_SILHOUETTE.naturalW) / AVATAR_SILHOUETTE.naturalH;
+    const left = (box.w - w) / 2 + AVATAR_SILHOUETTE.cameraOffset.x;
+    const top = AVATAR_SILHOUETTE.cameraOffset.y;
+    const img = document.createElement('img');
+    img.src = res.url;
+    img.draggable = false;
+    img.dataset['xuiPlaceholder'] = 'avatar-silhouette';
+    img.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${w}px;height:${h}px;pointer-events:none`;
+    node.el.replaceChildren(img);
+    this.avatars.push({
+      scene: GAMER_CARD_SCENE, element: 'Avatar', drawn: AVATAR_SILHOUETTE.file,
+      box: { x: Number((left + box.x).toFixed(1)), y: Number((top + box.y).toFixed(1)), w: Number(w.toFixed(1)), h: Number(h.toFixed(1)) },
+      shadow: AVATAR_SILHOUETTE.shadow,
+    });
+    note(this.ctx.report.approximatedClasses, 'XuiAvatar (signed out: dashcomm/AvatarSilhouette.png, camera MEASURED)');
+  }
+
+  private readonly avatars: NxeReport['avatars'] = [];
 
   /* ----------------------------------------------------------- legacy pages */
 
   private legacyRoot: NodeRecord | null = null;
+  private romeStrip: StripConstants | null = null;
+  private romeOverlay: NodeRecord | null = null;
 
   /**
    * `LegacyControl`: an 880x480 Blades-era DashScene inside the 1280x720 shell.
@@ -1104,6 +1291,38 @@ export class NxeShell {
     // `?page=` is the same push the A button takes, minus the transition and
     // the cue: it is an ARRIVAL, and arriving is not motion (the Blades rule).
     await this.pushPage(sceneId, { silent: true });
+  }
+
+  /**
+   * `controlpack://RomeOverlayScene.xur` into an `OverlayLayer`.
+   *
+   * A Rome shell puts the strip in a `ColumnLayer` and the overlay in an
+   * `OverlayLayer` [CODE 0x92490ea4-0x92490ecc, the two literals at .rdata
+   * 0x920b1208 / 0x920b1220]. The overlay scene is ONE `XuiHtmlElement` called
+   * `Description` at (96,605) - the same "%d of %d" counter element the Moby
+   * channel scene carries, and the code fetches it by the same name from both
+   * [CODE 0x9248b9a4 / 0x92490f2c].
+   *
+   * It is mounted and left EMPTY. A Rome counter counts panels in a Rome
+   * CHANNEL, and this route pushes one panel with no channel behind it, so
+   * there is no count to write: writing "1 of 1" would be an invention. The
+   * element is mounted, marked, and reported.
+   */
+  private async mountRomeOverlay(): Promise<void> {
+    if (this.romeOverlay) return;
+    const host = this.rootScene();
+    const loaded = await this.load(ROME_OVERLAY_SCENE);
+    if (!loaded) { this.noteOnce(`${ROME_OVERLAY_SCENE}: not in the manifest`); return; }
+    const wrapper = document.createElement('div');
+    wrapper.className = 'nxe-rome-overlay';
+    wrapper.dataset['xuiLayer'] = ROME_LAYERS.overlay;
+    wrapper.style.cssText = 'position:absolute;left:-96px;top:-54px;width:1280px;height:720px;pointer-events:none';
+    host.el.appendChild(wrapper);
+    const node = this.renderInto(host, loaded, wrapper);
+    if (!node) { wrapper.remove(); return; }
+    this.romeOverlay = node;
+    const desc = this.findIn(node, 'Description');
+    if (desc) desc.el.dataset['xuiPlaceholder'] = 'rome-counter (no Rome channel on this route)';
   }
 
   /**
@@ -1130,13 +1349,22 @@ export class NxeShell {
     if (!under && !opts.silent) this.startFold(false);
     else if (!under) { this.foldCascade.reset(this.panels.length, true); this.place(); }
 
+    // 460x495 is the NXE-NATIVE Rome panel and it is not placed like a legacy
+    // page. It sits at `RomeFrontPosition` out of `controlp/Variables.xur`
+    // (96, 602), which is the panel's own BOTTOM-LEFT anchor exactly as
+    // `MobyFrontPosition` is - so its top is 602 - 495 = 107 [SPEC 3, and the
+    // frame: the panel reads left 96.0, right 554.7, top 104.7, bottom 598.0
+    // on FRAME Yrt f0396]. Nothing here is fitted: both numbers are the file's.
+    const rome = size.w === ROME_PANEL.w && size.h === ROME_PANEL.h;
+    if (rome) await this.mountRomeOverlay();
     const wrapper = document.createElement('div');
-    wrapper.className = 'nxe-legacy';
+    wrapper.className = rome ? 'nxe-rome' : 'nxe-legacy';
     // AnchorLayer is at (96,54); the page is placed in SCREEN units, so undo it.
     // Not rounded: the placement is measured to a tenth of a pixel and rounding
     // it away was worth 0.5 px of the offset Judge F measured.
-    const left = (LEGACY_CENTRE_X - size.w / 2) - 96;
-    const top = LEGACY_TOP - 54;
+    const front = this.romeStrip?.frontPosition ?? { x: 96, y: 602, z: 0 };
+    const left = (rome ? front.x : LEGACY_CENTRE_X - size.w / 2) - 96;
+    const top = (rome ? front.y - size.h : LEGACY_TOP) - 54;
     wrapper.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${size.w}px;height:${size.h}px`;
     anchor.el.appendChild(wrapper);
 
@@ -1157,9 +1385,10 @@ export class NxeShell {
     const report: LegacyReport = {
       scene: sceneId,
       size: { w: size.w, h: size.h },
-      centreX: LEGACY_CENTRE_X,
+      centreX: rome ? front.x + size.w / 2 : LEGACY_CENTRE_X,
       left: left + 96,
       top: top + 54,
+      kind: rome ? 'rome' : 'legacy',
       parked,
       rows: filled.rows,
       focusId: filled.focusId,
@@ -1470,6 +1699,7 @@ export class NxeShell {
       physics: PHYSICS_NOT_IMPLEMENTED,
       unresolvedEpix: this.unresolvedEpix,
       slotArt: this.slotArt,
+      avatars: this.avatars,
       errors: this.errors,
     };
   }
@@ -1512,11 +1742,31 @@ export const SURFACE_FOOT = PANEL_SURFACE_SIZE;
  * 2 px border, and the border is not symmetric - the nine-grid is authored 12
  * px above the page and 8 px below it.
  */
-export const LEGACY_CENTRE_X = 638.8;
-export const LEGACY_TOP = 114.7;
+export const LEGACY_CENTRE_X = 638.8;   // FRAME-SOLVED, not authored: see above.
+export const LEGACY_TOP = 114.7;        // FRAME-SOLVED, not authored: see above.
 
-/** The channel queue's row pitch, out of `controlp/MobyChannelScene.xur`. */
+/**
+ * The channel queue's AUTHORED row pitch in `controlp/MobyChannelScene.xur`
+ * (rows at y 190, 154, 118 ... -62). The console does NOT use it: the layout
+ * routine overwrites every row's Position from `QUEUE_SLOTS`, whose gaps are
+ * 40 / 30 / 25 / 25 / 20 / 0 / 0 going up the stack. Kept because the number
+ * is the file's and the difference between the two is the whole finding.
+ */
 export const QUEUE_PITCH = 36;
+
+/**
+ * The NXE-native page: a 460x495 `RomeRootScene` panel.
+ *
+ * 40 of the 311 scenes are one [SPEC 3, census]. It is not a `LegacyControl`
+ * and is not centred: it sits on the ROME strip, whose front anchor is
+ * `RomeFrontPosition` in `controlp/Variables.xur`, and it titles itself
+ * (`labTitle` is inside the panel) while its `legend_a`/`legend_b` are parked
+ * and hoisted the same way a legacy page's are.
+ */
+export const ROME_PANEL = { w: 460, h: 495 } as const;
+export const ROME_OVERLAY_SCENE = 'controlp/RomeOverlayScene.xur';
+/** `.rdata` 0x920b1208 / 0x920b1220, fetched at 0x92490ea4-0x92490ecc [CODE]. */
+export const ROME_LAYERS = { column: 'ColumnLayer', overlay: 'OverlayLayer' } as const;
 
 /**
  * What is INFERRED about the motion, named on every load rather than left to be
@@ -1528,11 +1778,16 @@ export const PHYSICS_NOT_IMPLEMENTED: readonly string[] = [
   'the input model is a servo to an integer target, not free acceleration: read literally, a one-frame tap would move 0.007 of a panel. INFERRED from the console moving exactly one panel on a tap.',
   'the fold GEOMETRY is INFERRED: progress scales a panel toward the front anchor and fades it. The archive gives the fold RATES and the cascade gate, never what a fold looks like.',
   'MobyUnfoldEaseRange is UNSET in the file, so UnfoldMinSpeed (0.1) can never bind; it is applied anyway rather than dropped.',
-  "the channel queue slides by the scene's own 36 px pitch while the cursor is between two channels - INFERRED; the file gives the pitch and the nine row names, not the interpolation.",
   'snd_transitioninto / snd_transitionfrom are NOT in the eight-name table at 0x927f7194; firing them with a page push and pop is INFERRED from their names and tagged `inferred` in __dash.nxe.cues.',
   'EcNavTo* -> scene is materialised in code, not in a pointer array: only EcNavToSettings is bound, and that INFERRED from the literal cluster and the footage. Every other command is refused and listed in __dash.nxe.unboundCommands.',
   'the Aura background is a scene used as an ImagePath and there is no offscreen render target, so it is a live DOM subtree; themeripple.uxfx animates nothing because both of its ImagePresenters are theme data this archive does not carry.',
-  'avatars, the Rome shells (RomeRootScene / RomeOverlayScene and the 460x495 panels) and everything Xbox LIVE serves are not implemented: PLACEHOLDERS.md.',
+  "the signed-out avatar's ARTWORK is the build's own dashcomm/AvatarSilhouette.png [CODE 0x921421ec] and its SIZE is the XuiAvatar's authored 776x776 box, but the avatar viewport's CAMERA is not in the archive: the two centring offsets are MEASURED off [FRAME Kpa f0048] and are in __dash.nxe.avatars. AvatarShadow.png is loaded by the same code and is NOT drawn.",
+  'a signed-IN XuiAvatar draws nothing: the model, its textures and its animations are xam/Live.',
+  "the ...Ex transition pair covering a page-over-page swap is [INFER]: the footage's ~1.0 s of change rules the plain pair's 0.583 s out, but the four-part reading M4b printed was one windowing of that interval and LegacyToEx's 0.250 s hold disagrees with the cut's 0.43 s quiet.",
+  'the queue has a SECOND code path that is decoded and NOT fired: 0x9248b7a8 rotates each row about Y by clamp(p*1.3pi - i*0.1pi, 0, pi/2) about a pivot 128 units away and fades it - the queue\'s own fold. Nothing in the archive says when it runs.',
+  'ONE Rome panel mounts from RomeFrontPosition and its own size; a Rome CHANNEL (the ColumnLayer strip and the counter that goes with it) needs a Rome channel, and the offline archive has none.',
+  "the Aura floor under the front panel is 70-95 luma dark and it is SolidBack's own authored stops (rgb 90,90,90 -> 60,70,80 -> alpha 0), not a missing layer: the ablation is in the runtime README.",
+  'everything Xbox LIVE serves is absent: PLACEHOLDERS.md.',
 ];
 
 void setOwnerText;

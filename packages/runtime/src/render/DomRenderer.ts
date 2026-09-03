@@ -5,7 +5,7 @@
 // transforms compose the way XUI's scene graph composes them. Vector figures
 // become inline SVG, images <img>, text a flex box. Nothing is drawn by hand:
 // every number below is read out of the parsed scene.
-import { idOf, type XuObject } from '@xur/index';
+import { idOf, propByName, type XuObject } from '@xur/index';
 import * as E from '../xuiEnums';
 import type { AssetIndex } from '../assets/AssetIndex';
 import type { VisualScope } from '../scene/Skin';
@@ -107,6 +107,42 @@ interface Opts {
   hostControlId?: string | null;
   /** Id of the nearest ancestor with opacity < 1, if any. */
   fadedAncestor?: string | null;
+  /** This XuiImage is the DRAW SURFACE of the XuiShader that precedes it, not
+   *  a picture. See `isShaderSurface`. */
+  shaderSurface?: string | null;
+}
+
+/**
+ * A `XuiImage` that is a `XuiShader`'s draw surface rather than a picture.
+ *
+ * `controlp/AuraScene.xur` builds its ripple rings out of PAIRS: `XuiShaderN`
+ * immediately followed by `XuiImageN` inside `Front/Rings_Constant` (30) and
+ * `Front/Rings_Pulse` (3), same numeric suffix, in that order. The image is a
+ * plain `white.png` at `SizeMode 4`, 820x820 or 1000x1000, with no Scale, no
+ * Opacity and no timeline of its own; all thirty of the group's timelines
+ * animate the SHADER (`EffectParams1.x` sweeps the ring radius 0 -> 325,
+ * `EffectParams4.x` its intensity 0 -> 0.1 -> 0). And `xenonripple.uxfx`, the
+ * shader they all run, carries NO texture sampler in its constant table at all
+ * (`ControlSize, EffectParams1..4`) - it is entirely procedural. So the white
+ * quad is the surface the ring is drawn ONTO and never a white plate on screen:
+ * drawing it as a picture puts thirty opaque 820x820 white squares on the floor,
+ * which is exactly the +157/+177 luma the judge measured under the front panel.
+ *
+ * The rule is narrow on purpose and it is swept, not assumed: over the whole
+ * corpus it fires on 33 elements, every one of them a `white.png` in
+ * `AuraScene.xur`, and on NOTHING in build 6770, which has no `XuiShader` at
+ * all. The three shaders it does not fire on are the ones whose neighbours are
+ * not a same-numbered image: `Theme/XuiShader1` (between two ImagePresenters)
+ * and `xboxAnimation/XuiShader1` (which names its own `TextureFileName`).
+ */
+export function isShaderSurface(parent: XuObject, ix: number): string | null {
+  const me = parent.children[ix];
+  const prev = ix > 0 ? parent.children[ix - 1] : undefined;
+  if (!me || !prev || me.className !== 'XuiImage' || prev.className !== 'XuiShader') return null;
+  const a = /(\d+)$/.exec(idOf(prev) ?? '');
+  const b = /(\d+)$/.exec(idOf(me) ?? '');
+  if (!a || !b || a[1] !== b[1]) return null;
+  return propByName(prev, 'ShaderFile')?.value as string ?? 'unknown.uxfx';
 }
 
 /**
@@ -235,9 +271,14 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
 
   el.style.cssText = containerCss(p, rect, blend);
 
-  // The element's own paint.
+  // The element's own paint. A shader's draw surface has none: see
+  // isShaderSurface for the sweep and for what drawing it does to the floor.
   const owner = opts.owner;
-  const content = contentFor(kind, p, rect, ctx, owner);
+  if (opts.shaderSurface) {
+    el.dataset['xuiPlaceholder'] = `shader-surface:${opts.shaderSurface}`;
+    note(ctx.report.approximatedClasses, `XuiImage as a XuiShader draw surface (${opts.shaderSurface}, not drawn)`);
+  }
+  const content = opts.shaderSurface ? null : contentFor(kind, p, rect, ctx, owner);
   if (content) el.appendChild(content);
 
   const record = ctx.nodes?.node({
@@ -321,10 +362,12 @@ function appendChildren(
   if (o.children.length === 0) return;
   const sampled: Sampled = o.timelines.length ? sampleTimelines(o, frame) : new Map();
   const delta = childDelta(authored, rect);
-  for (const c of o.children) {
+  for (let i = 0; i < o.children.length; i++) {
+    const c = o.children[i]!;
     const child = renderElement(c, ctx, {
       overrides: sampled.get(idOf(c)) ?? NO_OVERRIDES,
       delta, parent: rect, owner, parentNode, hostControlId, fadedAncestor,
+      shaderSurface: isShaderSurface(o, i),
     });
     if (child) el.appendChild(child);
   }

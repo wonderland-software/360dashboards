@@ -849,15 +849,20 @@ The shell writes the chosen curve name into the scene's own `TransTo` /
 9199 skin: `LegacyFrom` 15 frames, `LegacyTo` hold 5 then 5..20, `LegacyFromEx`
 30, `LegacyToEx` hold 45 then 45..60.
 
-§2.4 leaves the choice between the plain and `…Ex` forms as an [INFER]. **The
-footage settles it.** A legacy page replacing another legacy page - System
-Settings to Console Settings, on a 29.97 fps cut of the primary capture -
-measures a 0.501 s burst of change, a quiet 0.43 s, then a 0.234 s burst
-[FRAME Kpa t = 190.06-191.22 s, between f0375 and f0381]. `LegacyFromEx` is
-0.500 s, its hold to the incoming fade is 0.250 s and that fade is 0.250 s. The
-plain pair (0.250 / 0.083 / 0.250) cannot produce a half-second outgoing fade.
-So the `…Ex` pair is what covers a page-over-page swap, and the plain pair is
-what the strip's fold covers.
+§2.4 leaves the choice between the plain and `…Ex` forms as an [INFER], **and it
+stays an inference. M4b said the footage settled it and that was an
+over-claim** [Judge F round 2, N4]. What the footage supports: a legacy page
+replacing another legacy page - System Settings to Console Settings, on a
+29.97 fps cut of the primary capture - carries about 1.0 s of continuous change
+[FRAME Kpa t = 190.06-191.22 s, between f0375 and f0381], which the plain pair's
+0.583 s total cannot fill and the `…Ex` pair's 1.000 s can. What it does NOT
+support is the four-part reading M4b printed: the "0.501 s outgoing burst, 0.43 s
+quiet, 0.234 s incoming" was one windowing of an interval that divides just as
+readily into four 0.25 s segments, and `LegacyToEx` predicts a 0.250 s hold
+where that cut shows 0.43 s of quiet. So the DURATION rules the plain pair out
+and the assignment of the `…Ex` pair to a page-over-page swap remains [INFER],
+which is what `__dash.nxe.physics` says. A cleaner cut - a page swap with no
+list redraw inside it - would settle it; there is none in the four captures.
 
 ### The Aura background
 
@@ -870,29 +875,293 @@ because `BackgroundImage` and `BannerImage` are unset in all thirteen scenes
 that carry one. `themeripple.uxfx` is mounted and animates nothing: both of its
 `XuiImagePresenter`s are theme data the archive does not have.
 
-**Measured, and a residual that is stated rather than tuned.** Under the front
-panel (design x 110..500), the frame's floor reads 182 / 192 / 189 / 174 / 154 /
-136 / 120 / 106 at rows 572..710 [FRAME Yrt f0483]; ours reads 101 / 108 / 96 /
-99 / 116 / 112 / 119 / 102. Thirty-five (alpha, fade) pairs for the reflection
-were swept over the whole floor and all land between MAD 90.1 and 93.3, so the
-reflection is not the term that is wrong - with it switched off entirely the
-same rows read 153 / 142 / 96 / 81, so the Aura's own floor is already 30-90
-luma dark before anything is mirrored onto it. Tuning the mirror to compensate
-for the background is how a plausible wrong answer survives a phase, so the
-constants stay where the file's own comment put them and the number is here.
+#### A `XuiShader`'s draw surface is not a picture
 
-### What M4b still does not do
+**M4b painted thirty opaque white plates onto the floor and it is now fixed from
+the data** [Judge F round 2, N1]. `AuraScene`'s two ring groups are built out of
+PAIRS: `Front/Rings_Constant` is `XuiShader1, XuiImage1, XuiShader2, XuiImage2 …`
+for thirty, `Front/Rings_Pulse` the same for three, shader always immediately
+before the same-numbered image [SCENE]. Every one of those images is
+`white.png` at `SizeMode 4`, 820x820 or 1000x1000, with no Scale, no Opacity and
+no timeline of its own, and all thirty of the group's timelines animate the
+SHADER instead (`EffectParams1.x` sweeps a ring radius 0 -> 325,
+`EffectParams4.x` its intensity 0 -> 0.1 -> 0). `xenonripple.uxfx`, the shader
+they all run, has **no texture sampler in its constant table at all** - its
+uniforms are `ControlSize` and `EffectParams1..4` and it is entirely
+procedural. So the white quad is the surface the ring is drawn ONTO, never a
+white plate on screen.
+
+The judge's proposed rule - "a `XuiImage` whose only consumer is a `XuiShader`'s
+`TextureSurfaceElement`/`Texture` input" - cannot fire, and that was worth
+checking: `XuiShader.TextureSurfaceElement` and `XuiImage.TextureSurfaceElement`
+are set on **zero** elements in this scene, and no property anywhere in it names
+another element's id. The pairing is the only structural link there is, so the
+rule keys off it: `isShaderSurface` in `DomRenderer.ts`. **Swept, not assumed**:
+over all 311 scenes of 9199 it fires on 33 elements, every one a `white.png` in
+`AuraScene.xur`, and over all 263 scenes of 6770 on none - 6770 has no
+`XuiShader` at all. The three shaders it does not fire on are the ones whose
+neighbour is not a same-numbered image: `Theme/XuiShader1` (between two
+`XuiImagePresenter`s) and `xboxAnimation/XuiShader1` (which names its own
+`TextureFileName="xboxLive.png"`, the one texture reference in the scene).
+
+**Measured, over achromatic 16x16 blocks binned by the FRAME's own luma**
+[FRAME Yrt f0483], signed `ours - frame`, before and after:
+
+| frame-luma bin | 40 | 60 | 80 | 100 | 120 | 140 | 160 | 180 | 200 | 220 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| M4b (plates drawn) | +157 | +177 | — | — | — | −39 | −72 | −87 | — | — |
+| now | +16.3 | +17.3 | +2.0 | −3.3 | −7.0 | −10.8 | −11.4 | −14.8 | −8.5 | −3.5 |
+
+`tests/smoke/smoke-nxe.mjs` gates every bin at 30 luma. The dark end is still
++16/+17 and the bright end −11/−15: the same few-percent global lightness the
+Blades chrome carries, seen on a different surface.
+
+**The floor under the front panel is the one residual that is NOT explained, and
+it is not the plates.** At rows 572..710, design x 110..500, the frame reads
+184 / 192 / 188 / 173 / 154 / 135 / 120 / 106 and ours reads
+115 / 116 / 95 / 94 / 106 / 101 / 104 / 102. Ablated layer by layer inside
+`Sphere/Color`, which is the only subtree that paints there:
+
+| ablation | 572 | 590 | 610 | 630 | 650 | 670 | 690 | 710 |
+|---|---|---|---|---|---|---|---|---|
+| frame | 184 | 192 | 188 | 173 | 154 | 135 | 120 | 106 |
+| ours | 115 | 116 | 95 | 94 | 106 | 101 | 104 | 102 |
+| hide `Sphere` (the whole floor group) | 137 | 143 | 151 | 159 | 163 | 163 | 165 | 163 |
+| hide `SolidBack` only | 155 | 158 | 156 | 159 | 163 | 163 | 165 | 163 |
+| `SolidBack` alone | 67 | 78 | 85 | 94 | 106 | 101 | 104 | 102 |
+| hide `Color` (the BlendMode 5 figure) | 67 | 78 | 85 | 94 | 106 | 101 | 104 | 102 |
+| hide `Horizon` / `LightFront` | 115 | 116 | 95 | 94 | 106 | 101 | 104 | 102 |
+
+So the floor IS `SolidBack` - a 3501x745 radial figure whose authored stops are
+rgb(90,90,90), rgb(60,70,80) and alpha 0 - plus the `Color` figure screened over
+its top rows. Those stop colours cannot reach 190 at the mirror line however
+they are laid out, and the console's floor is brightest exactly there. Nothing
+is tuned: the stops are the file's, the residual is the table above, and the
+gate holds the binned statistic rather than this band.
+
+**The dark band M4b was accused of is gone with the plates.** Sampling
+40x40 blocks along the judge's line - (20,410), (300,450), (600,500) - the frame
+reads 137.5 / 161.2 / 100.3 and ours 132.8 / 160.1 / 68.5, and hiding the
+`Color` figure moves the third by 3.7 luma, so the `Color` edge is not what
+makes it. The sky agrees within 4 (frame 159.8, ours 163.8).
+
+Two earlier statements stand: thirty-five (alpha, fade) pairs for the
+reflection were swept over the whole floor and all land between MAD 90.1 and
+93.3, so the reflection is not the term that is wrong; and tuning the mirror to
+compensate for the background is how a plausible wrong answer survives a phase.
+
+## NXE 9199, M4c: the queue, the integrator, the order of a channel change
+
+Judge F round 2 opened four findings and the phase brief five items. Everything
+below is what closed and what did not, with the number.
+
+### The channel queue's layout is a table in `dash.xex`
+
+M4b reported the brightness ramp as MEASURED off the frames and the SIZE ramp as
+"measured and not modelled". Both are in the executable, and neither the
+perspective nor a per-row `Scale` in the scene is the answer - the scene gives
+all eight rows `z = 0`, no `Scale`, and a flat 36 px pitch.
+
+The queue's binder fetches the eight rows by child path into a contiguous array
+at object +8..+36, **`Next6` first and `Prev1` last** [CODE 0x9248b8d0-0x9248b980],
+and stores `Queue\Current`'s own authored `y` (154) at +72 [CODE 0x9248b988].
+The layout routine at 0x9248b548 then builds a **ten-row, three-float table on
+the stack** (`stfs` block 0x9248b624-0x9248b680) and, for element *i*, lerps
+row `i+1` towards row `i` (progress >= 0) or row `i+2` (progress < 0) by the
+absolute channel progress, writing `Position` (0, 154 + dy, 0)
+[0x92189cb8 -> 0x921a71d0], `Scale` (s, s, 1) [0x92189da8 -> 0x92197eb8] and
+`Opacity` [0x92189e98 -> 0x92194428]:
+
+| slot | dy | scale | opacity | | slot | dy | scale | opacity |
+|---|---|---|---|---|---|---|---|---|
+| 0 | −140 | 0.35 | 0.00 | | 5 | −70 | 0.55 | 0.35 |
+| 1 | −140 | 0.35 | 0.00 | | 6 | −40 | 0.75 | 0.50 |
+| 2 | −140 | 0.35 | 0.00 | | 7 | 0 | 1.00 | 1.00 |
+| 3 | −120 | 0.40 | 0.10 | | 8 | +40 | 0.75 | 0.00 |
+| 4 | −95 | 0.45 | 0.20 | | 9 | +40 | 0.75 | 0.00 |
+
+**The frame checks it and nothing was fitted to the frame.** Cap heights up the
+stack on [FRAME Kpa f0048] measure 33 / 25 / 18 / 15 / 14 design px; the table's
+scales predict 33.0 / 24.8 / 18.2 / 14.9 / 13.2 from the current row's 33. Five
+slots, five agreements within 1.2 px, off numbers read out of a stack block.
+
+Three consequences, all of them corrections:
+
+- **the pitch is not 36 and is not flat.** The gaps going up are 40 / 30 / 25 /
+  25 / 20 / 0 / 0, so the rows crowd together with distance as well as shrink.
+  `QUEUE_PITCH` is kept as the file's authored number with a comment saying the
+  code overwrites it.
+- **the brightness ramp M4b measured (1 / 0.75 / 0.55 / 0.35 / 0.2 / 0.12 /
+  0.07) was the SIZE ramp read as brightness.** The table's opacities are
+  1 / 0.5 / 0.35 / 0.2 / 0.1 / 0 / 0, and its scales are 1 / 0.75 / 0.55 / 0.45
+  / 0.4 - the first three of which are exactly the numbers M4b called
+  brightness. A smaller, thinner row measures dimmer over a fixed box.
+- **`Prev1` is not empty.** M4b left the row's text blank; the console writes a
+  name into it and draws it at `Opacity 0`. Same pixel, wrong reason, and the
+  difference shows the moment the cursor moves.
+- **the group no longer slides.** M4b translated the whole `Queue` group by the
+  36 px pitch while the cursor was between two channels, marked [INFER]. Every
+  row now carries its own interpolated `Position`, which is what the code does,
+  and the inference is gone from `__dash.nxe.physics`.
+
+`Marker1` and the `Description` counter fade with the same progress the code
+uses: the markers keep their own opacity times `1 - |progress|`
+[CODE 0x9248b868-0x9248b8ac] and `Description` is set to `1 - |progress|`
+outright [CODE 0x9248b8b0-0x9248b8bc].
+
+**Found and NOT wired**, because nothing says when it runs: a second routine at
+0x9248b7a8 takes its own parameter (fetched separately at 0x92490ea4's caller,
+0x9248ca38) and rotates each queue row about Y by
+`clamp(p·1.3π − i·0.1π, 0, π/2)` around a pivot 128 units away, fading it by
+`1 − min(|θ|·2/π, 1)` [CODE 0x92488480]. That is the queue's own fold, and it is
+recorded here rather than fired on a guess.
+
+### The integrator is piecewise-analytic now
+
+`Axis.step` was semi-implicit Euler with a speed ceiling. Judge F round 2 (N2)
+measured it landing 2.0-2.5 frames short on every axis, and the cause is that a
+frame straddling the accelerate/brake switch was stepped at ONE acceleration and
+the arrival clamp then ate the tail. The fix is not a different ceiling - it is
+integrating each phase for its exact duration inside the frame, with the switch
+time solved in closed form (`a(a+d)t² + 2u(a+d)t + (u² − 2ds) = 0`).
+
+| axis | closed form | M4b (Euler) | now |
+|---|---|---|---|
+| Moby panel 40/30/20 | 20.494 frames | 18 | **20.494** |
+| Moby channel 50/40/10 | 18.000 | 15 | **18.000** |
+| Rome 60/40/20 | 17.321 | 15 | **17.321** |
+
+Exact to machine precision (3.6e−15 frames), including the cruise branch that
+only a multi-step move reaches. `tests/nxe.test.ts` asserts
+`|frames(integrated) − 60·stepDuration| <= 0.5` on all three axes for a
+distance-1 and a distance-5 move, and `smoke-nxe.mjs` asserts it again on the
+shell's live axes after a real key press.
+
+**What that does to the residual against the console**, one panel move:
+
+| | seconds | against the model |
+|---|---|---|
+| model, M4b (Euler) | 0.3167 | — |
+| **model, now** | **0.3416** | — |
+| measured, 8498 t = 504.0 s (genuine 60 fps) | 0.367 | +0.025 s (1.5 frames) |
+| measured, 9199 t = 240.5 s (30 fps doubled) | 0.383 | +0.041 s (2.5 frames) |
+
+M4b's numbers were +0.050 and +0.066. The remaining gap is one to two and a half
+frames of twenty-two and is not tuned away.
+
+**The SHAPE still disagrees and is stated, not fixed.** The corrected profile's
+velocity peaks at 0.450 of the move on the panel axis (the triangular
+`d/(a+d)` is 0.4286 and the 60 Hz sampling moves it a frame); the console's
+velocity energy peaks at about 0.33, i.e. it is more front-loaded than 40/30 can
+produce. Making it match needs `a ≈ 2d`, and the file says 40 and 30. So the
+constants stay and the disagreement is this paragraph.
+
+### A channel change is move, then fold, then unfold
+
+M4b fired `SoundChannelUp` and `SoundPanelFold` on the same tick and folded the
+strip on the key press. The footage does not [Judge F round 2, N3]: on the 9199
+capture's channel change (motion onset t = 238.48 s) the cue onsets are +0.03 s
+(the channel cue), +0.47 and +0.57 (two clicks), and the unfold burst at +0.83.
+The channel cursor's own move is 0.300 s and `1/FoldSpeed` is 0.100 s, so the
+order is the move, then the fold, then the unfold one fold-time later.
+
+`moveChannel` now only cues and re-targets; `stepMotion` starts the fold when
+the cursor LANDS, and the rebuild-and-unfold waits for the cascade to reach
+`folded`. Measured on the scripted path in `smoke-nxe.mjs`, in 60 Hz ticks:
+
+```
+Up (channel):   channel@100  fold@118 (+18)  unfold@127 (+9)
+Down (channel): channel@180  fold@198 (+18)  unfold@206 (+8)
+```
+
++18 is `60 × stepDuration(50/40)` exactly. The +8/+9 is the six-frame cascade
+plus the two or three frames our fetch of the new channel's scenes costs, which
+the console did not pay - the gate allows 5..14 and refuses a fold that is
+skipped. There is one harness lesson in it: **a synchronous frame loop cannot
+measure an event that waits on a fetch.** Driving 60 frames with no yield piled
+the unfold cue up at the end of the block and reported the gap as 42 ticks; the
+suite now yields a macrotask between frames and the engine tick numbers are
+unchanged.
+
+### Avatars: the silhouette is in the archive
+
+M4b drew nothing and PLACEHOLDERS said the model, the textures and the user's
+data are all `xam`/Live. Two of those three are still true; the SIGNED-OUT case
+is not a model at all. `dash.xex` loads `AvatarSilhouette.png` (436x730) and
+`AvatarShadow.png` (128x128) out of `dashcommon.xzp` at start-up, one straight
+after the other, and caches both [CODE 0x921421ec / 0x92142230]. Both files are
+in this dump, and the signed-out home frame shows exactly that: a flat dark
+figure standing in front of the gamer-card slot and breaking its right edge,
+which is what the avatar's deliberate `z = -50` is for [FRAME Kpa f0048, "Sign
+In" over "3 Profiles Found"].
+
+The artwork is therefore the build's. What the archive does not carry is the
+avatar viewport's CAMERA. The size does not need it - `contain` in the
+`XuiAvatar`'s own authored 776x776 box is right to 2 % - but the centre does,
+and the two offsets are MEASURED off that one frame and named as such in
+`__dash.nxe.avatars`:
+
+| | frame | ours | d |
+|---|---|---|---|
+| figure top (screen y) | 268 | 270 | +2 |
+| figure height (screen px) | 283 | 269 | −14 (−4.9 %) |
+| head band, left / right | 760 / 820 | 762 / 821 | +2 / +1 |
+
+The height is short because the console has the figure 50 z units nearer than
+the panel and this runtime renders the slot flat, which is worth 2.7 % of it;
+the rest is the measurement. `AvatarShadow.png` is loaded by the same code and
+is NOT drawn: nothing says where the console puts it, and the floor under the
+figure carries the panel's reflection, so a shadow cannot be separated from it.
+
+### Rome shells mount
+
+A Rome panel is not a `LegacyControl` page and is not centred. It sits on the
+ROME strip at `RomeFrontPosition` (96, 602) out of `controlp/Variables.xur`,
+which is a BOTTOM-LEFT anchor exactly as `MobyFrontPosition` is, so a 460x495
+panel's top is 602 − 495 = 107. `pushPage` recognises the size and places it
+from those two numbers and nothing else; `controlp/RomeOverlayScene.xur` mounts
+into an `OverlayLayer` [CODE 0x92490ea4-0x92490ecc, the `ColumnLayer` /
+`OverlayLayer` literals at .rdata 0x920b1208 / 0x920b1220].
+
+Measured with the same detector on both, `?build=9199&page=arcade/CollectionFilterPanel.xur`
+against [FRAME Yrt f0396]:
+
+| edge | frame | ours | d |
+|---|---|---|---|
+| left | 97.0 | 96.5 | −0.50 |
+| right | 554.3 | 554.5 | +0.17 |
+| top | 105.0 | 106.5 | +1.50 |
+| bottom | 598.3 | 599.5 | +1.17 |
+
+The panel titles itself (`labTitle` is inside it) and its parked `legend_a` /
+`legend_b` are hoisted into `LegendScene`, which reads "Ⓐ Select Ⓑ Back" - the
+same two captions the frame shows. `RomeOverlayScene`'s one child is the
+`Description` counter, and it is mounted EMPTY and marked: a Rome counter counts
+panels in a Rome CHANNEL, this route pushes one panel with no channel behind it,
+and "1 of 1" would be an invention. The list inside the panel is a
+`CollectionFilterList` the console fills from code and stays the authored
+skeleton, as every runtime-driven list does.
+
+### What M4c still does not do
 
 `__dash.nxe.physics` names all of it on every load:
 
-- **the queue's rows shrink with distance on the console and do not here.** Cap
-  heights on [FRAME Kpa f0048] measure about 33 / 25 / 18 / 15 / 14 design px
-  going up the stack, against a flat 36 px pitch in the file. The brightness
-  ramp is reproduced; the size ramp is measured and not modelled.
-- **avatars** - `XuiAvatar` in five scenes, all of it Live/`xam` data.
-- **the Rome shells** - `RomeRootScene`, `RomeOverlayScene`, the 460x495 panels
-  and the `ColumnLayer`/`OverlayLayer` pair. The Rome constants ARE read out of
-  `Variables.xur` and reported; nothing mounts them.
+- **the floor under the front panel is 70-95 luma dark**, and it is
+  `SolidBack`'s authored stops rather than a missing layer - the ablation table
+  is above.
+- **the queue's own fold** (0x9248b7a8) is decoded and not fired.
+- **the mirrored caption sits about 10 px low** [Judge F round 2, N5]. Not
+  looked into further than this: the REAL caption's ink peaks within 0.3 design
+  px of the frame's in the same band, so whatever is wrong is in the mirror
+  transform and not in the text - and the mirror is `reflection.uxfx`, a
+  compiled `ps_2_0`/`ps_3_0` pair standing in as a CSS alpha ramp. Moving the
+  clone by a fitted ten pixels would be tuning a placeholder to a frame, which
+  is the thing this project refuses, so it stays open with the number.
+- **a Rome CHANNEL**: one Rome panel mounts and is measured; the strip of them,
+  its `ColumnLayer` and the counter that goes with it need a Rome channel, and
+  the offline archive has no Rome channel to build.
+- **`XuiAvatar` when a profile IS signed in** - the model, its textures and its
+  animations are `xam`/Live.
 - **everything Xbox LIVE served**, as in M4a.
 
 ## The mount is disposable (2026-09-03)

@@ -180,13 +180,41 @@ each is closed with what changed.
   helptext); (6) gamer-card slot shows the signed-in group; (7) legacy
   page offsets real (empty LegacyControl visual; the frame is
   BackgroundPanel's nine-grid), border attribution false; (8) nits.
-- **Round 2 @ a70b89c: FAIL on M4b; all eight round-1 closures re-measured
-  PASS** (queue order and marker, reflection at the foot, projection refit
-  bracketed by two independent fits, icons within 2 px, home legend,
-  signed-out card, legacy page within 0.9 px on three edges). New: (N1)
-  the Aura scene draws shader-fed white plates as opaque white (a slab and
-  a floor band; the README understated it); (N2) the integrator lands
-  10-17% short of its own closed form (arrival clamp), while the constants
-  reproduce both captures within a frame; (N3) fold fires at the press,
-  the console folds after the 0.30 s move; (N4) the LegacyToEx claim is an
-  inference; (N5) queue size ramp, placeholders. Fixes in progress with M4c.
+- **2026-09-03, round 2 @ a70b89c: FAIL.** All eight round-1 closures
+  re-verified PASS. Four new findings, all on M4b: N1 the Aura draws
+  `AuraScene`'s 33 `white.png` quads as pictures (achromatic blocks binned by
+  frame luma read +157/+177 at 60-99 and −39/−72/−87 at 140-199); N2 the
+  integrator lands 2.0-2.5 frames short of its own closed form on all three
+  axes because the arrival clamp eats the braking tail; N3 the channel change
+  fires the fold on the key press where the footage puts it one channel move
+  later; N4 the "footage settles the `…Ex` pair" claim is an over-claim; N5 the
+  queue size ramp, the mirrored tray caption, the frame-solved legacy constants
+  and two missing PLACEHOLDERS rows.
+- **Closed in M4c (this commit), with the number:**
+  **N1** - the rule is not the proposed `TextureSurfaceElement` one (that
+  property is set on zero elements in the scene); it is the shader/image PAIR,
+  swept to 33 hits in 9199 and 0 in 6770. Bins now +16.3/+17.3 at the dark end
+  and −10.8/−11.4/−14.8 at the light end, gated at 30 in `smoke-nxe.mjs`. The
+  floor under the front panel is still 70-95 dark and is `SolidBack`'s own
+  authored stops, ablated layer by layer and tabulated, not tuned.
+  **N2** - `Axis.step` is piecewise-analytic; arrival time now EQUALS
+  `stepDuration` to 3.6e−15 frames on all three axes and on a five-step move,
+  asserted in `tests/nxe.test.ts` and again on the live shell. One panel move
+  0.3167 → 0.3416 s against 0.367/0.383 measured. The velocity peak is 0.45
+  against the console's 0.33 and is reported, not tuned.
+  **N3** - move, then fold, then unfold: channel@T, fold@T+18 (= 60 ×
+  stepDuration(50/40)), unfold@T+8..9. A harness bug was found doing it: a
+  synchronous frame loop cannot measure an event that waits on a fetch.
+  **N4** - withdrawn and re-worded as an inference with what the footage does
+  and does not support.
+  **N5** - the queue ramp is a ten-row table in `dash.xex` (below), the legacy
+  constants are labelled frame-solved, and PLACEHOLDERS carries the Aura slab
+  history, the queue table, the avatar silhouette, the Rome channel and the
+  `…Ex` withdrawal.
+- **Phase brief, the same commit:** the queue's size ramp is
+  `.text` 0x9248b548's stack table (not depth, not a scene `Scale`) and
+  predicts the frame's 33/25/18/15/14 to 1.2 px; the signed-out avatar is the
+  build's own `dashcomm/AvatarSilhouette.png` [CODE 0x921421ec] and lands
+  within 2 px of [FRAME Kpa f0048] in position and 4.9 % in height; one Rome
+  panel mounts from `RomeFrontPosition` and measures within 1.5 px of
+  [FRAME Yrt f0396] on all four edges.
