@@ -122,6 +122,64 @@ export const DEFAULT_FILL_COLOR = { a: 0xff, r: 0x0f, g: 0x0f, b: 0x80 } as cons
 export const DEFAULT_STROKE_COLOR = { a: 0xff, r: 0x0f, g: 0x0f, b: 0xeb } as const;
 
 /**
+ * REFUSED BY MEASUREMENT, kept as switches so nobody re-opens it by hand.
+ *
+ * XuiFigureSetFill(type, FillColor, stops, ...) takes FillColor as the SOLID
+ * colour, and we only paint it for FillType 1. But 365 of the build's 1,801
+ * gradient fills store a FillColor ANYWAY, alongside their stops, and the tab
+ * body that carries most of the 4-5% too-light chrome is one of them
+ * (dashuisk/blade_grey_left/back1 and blade_grey_rt/back2, FillColor
+ * 255,150,150,150 under a 180..223 grey ramp). If the runtime modulated a
+ * gradient or a texture by FillColor - the classic D3D tint - that would be
+ * the missing darkening. It does not.
+ *
+ * FILLCOLOR CENSUS, every fill in build 6770 (7,125 objects, 29 packs):
+ *   FillType                    stores FillColor   no FillColor
+ *   0 NONE                                    19             30
+ *   2 LINEAR_GRADIENT                        174            474
+ *   3 RADIAL_GRADIENT                        191            962
+ *   4 TEXTURE                                  0             12
+ *   absent (= SOLID)                         372              -   (no Fill: 30)
+ * NO texture fill in the corpus stores a FillColor, so a texture modulation
+ * cannot change one pixel of this build whatever it does - measured, not
+ * argued: the switch on renders byte-identically. The chrome figures the
+ * residual lives on (dashuisk/skin.xur): `wing/wing` FillColor ABSENT (stops
+ * 220/220/200/240), `wing/lines` ABSENT, `blade face` ABSENT (220/240/245/255),
+ * `blade_top_face/*` ABSENT - only `back1`/`back2` store one, 255,150,150,150.
+ * So the wing, which is +9.0 too light on its own, has no FillColor to apply
+ * and no modulation rule can reach it.
+ *
+ * MEASURED (1080p, `lines` hidden throughout, mean luma signed against the
+ * frame; the page interior is the control that must NOT move). f0051 columns
+ * are the 40x300 rects centred on x = 60 / 200 / 340 at y 300..600, the right
+ * wing is x 1860..1900 y 400..600 and the page interior x 700..1400 y 300..800;
+ * f0034's left wing is x 20..60 y 400..600, its stack columns x = 1860 / 1720
+ * and its page interior x 400..1100 y 300..800:
+ *   combination     x=60   x=200  x=340  R.wing  page || f0034 wing  x1720   page
+ *   off/off (ship)  +12.0  +19.7  +18.9   +9.0   -3.1 ||     +11.6   +6.9   -6.7
+ *   texture rgba    +12.0  +19.7  +18.9   +9.0   -3.1 ||     +11.6   +6.9   -6.7
+ *   gradient rgb    +12.0  -14.8  -20.2   +9.0  -37.7 ||     +11.6  -59.0  -80.4
+ *   gradient rgba   +12.0  -14.8  -20.2   +9.0  -37.7 ||     +11.6  -59.0  -75.0
+ *   both rgba       +12.0  -14.8  -20.2   +9.0  -37.7 ||     +11.6  -59.0  -75.0
+ * The texture row is 0.0 on every column, as the census says it must be.
+ * The gradient rows are refused three times over: the tint by 150/255 removes
+ * 34.5 and 39.1 luma from the two columns it reaches when the error to remove
+ * is 19.7 and 18.9 - roughly twice the defect, overshooting to -14.8 / -20.2;
+ * it moves NEITHER wing by 0.1 luma, and the wings are half the evidence; and
+ * it destroys the control, taking the page interior from -3.1 to -37.7 on
+ * f0051 and from -6.7 to -80.4 on f0034, on a page that agreed to within 5
+ * luma before. rgba is worse again where it differs: 33 gradient fills store a
+ * FillColor with alpha 0 beside opaque stops, so multiplying alpha erases
+ * whole figures (f0034's page interior lands 5.4 luma apart from the rgb run
+ * for exactly that reason). Both switches stay 'off'; the 4-5% light chrome is
+ * still unexplained, and the two candidates in THE LEFT-EDGE RESIDUAL above
+ * stand as they were.
+ */
+export type FillColorModulation = 'off' | 'rgb' | 'rgba';
+export const MODULATE_TEXTURE_BY_FILLCOLOR: FillColorModulation = 'off';
+export const MODULATE_GRADIENT_BY_FILLCOLOR: FillColorModulation = 'off';
+
+/**
  * INFERRED, and unresolved. A figure's Points are scaled from their bounding
  * box to the element box (MEASURED, see FIGURE_POINTS_ARE_SCALED_TO_BOX), and a
  * StrokeWidth is authored in that same point space, so the consistent reading

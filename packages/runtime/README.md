@@ -565,6 +565,11 @@ Recorded per scene in `window.__dash`, never faked:
   | hide `blade_topshadow_left` | +49.5 | +37.5 | +21.7 | +37.6 / +17.8 / +2.8 |
   | hide `wing_left` | −68.9 | +19.7 | +18.9 | −80.8 / 0.0 / 0.0 |
 
+  The gate now also holds the **right wing** (+9.0, x 1860..1900 y 400..600)
+  and the **page interior** (−3.1, x 700..1400 y 300..800). The page is the
+  control: it agrees with the frame already, so any rule proposed for the
+  chrome has to leave it where it is.
+
   Only five things paint 1080p x < 350 there — `wing_left`,
   `blade_0..3_grey_Left`, `blade4_top_*`, `blade_topshadow_left` (Opacity 0.3)
   and `color_highlight_left` below y ≈ 700 — plus the rotated tab captions
@@ -597,11 +602,50 @@ Recorded per scene in `window.__dash`, never faked:
   — 0.056, 0.050, 0.042, 0.039 at the four tab bodies — a different shape from
   the shadow's own 0.187 / 0.099 / 0.048 / 0.005, so it is not the shadow being
   weak. Nothing paints in the z band between the chrome and the `Tab` scenes,
-  which is exactly why the page hides it and the wings do not. **Best remaining
-  hypothesis**, and it has two halves, neither decidable from this archive: the
-  chrome fills carry a modulation we do not apply (`back1` stores
-  `FillColor` 150,150,150 *alongside* its gradient; the wing family stores a
-  black `Stroke` with no width), or 6717's `dashuisk/skin.xur` — the build the
+  which is exactly why the page hides it and the wings do not. **The FillColor-modulation half of the
+  best remaining hypothesis is now CLOSED by measurement, and it is closed
+  against.** XUI documents `XuiFigureSetFill`'s `FillColor` as the SOLID
+  colour and we only paint it for `FillType` 1, but 365 of the build's 1,801
+  gradient fills store one anyway. Census of every fill in 6770:
+
+  | FillType | stores `FillColor` | no `FillColor` |
+  |---|---|---|
+  | 0 NONE | 19 | 30 |
+  | 2 LINEAR_GRADIENT | 174 | 474 |
+  | 3 RADIAL_GRADIENT | 191 | 962 |
+  | 4 TEXTURE | **0** | 12 |
+  | absent (= SOLID) | 372 | — (30 figures store no `Fill` at all) |
+
+  No texture fill in the corpus stores a `FillColor`, so a texture modulation
+  cannot change a pixel of this build — and with the switch on it renders
+  byte-identically, which is the second row below. On the chrome only
+  `blade_grey_left/back1` and `blade_grey_rt/back2` store one (255,150,150,150
+  under a 180..223 grey ramp); `wing/wing` (stops 220/220/200/240),
+  `wing/lines`, `blade face` (220/240/245/255) and every `blade_top_face`
+  figure store none, so no modulation rule can reach the wing at all.
+  Implemented behind `MODULATE_TEXTURE_BY_FILLCOLOR` and
+  `MODULATE_GRADIENT_BY_FILLCOLOR` in `xuiEnums.ts` (both `'off'`, kept so the
+  table can be regenerated) and measured with `lines` hidden, signed against
+  the frames:
+
+  | combination | x=60 | x=200 | x=340 | R. wing | page (control) | f0034 wing | f0034 x=1720 | f0034 page |
+  |---|---|---|---|---|---|---|---|---|
+  | off / off (shipped) | +12.0 | +19.7 | +18.9 | +9.0 | −3.1 | +11.6 | +6.9 | −6.7 |
+  | texture `rgba` | +12.0 | +19.7 | +18.9 | +9.0 | −3.1 | +11.6 | +6.9 | −6.7 |
+  | gradient `rgb` | +12.0 | −14.8 | −20.2 | +9.0 | **−37.7** | +11.6 | −59.0 | **−80.4** |
+  | gradient `rgba` | +12.0 | −14.8 | −20.2 | +9.0 | **−37.7** | +11.6 | −59.0 | **−75.0** |
+  | both `rgba` | +12.0 | −14.8 | −20.2 | +9.0 | −37.7 | +11.6 | −59.0 | −75.0 |
+
+  Refused three times over: the 150/255 tint takes 34.5 and 39.1 luma out of
+  the two columns it reaches when the defect is 19.7 and 18.9 — about twice
+  too much, overshooting to −14.8 / −20.2; it moves **neither wing** by 0.1
+  luma, and the wings are half the evidence; and it wrecks the control, taking
+  the page interior from −3.1 to −37.7 and f0034's from −6.7 to −80.4 on a page
+  that agreed within 5 luma. Multiplying alpha as well is worse again: 33
+  gradient fills store a `FillColor` with alpha 0 beside opaque stops, so it
+  erases whole figures. The wing family's black `Stroke` with no width is
+  untested and stays open. **What is left of the hypothesis**, and it is not
+  decidable from this archive: 6717's `dashuisk/skin.xur` — the build the
   frames were shot from, which we do not have, `extracted/6719dev/resources`
   being empty — authors these greys darker than 6770's. **What would settle it:**
   a 6770 reference frame, or a 6717/6719 skin extraction to diff the four stop

@@ -118,6 +118,8 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     img.setAttribute('x', '0'); img.setAttribute('y', '0');
     img.setAttribute('width', String(round(w))); img.setAttribute('height', String(round(h)));
     img.setAttribute('preserveAspectRatio', 'none');
+    const mod = modulation(fill, E.MODULATE_TEXTURE_BY_FILLCOLOR);
+    if (mod) img.setAttribute('filter', `url(#${tintFilter(defs, mod, w, h)})`);
     pat.appendChild(img);
     defs.appendChild(pat);
     path.setAttribute('fill', `url(#${id})`);
@@ -145,12 +147,16 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
       g.setAttribute('x2', '1'); g.setAttribute('y2', '0.5');
     }
     g.setAttribute('gradientTransform', matrixCss(mul(scaleM(w, h), radial ? mul(fillMatrix(fill, w, h), radialBase(w, h)) : fillMatrix(fill, w, h))));
+    const mod = modulation(fill, E.MODULATE_GRADIENT_BY_FILLCOLOR);
     for (let i = 0; i < n; i++) {
       const c = colours[i]; if (!c) continue;
       const s = document.createElementNS(SVG, 'stop');
       s.setAttribute('offset', String(clamp01(stops[i] ?? (n > 1 ? i / (n - 1) : 0))));
-      s.setAttribute('stop-color', `rgb(${c.r},${c.g},${c.b})`);
-      s.setAttribute('stop-opacity', (c.a / 255).toFixed(4));
+      const r = mod ? Math.round(c.r * mod.r) : c.r;
+      const gg = mod ? Math.round(c.g * mod.g) : c.g;
+      const b = mod ? Math.round(c.b * mod.b) : c.b;
+      s.setAttribute('stop-color', `rgb(${r},${gg},${b})`);
+      s.setAttribute('stop-opacity', ((c.a / 255) * (mod ? mod.a : 1)).toFixed(4));
       g.appendChild(s);
     }
     defs.appendChild(g);
@@ -161,6 +167,39 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
   // A FillType we have never seen. Draw nothing and say so.
   note(ctx.report.unknownClasses, `XuiFigureFill.FillType=${type}`);
   path.setAttribute('fill', 'none');
+}
+
+/**
+ * A FillColor stored ALONGSIDE a texture or gradient fill, read as a
+ * modulation. Both switches are 'off' and the measurement that refuses them is
+ * in xuiEnums.ts; the code stays so the table can be regenerated. Only an
+ * EXPLICIT FillColor modulates - the SOLID default 15,15,128 would otherwise
+ * tint every fill in the build - and an opaque white is no modulation at all.
+ */
+function modulation(fill: PropBag, mode: E.FillColorModulation): { r: number; g: number; b: number; a: number } | null {
+  if (mode === 'off' || !fill.has('FillColor')) return null;
+  const c = fill.colour('FillColor', E.DEFAULT_FILL_COLOR);
+  const a = mode === 'rgba' ? c.a / 255 : 1;
+  if (c.r === 255 && c.g === 255 && c.b === 255 && a === 1) return null;
+  return { r: c.r / 255, g: c.g / 255, b: c.b / 255, a };
+}
+
+/** A multiply-by-constant as a filter, in sRGB (the default is linearRGB, which
+ *  would not be a multiply of the stored bytes). Returns the filter's id. */
+function tintFilter(defs: SVGDefsElement, m: { r: number; g: number; b: number; a: number }, w: number, h: number): string {
+  const id = `mod${uid++}`;
+  const f = document.createElementNS(SVG, 'filter');
+  f.setAttribute('id', id);
+  f.setAttribute('filterUnits', 'userSpaceOnUse');
+  f.setAttribute('x', '0'); f.setAttribute('y', '0');
+  f.setAttribute('width', String(round(w))); f.setAttribute('height', String(round(h)));
+  f.setAttribute('color-interpolation-filters', 'sRGB');
+  const cm = document.createElementNS(SVG, 'feColorMatrix');
+  cm.setAttribute('type', 'matrix');
+  cm.setAttribute('values', `${m.r} 0 0 0 0  0 ${m.g} 0 0 0  0 0 ${m.b} 0 0  0 0 0 ${m.a} 0`);
+  f.appendChild(cm);
+  defs.appendChild(f);
+  return id;
 }
 
 /** A 2x3 affine matrix [a b c d e f] in SVG's column convention. */

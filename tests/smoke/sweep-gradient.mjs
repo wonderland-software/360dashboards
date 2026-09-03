@@ -180,15 +180,29 @@ if (process.argv.includes('wing')) {
  *             the three columns by less than 0.5 luma - which is why f0051's
  *             stack can never settle 3/4/5, whatever the sweep in xuiEnums.ts
  *             says about the top band.
- *   RESIDUAL  the residual itself, +12.0 / +19.7 / +18.9, within 2 luma.
+ *   RESIDUAL  the residual itself, +12.0 / +19.7 / +18.9, within 2 luma, plus
+ *             the right wing (+9.0) and the page interior (-3.1). The page is
+ *             the CONTROL: it already agrees, so a rule that darkens the
+ *             chrome must leave it alone. FillColor modulation of gradient
+ *             fills fails exactly there (page interior -37.7 with it on); the
+ *             table is in xuiEnums.ts under MODULATE_GRADIENT_BY_FILLCOLOR.
  * It exits non-zero.
  */
 const STACK_COLS = [60, 200, 340];
 const STACK_ROWS = [300, 450, 600, 750, 900];
+// The RIGHT wing (the same `wing` visual, mirrored) and the page interior. The
+// wing carries the residual with no tab stack over it, and the page is the
+// CONTROL: it agrees with the frame already, so anything that moves it is
+// wrong however much it helps the chrome. Both were added when FillColor
+// modulation was tested and refused (see xuiEnums.ts).
+const RWING = { x: 1860, y: 400, w: 40, h: 200 };
+const PAGE = { x: 700, y: 300, w: 700, h: 500 };
 function stackProfile(im) {
   return {
     col: STACK_COLS.map((x) => mean(im, { x: x - 20, y: 300, w: 40, h: 300 })),
     dots: STACK_COLS.map((x) => STACK_ROWS.map((y) => mean(im, { x: x - 20, y: y - 3, w: 40, h: 6 }))),
+    wing: mean(im, RWING),
+    page: mean(im, PAGE),
   };
 }
 
@@ -244,6 +258,15 @@ if (process.argv.includes('stack')) {
     console.log(`  ${ok ? 'ok  ' : 'FAIL'} residual at x=${STACK_COLS[i]}: recorded ${sign(RESIDUAL[i])}, now ${sign(v)}`);
     if (!ok) fails.push(`residual at x=${STACK_COLS[i]}: recorded ${sign(RESIDUAL[i])}, now ${sign(v)}`);
   });
+  // The right wing carries the same residual with no stack over it, and the
+  // page interior is the control: a rule that darkens the chrome must move the
+  // first and not the second.
+  for (const [name, key, want] of [['right wing', 'wing', 9.0], ['page interior (CONTROL)', 'page', -3.1]]) {
+    const v = base[key] - ref[key];
+    const ok = Math.abs(v - want) <= 2;
+    console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${name}: recorded ${sign(want)}, now ${sign(v)} (frame ${ref[key].toFixed(1)}, ours ${base[key].toFixed(1)})`);
+    if (!ok) fails.push(`${name}: recorded ${sign(want)}, now ${sign(v)}`);
+  }
   console.log(`  (down x=60: ${base.dots[0].map((v, i) => sign(v - ref.dots[0][i])).join(' ')} at y 300/450/600/750/900 - flat, so no layer with a y ramp is missing)`);
   if (fails.length) { for (const f of fails) console.log(`  FAIL ${f}`); console.log('SWEEP_FAIL'); process.exit(1); }
   console.log('SWEEP_PASS');

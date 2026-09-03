@@ -175,9 +175,14 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   }
   // ?hide=a,b - ablation, to find which element paints a region. AFTER the
   // seek: applyNow rewrites cssText wholesale and would wipe an inline hide.
-  for (const id of (params.get('hide') ?? '').split(',').filter(Boolean)) {
-    for (const n of nodes.byId.get(id) ?? []) n.el.style.setProperty('display', 'none', 'important');
-  }
+  // Every later seek does the same, so this re-runs after runClock too -
+  // ?frame=N with ?hide= used to render with nothing hidden at all.
+  const applyHides = () => {
+    for (const id of (params.get('hide') ?? '').split(',').filter(Boolean)) {
+      for (const n of nodes.byId.get(id) ?? []) n.el.style.setProperty('display', 'none', 'important');
+    }
+  };
+  applyHides();
   publish(t, report);
 
   const audio = AudioBank.index(assets, params.has('mute'));
@@ -204,6 +209,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   await shell.idle();
   syncShell(t, shell, audio);
   runClock(engine, t);
+  applyHides();
 
   if (params.has('debug')) mountInspector(host, shell.dashmain.root, viewport.canvas);
 }
