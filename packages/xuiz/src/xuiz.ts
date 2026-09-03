@@ -82,13 +82,32 @@ export function entryBytes(bytes: Uint8Array, e: XuizEntry): Uint8Array {
   return bytes.subarray(e.start, e.start + e.size);
 }
 
-/** Pack-relative path with backslashes turned into '/'. Rejects traversal. */
+/**
+ * Pack-relative path with backslashes turned into '/', as the runtime names
+ * it (`controlpack://../handles/BackHandle.xur` is a real locator in 17559's
+ * dash.xex). Leading `..` segments are kept because they are the name; any
+ * other `..`, an empty segment or a leading '/' is refused.
+ */
 export function entryPath(e: XuizEntry): string {
   const p = e.name.replace(/\\/g, '/');
-  if (p.startsWith('/') || p.split('/').some((seg) => seg === '..' || seg === '')) {
+  const segs = p.split('/');
+  let lead = 0;
+  while (lead < segs.length && segs[lead] === '..') lead++;
+  if (p.startsWith('/') || lead === segs.length || segs.slice(lead).some((seg) => seg === '..' || seg === '')) {
     throw new Error(`refusing unsafe entry name "${e.name}"`);
   }
   return p;
+}
+
+/**
+ * Where an entry is written under its pack directory: entryPath with each
+ * leading `..` spelled `__parent__`, so the 30 `..\handles\*` entries of
+ * 17559's controlp pack land INSIDE controlp/ instead of beside it, and the
+ * dump can never escape its output directory. build-manifest inverts it.
+ */
+export const PARENT_SEGMENT = '__parent__';
+export function entryDiskPath(e: XuizEntry): string {
+  return entryPath(e).replace(/^(\.\.\/)+/, (m) => m.replace(/\.\./g, PARENT_SEGMENT));
 }
 
 /** Entries sorted by offset must tile the data region with no gaps or overlap. */

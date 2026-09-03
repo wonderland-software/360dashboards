@@ -1,11 +1,13 @@
 // XUR version 5 reader: Blades and NXE dashboards (builds 1888-9199).
 // A port of XUIHelper's XUR5 readers (GPL-3, see NOTICE). Every layout fact
 // below was cross-checked against the C# source; comments name the original
-// where the rule is non-obvious.
+// where the rule is non-obvious. parseXur dispatches version 8 (Kinect and
+// Metro, build 17559) to parse8.ts after the shared 20-byte header.
 import { BinaryReader } from './reader';
+import { parseXur8, type Xur8CountHeader } from './parse8';
 import type { XuRegistry } from './registry';
 import type {
-  XuObject, XuProperty, XuPropertyDef, XuScalar, XuValue, XuVector, XuQuaternion, XuFigure,
+  XuObject, XuProperty, XuPropertyDef, XuScalar, XuValue, XuVector, XuQuaternion, XuFigure, XuColour,
   XuNamedFrame, XuTimeline, XuKeyframe, XuClassDef, XuTrack,
 } from './model';
 import { NAMED_FRAME_COMMANDS, INTERPOLATIONS, idOf } from './model';
@@ -36,13 +38,21 @@ export interface XurSection { magic: string; offset: number; length: number }
 
 export interface XurDocument {
   header: XurHeader;
+  /** v5: the optional ten-count header (`flags & 1`); null in v8. */
   counts: XurCountHeader | null;
+  /** v8: the twelve-count header every file carries; null in v5. */
+  counts8: Xur8CountHeader | null;
   sections: XurSection[];
   strings: string[];
   vectors: XuVector[];
   quaternions: XuQuaternion[];
+  /** v8 only (FLOT / COLR pools); empty in v5, where the values are inline. */
+  floats: number[];
+  colours: XuColour[];
   figures: Map<number, XuFigure>;
   root: XuObject;
+  /** v8 only: what the reader counted while sharing property and compound lists (checked against counts8). */
+  shared8?: { propertyLists: number; compoundLists: number; unsharedProperties: number; compoundProperties: number; namedFrames: number };
 }
 
 class Ctx {
@@ -63,13 +73,14 @@ export function parseXur(bytes: Uint8Array, reg: XuRegistry): XurDocument {
   const magic = r.tag();
   if (magic !== 'XUIB') throw new Error(`not a XUR (magic "${magic}")`);
   const version = r.u32();
-  if (version !== 5) throw new Error(`XUR version ${version}; only v5 is implemented`);
+  if (version !== 5 && version !== 8) throw new Error(`XUR version ${version}; only v5 and v8 are implemented`);
   const flags = r.u32();
   const toolVersion = r.u16();
   const fileSize = r.u32();
   if (fileSize !== bytes.byteLength) throw new Error(`fileSize ${fileSize} != actual ${bytes.byteLength}`);
   const sectionsCount = r.u16();
   const header: XurHeader = { version, flags, toolVersion, fileSize, sectionsCount };
+  if (version === 8) return parseXur8(bytes, reg, header, r);
 
   let counts: XurCountHeader | null = null;
   if (flags & 1) {
@@ -144,7 +155,7 @@ export function parseXur(bytes: Uint8Array, reg: XuRegistry): XurDocument {
     throw new Error(`DATA section: read ended at ${r.pos}, section ends at ${data.offset + data.length}`);
   }
 
-  return { header, counts, sections, strings: ctx.strings, vectors: ctx.vectors, quaternions: ctx.quaternions, figures: ctx.figures, root };
+  return { header, counts, counts8: null, sections, strings: ctx.strings, vectors: ctx.vectors, quaternions: ctx.quaternions, floats: [], colours: [], figures: ctx.figures, root };
 }
 
 function readObject(ctx: Ctx): XuObject {

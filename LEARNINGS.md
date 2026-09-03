@@ -671,3 +671,192 @@ background is drawn. Blades 6770 is byte-identical in behaviour (64 tests, all
 - **`?page=` and A are the same push.** Making the `?page=` route call the same
   `pushPage` the A button takes, with the transition and the cue suppressed,
   is what keeps a debugging route from drifting away from the real one.
+
+## Metro 17559
+
+Third build through the same pipeline (2026-09-03), and the first XUR v8 one:
+`npm run extract -- --build 17559` prints EXTRACT_PASS (packs=36 entries=5186
+packEntries=5187 xur=363 png=676 xus=3857 xma=22 jpg=9 scb=7 other=252
+audio=22), `xur2json --strict --registry 17559` is XUR_PASS 363/363 with all
+twelve count-header fields recomputed on every file, `xur2xui --diff` is
+XUIDIFF_PASS 363 identical against XUIHelper's V8 output, and every 6770 and
+9199 result is unchanged (EXTRACT_PASS with the same counts, XUR_PASS
+263/263 and 311/311, XUIDIFF_PASS 243 and 308, 83/83 tests where there were
+73). The pipeline changes are: `tools/builds.ts` gains the build and each
+build's twins, `packages/xur/src/parse8.ts` reads v8 behind the same
+`parseXur`, `packages/xuiz` reads XUS version 2 and XUIZ names that start
+with `..`, and `build-registry --build 17559` compares against XUIHelper's
+17559 XML (`packages/xur/extensions/v8`, a second `build-registry-xml.ts v8`
+output).
+
+- **The archive's 17559 folder has three files and no devkit.** `Metro/V2/
+  Retail/17559/` holds `dash.xex` (5,971,968 bytes, XEX2, retail-signed,
+  LZX-compressed, NOT encrypted, bound to `\Device\Flash\dash.xex`),
+  `dashbigger.xex` (15,880,192 bytes: the same image UNCOMPRESSED, bound to
+  `\SEP\20449700\dash.xex`; the archive's `dashbigger.txt` says the loose
+  15 MB files sat beside the 5 MB ones inside `su20076000`) and
+  `shrdres.xzp`. `xex1tool` handles the late XEX2 unchanged: both XEXs
+  decrypt to a 16,941,056-byte basefile with the same SHA-256
+  (c7c5f9b5...), the same resource table and 36 byte-identical resources,
+  so the SEP copy is the second witness the devkit was elsewhere
+  (`fixtures/hashes.json`, role `reference`; there is no second
+  `shrdres.xzp`). `git sparse-checkout` cannot add a bare file
+  (`dashbigger.txt`): read it with `git show HEAD:<path>`.
+- **36 resources, 35 XUIZ v3 packs.** v3 is the ASCII-name TOC the container
+  code already knew; the tiling and `--probe` checks pass on all 36 packs
+  (35 + shrdres). 5,187 TOC entries become 5,186 files (dashcomm lists
+  `ico_64x_AddFriends.png` twice, identical). Kinds: 363 `.xur`, 676 png (+1
+  duplicate), 9 jpg, 3,857 `.xus`, 22 `.xma`, 7 `.scb`, and 252 "other": 204
+  `.lub` (Lua 5.1 bytecode, `\x1bLuaQ`, big-endian, 4-byte int/size_t, 8-byte
+  number: the packs `luaxbox`, `dashlua`, `hubapp`, `contapp`, `soclua` are
+  Lua applications, the Metro dashboard's hubs and the social channel), 8
+  `.xml`, 20 `.uxfx` shaders, an XACT set (`dashcomm/dash.xgs`, `dash.xsb`,
+  `dash.xwb` 286,720 bytes: the 44 `XuiSoundXACT` cues play from this wave
+  bank and are NOT converted; the 22 loose `.xma` are), 12 `.bin` + 2
+  `.MsLiveAvatarAsset` (`STRB` avatar assets in `friendsc`),
+  `controlp/Wavatar.AvatarAnimation` + `.AvatarMetadata`, and
+  `neon/modules.ox`. Against 9199: 22 packs are common; gone are accountm,
+  firstrun, games, homepage, messenge, noobe, signin; new are SharedUI,
+  contapp, contui, dashlua, epix, friendsc, hubapp, hubui, luaxbox,
+  mediasit, oobe, signinpr, soclua, socxzp.
+- **A TOC name can start with `..`.** `controlp` names thirty entries
+  `..\handles\*` (ten `.xur`, six `.xma`, fourteen png) and `dash.xex`
+  addresses them exactly so: `controlpack://../handles/VScrollHandle.xur`
+  at .rdata 0x920fc4a0, `../handles/NuiButtonHandle.xur`, `BackHandle`,
+  `NuiSwipeNavLeft/Right`. `entryPath` keeps the name (it is the runtime's
+  key); `entryDiskPath` writes it as `controlp/__parent__/handles/...` so the
+  dump cannot leave its directory, and `build-manifest` puts the TOC name
+  back in `path` while `out` stays the served file. A traversal anywhere
+  else in a name is still refused.
+- **All 22 sounds are XMA1 at 44.1 kHz mono**, so every one is resampled to
+  48 kHz Opus (`convert-audio` asserts source and output durations within
+  5 ms; AUDIO_PASS 22).
+- **XUS version 2 is UTF-8.** Byte 0x04 is 2 in all 3,857 tables; the value
+  is a NUL-terminated UTF-8 string (23,686 of the 47,599 entries carry
+  non-ASCII bytes, all strict UTF-8), a NAMED table's key is another such
+  string, a KEYED key is still the u32 `(classIndex, propIndex, objectId)`,
+  and every table parses to exactly EOF (`parseXus`). Kinds: 3,550 keyed
+  (11,101 entries), 276 positional, 31 named. Of the keyed entries, 11,001
+  in the 3,480 tables with a sibling scene resolve to a string property with
+  the 17559 registry; 70 tables (100 entries) have no sibling scene and are
+  unverified.
+- **XUR v8, every layout fact from XUIHelper's V8 reader (its port source)
+  or the 17559 binary, all cross-checked on the 363 scenes.** Header as v5
+  (version 8, flags 0, tool 14 everywhere) then a count header that is
+  ALWAYS present: twelve packed uints (a byte below 0xF0; 0xF0-0xFE plus a
+  byte for 12 bits; 0xFF plus a u32). Sections tile the file in table order.
+  STRN is `u32 charTotal, u16 count, NUL-terminated UTF-8`; charTotal is
+  the sum of UTF-16 units + 1 per string, not bytes (`oobeControllerNoLanguage`
+  1204 vs 1248 bytes, `ThermalPostScene` 875 vs 883). FLOT and COLR pool
+  floats and ARGB colours the way VECT/QUAT already did; CUST is v5's.
+  Objects: packed class-name index, u8 flags (1 inline properties, 8 SHARED
+  properties = the packed index of an earlier object's list, 2 children, 4
+  named frames + timelines); a property block is a packed count then ONE
+  packed mask per class of the hierarchy, root first. 666 of the 7,158
+  objects share a list. Named frames live in NAME and an object names a base
+  index into it; the count header's namedFrames is the NAME record count,
+  not the tree's references (LegendScene: 13 records, 52 references).
+- **Compound lists are numbered in POST-order, and the index of a new one
+  can only be checked after its body.** A Fill carrying a Gradient is
+  written as index 2 with the Gradient inside it as index 1. A pre-order
+  reservation fails 70 scenes; a post-order push with the check before the
+  body fails the three Closed Caption pages (whose first Fill holds a
+  Gradient); reading the body, then asserting the index equals the count,
+  passes all 363. XUIHelper pushes after reading and never checks (it would
+  hand a later reuse the wrong list if the order were otherwise). A
+  compound's declared count is a VALUE count as in v5 (indexed lists per
+  element, 62 scenes with two-stop gradients) and the count header's
+  compoundProperties is the value count over the shared lists (XUIHelper's
+  own formula is four high on every scene with a Gradient).
+- **KEYD/KEYP, from the console's decoder, not from XUIHelper.** A KEYD
+  record is a packed frame, a flag byte, an optional payload and a packed
+  KEYP index; a keyframe's values are KEYP[index + track] read by the
+  track's type (a pool index, or the integer/unsigned/bool itself).
+  `dash.xex` decodes KEYD at .text 0x92203930 (reached from the section
+  loader's magic switch at 0x92204224-0x92204318, KEYD case 0x9220427c): the
+  frame must fit a u16, the flag byte's low SIX bits are a keyframe TYPE
+  0..0xc (0x8030000d otherwise) and its top TWO bits a separate field, and a
+  13-entry jump table at .rdata 0x92011030 gives the payload: type 2 has
+  three inline bytes (EaseIn, EaseOut, EaseScale in v5's order), types 7,
+  0xa, 0xb, 0xc have a packed VECT index (bounds-checked against the pool,
+  stored as a pointer to the vector), the rest nothing. The 10,676 keyframes
+  use types 0:3353 1:5397 2:80 3:731 4:183 5:16 6:4 8:4 a:904 b:4, top bits
+  0:8870 1:1023 2:783; the 904 type-0xa vectors are (5,0,0) x626, (3,0,0),
+  (4,0,0), (2,0,0), (7,0,0), (6,0,0), (25,0,0), (1,0,0), (8,0,0). XUIHelper
+  reads 0xb as ONE byte (its four records carry 7, which a packed uint also
+  spells in one byte, so its KEYD still tiles) and its "6 unreversed bits"
+  are these two fields. The parser keeps the raw byte, the index and the
+  vector on the keyframe (`flags8`, `extra8`, `curve8`).
+- **What the types MEAN: the curve evaluator at .text 0x921e9788** takes
+  (type, p1, p2, t), clamps nothing, and switches on the type through a
+  second 13-entry table at .rdata 0x920108d0: 0 = t; 1 = handled by the
+  caller as a step (0 until t >= 0.9999, .rdata 0x9201090c); 2 = the cubic
+  Bezier 3(1-t)t((1-t)p1 + t p2) + t^3 (v5's Ease); 3 = t^2; 4 = t^3; 5 =
+  t^4; 6 = t^5; 7 = pow(t, p1); 8 = 1 - sin((1-t) pi/2); 9 = 1 - sqrt(1 -
+  t^2); 0xa = (e^(p1 t) - 1)/(e^p1 - 1) (the vector's x is the exponent:
+  5, 3, 4...); 0xb = sin((2 pi p2 + pi/2) t) x that exponential (elastic;
+  p1 within 1e-4 of 0 falls back to t); 0xc = a bounce built from pow, log
+  and floor with p1, p2 clamped to > 1.0001. Its caller at 0x921e9aa8 clamps
+  t to [0,1] and applies the TOP TWO BITS as the direction: 0 = f(t), 1 =
+  1 - f(1 - t), 2 = f(2t)/2 below one half else 1 - f(2(1-t))/2, 3 unused
+  (never set in the corpus). The runtime keyframe (0x18 bytes: +4 type, +8
+  direction, +0xc p1, +0x10 p2) is built from the KEYD record by code not
+  traced here, so which of type 2's three bytes becomes p1/p2 and where the
+  third goes rests on v5's convention; the model's `interpolation` keeps
+  XUIHelper's three-way reading (1 None, 2 Ease, else Linear) so the diff
+  measures the rest, and a v8 runtime must read `flags8` instead.
+- **XUIHelper on 17559 (`-g V8`): 363/363 convert; four defects normalised
+  in the diff, each named in `tools/xur2xui.ts`.** (4) Its `17559.xhe`
+  ignores XuiElement's Column/Row/ColorFactor/... tail, XuiControl's
+  AutoId/QuickInput/UseNuiAsMouse, LoadType, WrapBump and TextScale: read,
+  never written, so `toXui` takes an omit list (properties AND timeline
+  tracks: gamercar/gamercard animates Hittable, slots/CarouselSlotScene
+  Column). (5) Its XML gives XuiHtmlElement only TeletypeCount where the
+  binary registers Text then TeletypeCount, so it prints the string index as
+  a count on three scenes. (6) `XUKeyframe(XURKeyframe)` does `EaseScale *=`
+  on a field that starts at 0, so every v8 EaseScale it writes is 0 (11
+  scenes carry 50/60/85). And its quaternion writer formats the FLOAT under
+  a custom format, which .NET rounds to seven significant digits first
+  (0.03489949554 prints "0.034900", not "0.034899"); `f6single` reproduces
+  that, `f6` stays the double path floats and vectors take.
+- **The 17559 registry comes from its own binary and needs no XML tail.**
+  `xui-propdefs` finds 71 tables and 395 "registrations" (70 name pairs are
+  roman numerals, font paths and HTTP strings the base-chain filter drops)
+  in `.data`-built tables like 9199's; the call-graph binding gives 313
+  classes, 70 with property tables, and the corpus's 69 classes are all
+  among them (54 with tables, 15 zero-property). XuiElement now REGISTERS
+  27 properties (the GripTarget..CenterPivot tail XuiTool alone knew in
+  6770/9199 is in the runtime, and the scenes set Column 444, Row 366,
+  ColorFactor 260, CenterPivot 110 times), XuiControl 19 (UseNuiAsMouse,
+  AutoId, HoverSelectTimer, QuickInput), XuiListItem 9, XuiScene 8, XuiText
+  8 (TextScale), XuiImage 5 (LoadType), XuiList Wrap + WrapBump. v8 has no
+  mask bytes to measure, so the XuiElement check is the highest bit any
+  root object sets (2) against the registered count, and the strict sweep's
+  "bit beyond the class" guard covers every object. Binary vs XUIHelper's
+  17559 XML (binary wins): XuiEdit.TextLimit and XuiHtmlPresenter.
+  DataAssociation unsigned; XuiShader's first property Id, not ShaderId;
+  XuiSoundXACT = Cue, SoundBank, WaveBank, DopplerScale, AudioPosition (XML
+  stops at three); XuiHtmlElement = Text, TeletypeCount; XuiHtmlControl =
+  LineHeight, TeletypeCount; XuiFlowPanel (StretchToFit) is not in the XML;
+  286 classes identical; 115 XML classes (Xam*, XuiDataBound*, the music and
+  video scenes, HUD buttons...) are not registered by this dash.xex.
+- **Fonts: Metro asks for Segoe.** `.rdata` 0x9201cd30 is
+  `file://media:/SegoeXbox-Light.xtt` beside "Segoe Light", ConvectionUI and
+  ConvectionUIFallback, and 30 scene elements set `Font` to "Segoe Light".
+  That `.xtt` is not in the archive; the fonts step decodes the Convection
+  pair from `reference/fonts/xtt` when present, which is the fallback face
+  only.
+- **Canvases** 1120x770 (152), 1280x720 (84), 320x320 (13), 720x480 (13),
+  992x384 (10), 640x480 (6), 880x480 (5) and 33 other sizes; 1,329 timelines,
+  maxFrame 1751; `ControlPackLegacyControl` in 151 scenes, `DashScene` 40,
+  `ControlPackVuiBling` 23, `ControlPackAuraControl` 19, `XuiGridPanel` 86,
+  `XuiSoundXACT` 44, `XuiVariable` 34, `XuiAvatar` 5.
+- **Traps:** `zsh` hands an unquoted `$var` of newline-separated paths to a
+  tool as ONE argument (the first unpack died with ENAMETOOLONG on a 35-line
+  "file name"; use an array); a `&`-backgrounded job inside a
+  background-run shell is killed with the shell (the first XUIHelper batch
+  wrote an empty log and "finished" in a second); `pip` under the Homebrew
+  Python is broken here, the Xcode `/usr/bin/python3 -m pip install --user
+  capstone` works and Capstone's PPC mode reads the flat-mapped basefile
+  (`skipdata` on, or it stops at the first VMX128 word); a scratch script
+  named `dis.py` shadows the stdlib `dis` that Capstone imports.

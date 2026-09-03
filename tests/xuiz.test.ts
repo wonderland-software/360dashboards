@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { readXuiz, readXuizHeader, entryBytes, entryPath, checkTiling, XUIZ_HEADER_SIZE } from '@xuiz/xuiz';
+import { readXuiz, readXuizHeader, entryBytes, entryPath, entryDiskPath, checkTiling, XUIZ_HEADER_SIZE } from '@xuiz/xuiz';
 import { parseXus } from '@xuiz/xus';
 import { corpusBuilds, expectedCounts } from './builds';
 
@@ -61,10 +61,18 @@ test('xuiz: header and TOC of a hand-built v1 pack', () => {
   assert.deepEqual(checkTiling(p, pack.byteLength), []);
 });
 
-test('xuiz: entryPath normalises separators and refuses traversal', () => {
-  assert.equal(entryPath({ name: 'fr-fr\\scene.xus', size: 0, offset: 0, start: 0 }), 'fr-fr/scene.xus');
-  assert.throws(() => entryPath({ name: '..\\evil', size: 0, offset: 0, start: 0 }), /unsafe/);
-  assert.throws(() => entryPath({ name: '\\abs', size: 0, offset: 0, start: 0 }), /unsafe/);
+test('xuiz: entryPath normalises separators and refuses traversal; entryDiskPath keeps a leading .. inside the pack', () => {
+  const e = (name: string) => ({ name, size: 0, offset: 0, start: 0 });
+  assert.equal(entryPath(e('fr-fr\\scene.xus')), 'fr-fr/scene.xus');
+  // 17559's controlp names thirty entries `..\handles\*`: the name is kept,
+  // the file lands under __parent__/ so the dump cannot leave its directory.
+  assert.equal(entryPath(e('..\\handles\\BackHandle.xur')), '../handles/BackHandle.xur');
+  assert.equal(entryDiskPath(e('..\\handles\\BackHandle.xur')), '__parent__/handles/BackHandle.xur');
+  assert.equal(entryDiskPath(e('..\\..\\x')), '__parent__/__parent__/x');
+  assert.throws(() => entryPath(e('..')), /unsafe/);
+  assert.throws(() => entryPath(e('a\\..\\evil')), /unsafe/);
+  assert.throws(() => entryDiskPath(e('a\\..\\evil')), /unsafe/);
+  assert.throws(() => entryPath(e('\\abs')), /unsafe/);
 });
 
 test('xuiz: a wrong fileSize, a wrong magic and a short body all throw', () => {
@@ -114,7 +122,7 @@ test(`xuiz corpus ${BUILD}: every extracted resource pack reads and tiles`, { sk
     assert.deepEqual(checkTiling(p, bytes.byteLength), [], f);
     assert.equal(p.entries.length, p.header.entryCount);
     for (const e of p.entries) {
-      entryPath(e); // throws on a name that would escape the output directory
+      entryDiskPath(e); // throws on a name that would escape the output directory
       assert.equal(entryBytes(bytes, e).byteLength, e.size);
     }
     packs++;

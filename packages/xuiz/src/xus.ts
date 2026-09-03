@@ -5,7 +5,8 @@
 // Layout, verified against all 3,234 .xus files under extracted/6770 (every
 // one parses to exactly EOF with the entry count the header declares):
 //   0x00 "XUIS"
-//   0x04 u8  version      1 everywhere in 6770
+//   0x04 u8  version      1 in 6770 and 9199 (UTF-16BE strings), 2 in Metro
+//                         17559 (NUL-terminated UTF-8 strings, see below)
 //   0x05 u8  kind         0 = NAMED, 1 = KEYED, 2 = POSITIONAL (see below)
 //   0x06 u32 fileSize     equals the file's byte length
 //   0x0A u16 entryCount
@@ -17,11 +18,14 @@
 // larger than 64 KiB; the biggest is 79,412 bytes) and for all 3,234 the
 // big-endian u32 at 0x06 equals the file size exactly.
 //
-// An entry is `u16 charCount, charCount UTF-16BE code units` (the VALUE),
-// followed by a key whose shape depends on `kind`:
+// An entry is `u16 charCount, charCount UTF-16BE code units` (the VALUE) in
+// version 1, or a NUL-terminated UTF-8 string in version 2 (all 3,857 tables
+// of Metro 17559 parse to EOF that way, 47,599 entries, 23,686 of them with
+// non-ASCII bytes that decode as strict UTF-8), followed by a key whose
+// shape depends on `kind`:
 //   KEYED (1, 2,970 tables)      u32 key, strictly increasing within a table
-//   NAMED (0, 12 tables)         another u16/UTF-16BE string, e.g.
-//                                "IDS_ACCTINFO_META_PHONE"
+//   NAMED (0, 12 tables)         another string in the version's encoding,
+//                                e.g. "IDS_ACCTINFO_META_PHONE"
 //   POSITIONAL (2, 252 tables)   nothing; the entry's position IS the key
 //
 // The KEYED u32 is three fields, not an opaque id. Decoded as
@@ -123,7 +127,8 @@ export function parseXus(bytes: Uint8Array): XusTable {
   const magic = r.tag();
   if (magic !== XUS_MAGIC) throw new Error(`not a XUS table (magic "${magic}")`);
   const version = r.u8();
-  if (version !== 1) throw new Error(`unsupported XUS version ${version}`);
+  if (version !== 1 && version !== 2) throw new Error(`unsupported XUS version ${version}`);
+  const text = (): string => (version === 1 ? r.utf16be(r.u16()) : r.cstringUtf8());
   const flags = r.u8();
   if (flags !== XusKind.Named && flags !== XusKind.Keyed && flags !== XusKind.Positional) {
     throw new Error(`unknown XUS kind ${flags}`);
@@ -137,7 +142,7 @@ export function parseXus(bytes: Uint8Array): XusTable {
 
   const entries: XusEntry[] = [];
   for (let i = 0; i < entryCount; i++) {
-    const value = r.utf16be(r.u16());
+    const value = text();
     let key = i;
     let name: string | null = null;
     let ref: XusRef | null = null;
@@ -145,7 +150,7 @@ export function parseXus(bytes: Uint8Array): XusTable {
       key = r.u32();
       ref = parseXusKey(key);
     } else if (kind === XusKind.Named) {
-      name = r.utf16be(r.u16());
+      name = text();
     }
     entries.push({ index: i, key, keyHex: xusKeyHex(key), name, ref, value });
   }

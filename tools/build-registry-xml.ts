@@ -1,12 +1,13 @@
 // Convert XUIHelper's XUI class-extension XML files into one registry.json
 // the parser (and the browser) can load without an XML parser.
 //
-//   node --import tsx tools/build-registry-xml.ts     -> packages/xur/extensions/v5/registry.json
+//   node --import tsx tools/build-registry-xml.ts [v5|v8]   -> packages/xur/extensions/<group>/registry.json
 //
-// This is XuiTool's compile-time view of 9199 as XUIHelper transcribed it;
-// the per-build registries that the parser actually uses come from each
-// build's own executable (tools/build-registry.ts). This one is kept as the
-// source of XuiElement's compile-time tail and as the comparison target.
+// This is XuiTool's compile-time view of 9199 (v5) or 17559 (v8) as
+// XUIHelper transcribed it; the per-build registries that the parser
+// actually uses come from each build's own executable
+// (tools/build-registry.ts). These are kept as the source of XuiElement's
+// compile-time tail (v5) and as the comparison targets.
 //
 // The XML is flat and regular (XUIClassExtension > XUIClass > PropDef >
 // DefaultVal), so a small hand-rolled scanner is enough; it refuses anything
@@ -17,8 +18,9 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { XuClassDef, XuPropertyDef, XuPropertyType, XuRegistryJson } from '@xur/model';
 
-const dir = join(process.cwd(), 'packages/xur/extensions/v5');
-const xhe = readFileSync(join(dir, '9199.xhe'), 'utf8');
+const group = process.argv[2] ?? 'v5';
+const dir = join(process.cwd(), `packages/xur/extensions/${group}`);
+const xhe = readFileSync(join(dir, group === 'v5' ? '9199.xhe' : '17559.xhe'), 'utf8');
 const files = [...xhe.matchAll(/<RelationalExtension>([^<]+)<\/RelationalExtension>/g)].map((m) => m[1]!.trim());
 
 const TYPES = new Set<XuPropertyType>(['bool', 'integer', 'unsigned', 'float', 'string', 'color', 'vector', 'quaternion', 'object', 'custom']);
@@ -68,6 +70,6 @@ for (const file of files) {
   }
 }
 
-const out: XuRegistryJson = { version: 5, group: '9199', classes };
+const out: XuRegistryJson = { version: group === 'v5' ? 5 : 8, group: group === 'v5' ? '9199' : '17559', classes };
 writeFileSync(join(dir, 'registry.json'), JSON.stringify(out, null, 1));
 console.log(`registry.json: ${classes.length} classes, ${classes.reduce((n, c) => n + c.props.length, 0)} property definitions from ${files.join(', ')}`);

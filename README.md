@@ -5,8 +5,10 @@ scene, texture, string, sound and animation curve comes from the original
 dashboard binaries, decoded by the tools in this repo and rendered by a
 TypeScript reimplementation of the XUI runtime.
 
-First target: **Blades, build 6770** (the last Blades dashboard, 2008).
-Next: NXE 9199, then Metro 17559.
+First target: **Blades, build 6770** (the last Blades dashboard, 2008), then
+NXE 9199. **Metro 17559** (the last Xbox 360 dashboard) is extracted, parsed
+and cross-checked through the same pipeline (XUR v8, XUS v2, XUIZ v3); its
+runtime is next.
 
 ## Run it
 
@@ -14,22 +16,25 @@ Next: NXE 9199, then Metro 17559.
 npm install
 npm run extract     # Blades 6770; needs the archive + a built xex1tool, see below
 npm run extract -- --build 9199   # NXE 9199 (same pipeline, its own registry and counts)
+npm run extract -- --build 17559  # Metro 17559 (XUR v8; no runtime yet)
 npm run dev         # http://localhost:5173
 npm test            # parser + container unit tests (+ corpus tests for every extracted build)
 npm run smoke       # headless-Chrome suites against the dev server
 ```
 
-Every tool takes `--build 6770|9199` (or `DASH_BUILD=9199`); the default
-is Blades 6770. `tools/builds.ts` is the one table of builds and archive
-paths.
+Every tool takes `--build 6770|9199|17559` (or `DASH_BUILD=9199`); the
+default is Blades 6770. `tools/builds.ts` is the one table of builds, archive
+paths and twins.
 
 `npm run extract` expects two things that are NOT in git (they are Microsoft's):
 
 1. `vendor/archive/` — a sparse clone of
-   https://github.com/thedev0ps/Xbox-360-Dashboard-Archive containing
-   `Blades/Retail/6770/`: `node --import tsx tools/fetch-archive.ts`. For NXE
-   add its paths (the tool calls `sparse-checkout set`, so name all four):
-   `node --import tsx tools/fetch-archive.ts "Blades/Retail/6770" "Blades/Devkit/6719 (7776.0 XDK)" "NXE/Retail/9199" "NXE/Devkit/9199 (11626.0 XDK)"`.
+   https://github.com/thedev0ps/Xbox-360-Dashboard-Archive:
+   `node --import tsx tools/fetch-archive.ts` checks out every build in
+   `tools/builds.ts` and its twins (`Blades/Retail/6770`, `Blades/Devkit/6719
+   (7776.0 XDK)`, `NXE/Retail/9199`, `NXE/Devkit/9199 (11626.0 XDK)`,
+   `Metro/V2/Retail/17559`). Passing paths replaces that list (the tool calls
+   `sparse-checkout set`).
 2. `vendor/idaxex/xex1tool/build/xex1tool` — emoose's XEX tool:
    `tools/build-xex1tool.sh` (needs `brew install cmake ninja`).
 3. Optional, for the genuine typeface: the console's `xenonclatin.xtt` and
@@ -91,7 +96,8 @@ output, so the Blades view transform does not apply to them - measured, see
 - Rendering: DOM + CSS 3D transforms, inline SVG for vector figures. No WebGL.
 - Tests: node's built-in runner; smoke suites drive `puppeteer-core` against
   system Chrome and assert on `window.__dash`.
-- License: GPL-3.0 (the XUR parser is a port of XUIHelper's V5 reader).
+- License: GPL-3.0 (the XUR parser is a port of XUIHelper's V5 and V8
+  readers).
 
 ## Architecture
 
@@ -104,13 +110,20 @@ extracted/6770/xuiz/**      ─tools/convert-audio.ts, build-manifest.ts─▶ p
 ```
 
 The same chain runs for NXE with `--build 9199` (`extracted/9199/`,
-`packages/xur/extensions/9199/registry.json`, `public/assets/9199/`).
+`packages/xur/extensions/9199/registry.json`, `public/assets/9199/`) and for
+Metro with `--build 17559` (36 resources: 35 XUIZ v3 packs, XUR v8 scenes,
+XUS v2 string tables, Lua 5.1 bytecode apps, an XACT wave bank; LEARNINGS
+"Metro 17559").
 
 - `packages/xuiz` — the XUIZ resource-pack container and `.xus` string tables.
 - `packages/xur` — the XUR v5 scene parser: header, STRN/VECT/QUAT/CUST/DATA
   sections, the mask-encoded property block, named frames and keyframe
-  timelines. Browser-safe (Uint8Array/DataView only). Also `toXui()`, an
-  XUIHelper-compatible XML emitter used only for cross-checking.
+  timelines; and (`parse8.ts`, behind the same `parseXur`) the XUR v8 reader
+  for Metro: packed uints, a twelve-count header, FLOT/COLR pools, shared
+  property and compound lists, NAME/KEYD/KEYP keyframes whose flag byte is
+  read the way the console's decoder reads it. Browser-safe
+  (Uint8Array/DataView only). Also `toXui()`, an XUIHelper-compatible XML
+  emitter used only for cross-checking.
 - `packages/runtime` — the browser XUI runtime (scene loader, DOM renderer,
   timeline engine, input, audio, strings, inspector).
 - `dashboards/blades` — hand-written glue that lived in PowerPC code on the
@@ -145,8 +158,10 @@ built in code: index, name pointer, XUI_PROP_TYPE) and
 binding each table to its class through the call graph (a registration
 calls the function that builds its table and stores the result). For the
 50 (6770) / 51 (9199) classes that own properties, name, order and type
-come from the binary that shipped. Exceptions are recorded in the registry
-itself: the scene files write four mask bytes for XuiElement (so XuiTool
+come from the binary that shipped; for 17559 it is 313 classes, 70 with
+tables, and the 69 classes its scenes use are all registered by its
+`dash.xex` (XuiElement registers all 27 there, so no XuiTool tail is
+needed). Exceptions are recorded in the registry itself: the scene files write four mask bytes for XuiElement (so XuiTool
 knew 25-32 definitions) while both runtimes register 17; definitions 17-26
 are taken from XuiTool's own list (XUIHelper's 9199 XML) and tagged
 `origin: xuitool-xml` (the builder measures the mask-byte count from the
@@ -166,12 +181,15 @@ hand-written 9199 XML and the 9199 binary disagree, the binary wins
 
 - `node --import tsx tools/xur2json.ts --corpus extracted/6770/xuiz --strict`
   must print `XUR_PASS 263/263`; with `--corpus extracted/9199/xuiz
-  --registry 9199`, `XUR_PASS 311/311`.
+  --registry 9199`, `XUR_PASS 311/311`; with `--corpus extracted/17559/xuiz
+  --registry 17559`, `XUR_PASS 363/363` (every v8 file carries the count
+  header, so all 363 are checked against it).
 - `node --import tsx tools/xur2xui.ts --diff extracted/6770/xuiz extracted/6770/xuihelper`
   compares our parse against XUIHelper's (built from source under .NET,
   batch-run by `tools/xuihelper-convert.sh <build>`) on every scene it can
-  read: `XUIDIFF_PASS`; the same with `extracted/9199/... --registry 9199`.
-  Every normalisation the diff applies is documented in the tool.
+  read: `XUIDIFF_PASS`; the same with `extracted/9199/... --registry 9199`
+  and `extracted/17559/... --registry 17559` (363 identical). Every
+  normalisation the diff applies is documented in the tool.
 - `npm run smoke` runs ten headless suites serially, including
   `smoke-gallery` (both builds: 263 + 311 scenes, zero unknown classes) and
   `smoke-nxe`, which measures the composed NXE home page and a hosted legacy

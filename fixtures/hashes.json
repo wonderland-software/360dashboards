@@ -60,6 +60,24 @@
       "bytes": 1744896,
       "role": "reference",
       "what": "Devkit shell executable. Not extracted."
+    },
+    "vendor/archive/Metro/V2/Retail/17559/dash.xex": {
+      "sha256": "3ad8f38d070eaf63cadac0697e3e8802c565cbfd0825a485347c5d718014f927",
+      "bytes": 5971968,
+      "role": "required",
+      "what": "Metro retail build 17559 dashboard executable (XEX2, retail-signed, LZX-compressed, not encrypted; the flash copy from su20076000); holds 35 XUIZ v3 resource packs and the FFFE07D1 XDBF database."
+    },
+    "vendor/archive/Metro/V2/Retail/17559/shrdres.xzp": {
+      "sha256": "179c5be167402297c6e137c08fefe3146f6f497964dc2bda94812596fc9aefe0",
+      "bytes": 223911,
+      "role": "required",
+      "what": "Loose shared-resource XUIZ v3 pack next to the 17559 dash.xex (152 entries: icons, six sounds, Live strings)."
+    },
+    "vendor/archive/Metro/V2/Retail/17559/dashbigger.xex": {
+      "sha256": "fc4ad90638a8fff7759734dee364a48964e164d567699ca7e7aca2dc06ebc8c2",
+      "bytes": 15880192,
+      "role": "reference",
+      "what": "The same 17559 image stored UNCOMPRESSED on the system extended partition (\\\\SEP\\\\20449700\\\\dash.xex per its bound path; the archive's dashbigger.txt explains the name). Same version, same retail signature; its basefile and all 36 resources are byte-identical to dash.xex's (LEARNINGS, Metro 17559). Not extracted; the second witness where the archive has no devkit."
     }
   }
 }

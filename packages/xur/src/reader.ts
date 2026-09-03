@@ -108,4 +108,28 @@ export class BinaryReader {
     for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]!);
     return s;
   }
+
+  /**
+   * XUR v8's variable-length unsigned integer (XUIHelper ReadPackedUInt):
+   * one byte below 0xF0; 0xF0-0xFE carry a 12-bit value in their low nibble
+   * plus a second byte; 0xFF prefixes a plain big-endian u32.
+   */
+  packed(): number {
+    const f = this.u8();
+    if (f < 0xf0) return f;
+    if (f !== 0xff) return ((f & 0x0f) << 8) | this.u8();
+    return this.u32();
+  }
+
+  /** A NUL-terminated UTF-8 string (XUR v8 STRN, XUS version 2). Invalid UTF-8 is an error, not mojibake. */
+  cstringUtf8(): string {
+    const start = this.pos;
+    while (this.pos < this.length && this.bytes[this.pos] !== 0) this.pos++;
+    if (this.pos >= this.length) throw new RangeError(`unterminated string at 0x${start.toString(16)}`);
+    const raw = this.bytes.subarray(start, this.pos);
+    this.pos++;
+    return UTF8.decode(raw);
+  }
 }
+
+const UTF8 = new TextDecoder('utf-8', { fatal: true });

@@ -26,6 +26,7 @@ import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { BUILDS, buildArg } from './builds';
+import { PARENT_SEGMENT } from '@xuiz/xuiz';
 
 const args = process.argv.slice(2);
 function flag(name: string, fallback: string): string {
@@ -102,7 +103,12 @@ for (const pack of readdirSync(inDir).sort()) {
   if (!statSync(packDir).isDirectory()) continue;
   const entries: ManifestEntry[] = [];
   for (const abs of walk(packDir)) {
-    const rel = slash(relative(packDir, abs));
+    // On disk a leading `..` is spelled __parent__ (unpack-xuiz); the
+    // manifest's `path` is the TOC name, which is what the runtime resolves
+    // (`controlpack://../handles/BackHandle.xur`), while `out` stays the
+    // served file.
+    const disk = slash(relative(packDir, abs));
+    const rel = disk.replace(new RegExp(`^(${PARENT_SEGMENT}/)+`), (m) => m.split(PARENT_SEGMENT).join('..'));
     const ext = (rel.split('.').pop() ?? '').toLowerCase();
     const kind = KINDS[ext] ?? 'other';
     const size = statSync(abs).size;
@@ -111,9 +117,9 @@ for (const pack of readdirSync(inDir).sort()) {
     if (kind === 'xma' || kind === 'wav') {
       // convert-audio.ts keeps the pack-relative path and swaps the
       // extension; the verify pass below fails if the .ogg is not there.
-      out = `${BUILD}/audio/${pack}/${rel.replace(/\.(xma|wav)$/i, '')}.ogg`;
+      out = `${BUILD}/audio/${pack}/${disk.replace(/\.(xma|wav)$/i, '')}.ogg`;
     } else {
-      out = `${BUILD}/xuiz/${pack}/${rel}`;
+      out = `${BUILD}/xuiz/${pack}/${disk}`;
       stage(abs, join(publicDir, out));
     }
 

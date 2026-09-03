@@ -3,7 +3,7 @@
 //
 //   node --import tsx tools/xur2xui.ts <file.xur>                     # XML to stdout
 //   node --import tsx tools/xur2xui.ts --diff <xurDir> <xuiHelperDir> # compare every scene
-//   --registry 6770|9199   the build's registry (default 6770, or DASH_BUILD)
+//   --registry 6770|9199|17559   the build's registry (default 6770, or DASH_BUILD)
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { XuRegistry, parseXur, toXui } from '@xur/index';
@@ -43,6 +43,17 @@ const XUIHELPER_BROKEN: Record<string, Record<string, string>> = {
   },
 };
 
+/** Builds whose scenes are XUR v8, with the XUIHelper extension group and .xhe that describe them. */
+const XUR_V8: Record<string, { group: string; xhe: string }> = { '17559': { group: 'v8', xhe: '17559.xhe' } };
+
+/** The <IgnoreProperty> names XUIHelper's extension file declares for a build's group (empty for the v5 builds but TextureSurfaceElement). */
+function ignoredProperties(build: string): string[] {
+  const v8 = XUR_V8[build];
+  const xhe = readFileSync(`packages/xur/extensions/${v8 ? v8.group : 'v5'}/${v8 ? v8.xhe : '9199.xhe'}`, 'utf8');
+  const block = /<IgnoreProperties>([\s\S]*?)<\/IgnoreProperties>/.exec(xhe)?.[1] ?? '';
+  return [...new Set([...block.matchAll(/<IgnoreProperty>([^<]+)<\/IgnoreProperty>/g)].map((m) => m[1]!.trim()))];
+}
+
 const diffIx = args.indexOf('--diff');
 if (diffIx >= 0) {
   const xurDir = args[diffIx + 1]!;
@@ -54,7 +65,18 @@ if (diffIx >= 0) {
     const refPath = join(refDir, rel);
     if (!existsSync(refPath)) { missing++; continue; }
     if (rel in (XUIHELPER_BROKEN[regName] ?? {})) { broken++; continue; }
-    let ours = toXui(parseXur(new Uint8Array(readFileSync(f)), reg).root);
+    const doc = parseXur(new Uint8Array(readFileSync(f)), reg);
+    // (4) XUIHelper's <build>.xhe lists properties under <IgnoreProperties>:
+    // its reader consumes the value (the bytes after it still parse) but its
+    // writer never emits it, in a <Properties> block or in a timeline, so
+    // toXui leaves those out on OUR side. 9199.xhe names
+    // TextureSurfaceElement (controlp/PanelScene's reflection image reads the
+    // ReflectedItems surface through it); 17559.xhe names XuiElement's
+    // Column/Row/ColorFactor/... tail, XuiControl's AutoId/QuickInput/
+    // UseNuiAsMouse, LoadType, WrapBump and TextScale (gamercar/gamercard
+    // animates Hittable, slots/CarouselSlotScene animates Column). The list
+    // is read from the .xhe, not typed here.
+    let ours = toXui(doc.root, ignoredProperties(regName));
     let theirs = readFileSync(refPath, 'utf8').replace(/^﻿/, '');
     // Known, documented XUIHelper deviations normalised away so the diff
     // measures OUR parser: (1) its hand-written 9199 XML names DashScene's
@@ -67,13 +89,26 @@ if (diffIx >= 0) {
     // UTF-16 unit.
     theirs = theirs.replace(/NavigationBreadcrumbs/g, 'PanelSettings').replace(/DescriptionTexts/g, 'PanelStrings').replace(/MetapaneSceneOverrides/g, 'PanelScenePaths');
     theirs = theirs.replace(/<ShaderId>/g, '<Id>').replace(/<\/ShaderId>/g, '</Id>');
-    // (4) XUIHelper's 9199.xhe lists TextureSurfaceElement under
-    // <IgnoreProperties>: its reader consumes the value (the bytes after it
-    // still parse) but its writer never emits it, so the element is dropped
-    // from OUR side for the comparison. Ours keeps it (controlp/PanelScene's
-    // reflection image reads the ReflectedItems surface through it).
-    ours = ours.replace(/^<TextureSurfaceElement>[^\n]*<\/TextureSurfaceElement>\r\n/gm, '');
-    ours = ours.replace(/[\u0080-\uffff]/g, (c) => { const lo = c.charCodeAt(0) & 0xff; return lo < 0x20 ? '' : String.fromCharCode(lo); });
+    // (5) XUIHelper's 17559 XML gives XuiHtmlElement one definition,
+    // TeletypeCount, where the binary registers Text (string) then
+    // TeletypeCount (tools/build-registry.ts, table @0x9223fab8): its reader
+    // takes the string INDEX as the count. The value is put back through
+    // this file's own string table so the comparison measures the rest.
+    if (XUR_V8[regName]) theirs = theirs.replace(/<TeletypeCount>(\d+)<\/TeletypeCount>/g, (_m, n) => `<Text>${(doc.strings[Number(n)] ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Text>`);
+    // (6) XUIHelper's XUKeyframe(XURKeyframe) constructor reads
+    // `EaseScale *= xurKeyframe.EaseScale` on a field that starts at 0
+    // (XU/Animation/XUKeyframe.cs:41), so every v8 keyframe it writes has
+    // EaseScale 0 whatever the file says (11 scenes carry 50/60/85). The
+    // line is dropped from both sides; our EaseScale is the third inline
+    // byte of a type-2 KEYD record, the layout the console's decoder at
+    // 0x92203930 stores (parse8.ts).
+    if (XUR_V8[regName]) { ours = ours.replace(/^<EaseScale>\d+<\/EaseScale>\r\n/gm, ''); theirs = theirs.replace(/^<EaseScale>\d+<\/EaseScale>\r\n/gm, ''); }
+    // (3) again: XUIHelper keeps one byte per character. v5 STRN is UTF-16BE,
+    // so it keeps the low byte of each unit; v8 STRN is UTF-8, so it keeps
+    // every byte as a Latin-1 character (a bullet becomes three of them).
+    ours = XUR_V8[regName]
+      ? ours.replace(/[\u0080-\uffff]+/g, (t) => [...Buffer.from(t, 'utf8')].map((b) => String.fromCharCode(b)).join(''))
+      : ours.replace(/[\u0080-\uffff]/g, (c) => { const lo = c.charCodeAt(0) & 0xff; return lo < 0x20 ? '' : String.fromCharCode(lo); });
     if (ours === theirs) { same++; continue; }
     differ++;
     const a = ours.split('\r\n'), b = theirs.split('\r\n');

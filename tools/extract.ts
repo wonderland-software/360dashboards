@@ -3,21 +3,22 @@
 //
 //   npm run extract                  # Blades 6770; skip any step whose output already exists
 //   npm run extract -- --force       # redo every step
-//   npm run extract -- --build 9199  # NXE 9199 (or DASH_BUILD=9199)
+//   npm run extract -- --build 9199  # NXE 9199 (or DASH_BUILD=9199); --build 17559 for Metro
 //
 // Order matters: each step reads what the one before it wrote.
 //   1. verify   vendor/archive files exist and match fixtures/hashes.json
 //   2. listing  xex1tool -l          -> extracted/<build>/xex-headers.txt
 //   3. basefile xex1tool -b          -> extracted/<build>/basefile.exe
-//   4. resources xex1tool -d         -> extracted/<build>/resources/<29 files>
+//   4. resources xex1tool -d         -> extracted/<build>/resources/<29 files; 36 in 17559>
 //   5. unpack   unpack-xuiz --probe  -> extracted/<build>/xuiz/<pack>/...
 //   6. audio    convert-audio        -> public/assets/<build>/audio/...
 //   7. manifest build-manifest       -> public/assets/<build>/manifest.json
 //   8. counts   fixtures/expected-<build>.json must match exactly
 //
-// Step 5 feeds it the 28 XUIZ packs from the XEX plus the loose shrdres.xzp.
-// The XEX also carries FFFE07D1, an XDBF database rather than a UI pack, so
-// it is filtered out by magic instead of by name.
+// Step 5 feeds it the XUIZ packs from the XEX (28 in 6770 and 9199, 35 in
+// 17559) plus the loose shrdres.xzp. The XEX also carries FFFE07D1, an XDBF
+// database rather than a UI pack, so it is filtered out by magic instead of
+// by name.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';

@@ -2,18 +2,24 @@
 // the archive path so every tool derives extracted/<build> and
 // public/assets/<build> from the same string.
 //
-//   --build 9199   on any tool, or DASH_BUILD=9199 in the environment;
-//                  the default is Blades 6770.
+//   --build 9199   on any tool (6770, 9199 or 17559), or DASH_BUILD=9199 in
+//                  the environment; the default is Blades 6770.
 export interface BuildInfo {
   /** Directory inside the sparse archive clone that holds dash.xex + shrdres.xzp. */
   archive: string;
   /** Human name, used in messages only. */
   name: string;
+  /** Archive directories of the build's second witnesses (devkit twins), fetched with it; never extracted. */
+  twins: string[];
 }
 
 export const BUILDS: Record<string, BuildInfo> = {
-  '6770': { archive: 'vendor/archive/Blades/Retail/6770', name: 'Blades 6770' },
-  '9199': { archive: 'vendor/archive/NXE/Retail/9199', name: 'NXE 9199' },
+  '6770': { archive: 'vendor/archive/Blades/Retail/6770', name: 'Blades 6770', twins: ['Blades/Devkit/6719 (7776.0 XDK)'] },
+  '9199': { archive: 'vendor/archive/NXE/Retail/9199', name: 'NXE 9199', twins: ['NXE/Devkit/9199 (11626.0 XDK)'] },
+  // The last Xbox 360 dashboard. The archive has no devkit twin for it; the
+  // second witness is dashbigger.xex in the same directory, the uncompressed
+  // SEP copy of the same image (see LEARNINGS "Metro 17559").
+  '17559': { archive: 'vendor/archive/Metro/V2/Retail/17559', name: 'Metro 17559', twins: [] },
 };
 
 export const DEFAULT_BUILD = '6770';

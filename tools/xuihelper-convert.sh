@@ -6,12 +6,14 @@
 #
 # Needs vendor/xuihelper-cli (XUIHelper.CLI built for net10.0, see LEARNINGS
 # "XUIHelper's CLI on macOS") and the Homebrew dotnet. Paths must be absolute
-# and the group is the extension directory name (V5), not a build number.
+# and the group is the extension directory name, not a build number: V5 for
+# the XUR v5 builds (6770, 9199), V8 for Metro 17559.
 # Scenes XUIHelper refuses are listed at the end; xur2xui --diff reports them
 # as "no XUIHelper output" rather than as parser differences, so a refusal
 # here can never make the diff pass by accident.
 set -u
 build="${1:?usage: tools/xuihelper-convert.sh <build>}"
+case "$build" in 17559) group=V8 ;; *) group=V5 ;; esac
 root="$(cd "$(dirname "$0")/.." && pwd)"
 export PATH="/opt/homebrew/opt/dotnet/bin:$PATH"
 cli="$root/vendor/xuihelper-cli/XUIHelper.CLI.dll"
@@ -24,11 +26,11 @@ for xur in $(cd "$in" && find . -name '*.xur' | sort); do
   rel="${xur#./}"
   dst="$out/${rel%.xur}.xui"
   mkdir -p "$(dirname "$dst")"
-  if dotnet "$cli" conv -s "$in/$rel" -f xuiv12 -o "$dst" -g V5 >/dev/null 2>&1 && [ -s "$dst" ]; then
+  if dotnet "$cli" conv -s "$in/$rel" -f xuiv12 -o "$dst" -g "$group" >/dev/null 2>&1 && [ -s "$dst" ]; then
     ok=$((ok + 1))
   else
     bad=$((bad + 1)); failed="$failed $rel"; rm -f "$dst"
   fi
 done
 for f in $failed; do echo "  refused $f"; done
-echo "XUIHELPER_DONE $ok converted, $bad refused (build $build)"
+echo "XUIHELPER_DONE $ok converted, $bad refused (build $build, group $group)"

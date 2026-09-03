@@ -286,3 +286,58 @@ and legend, and every PLACEHOLDERS row checked for honesty.
   Verified clean: home strings, queue names/ramp, counter, legend,
   silhouette, channel targets, edge refusals, System/Console Settings rows
   and pitch, focus restore, Blades untouched. Fixes in progress with M4d.
+
+## Judge AB-17559: pending
+
+Metro 17559 through the extraction and parser pipeline (M5a, 2026-09-03).
+What the implementer claims, for the judge to verify from the bytes; nothing
+here is self-certified.
+
+- **Inputs and twin.** `Metro/V2/Retail/17559/dash.xex` (5,971,968 B,
+  sha256 3ad8f38d...), `shrdres.xzp` (223,911 B, 179c5be1...), and
+  `dashbigger.xex` (15,880,192 B, fc4ad906...; the uncompressed SEP copy of
+  the same image, `\SEP\20449700\dash.xex`) pinned in `fixtures/hashes.json`.
+  The archive has no devkit for Metro; the claim is that both XEXs yield the
+  same 16,941,056-byte basefile (c7c5f9b5...) and the same 36 resources
+  byte-for-byte.
+- **Extraction.** `npm run extract -- --build 17559` prints EXTRACT_PASS with
+  packs=36 entries=5186 packEntries=5187 xur=363 png=676 xus=3857 xma=22
+  jpg=9 scb=7 other=252 audio=22 (`fixtures/expected-17559.json`); 36/36
+  packs tile and pass `--probe`; one duplicate TOC entry (dashcomm
+  `ico_64x_AddFriends.png`, identical bytes); thirty `..\handles\*` entries
+  of `controlp` written under `__parent__/` and listed in the manifest by
+  their TOC name; AUDIO_PASS 22 (all XMA1 44.1 kHz, resampled).
+- **Strings.** XUS version 2 (UTF-8, NUL-terminated): 3,857 tables to EOF,
+  47,599 entries; 11,001 keyed entries in 3,480 tables resolve to a string
+  property of the sibling scene; 70 tables (100 entries) have no sibling and
+  are unverified; 31 named, 276 positional.
+- **Parser.** XUR v8 (`packages/xur/src/parse8.ts`): XUR_PASS 363/363 with
+  all twelve count-header fields recomputed per file (`computeCounts8`),
+  sections tiling, STRN charTotal, post-order compound numbering, value
+  counts. KEYD read per the console's decoder at .text 0x92203930 and its
+  jump table at .rdata 0x92011030 (type in the low six bits, 0..0xc; VECT
+  index payload for types 7/0xa/0xb/0xc); curve meanings from the evaluator
+  at 0x921e9788 / 0x921e9aa8 (LEARNINGS). The mapping from type 2's three
+  inline bytes to the evaluator's two parameters is NOT traced and is stated
+  as v5's convention.
+- **Oracle.** XUIHelper V8 converts 363/363; `xur2xui --diff` is
+  XUIDIFF_PASS 363 identical after the normalisations named in the tool
+  ((4) its .xhe IgnoreProperties list, read from the file; (5) XuiHtmlElement
+  Text misread as TeletypeCount; (6) its EaseScale `*=` bug; and .NET's
+  seven-digit Single formatting for quaternions, `f6single`). The v5 diffs
+  are unchanged (243 and 308 identical).
+- **Registry.** `packages/xur/extensions/17559/registry.json` from the 17559
+  basefile alone: 313 classes, 70 with tables bound by call graph; the
+  corpus's 69 classes all present (54 with tables, 15 zero-property); no
+  `inferred` or `xuitool-xml` entries. Seven differences from XUIHelper's
+  17559 XML listed in LEARNINGS, binary wins; 286 classes identical.
+- **Regression.** 6770 and 9199: EXTRACT_PASS with unchanged counts,
+  XUR_PASS 263/263 and 311/311, XUIDIFF_PASS, and `npm test` 83/83 (73
+  before; +2 synthetic v8 unit tests, +8 17559 corpus tests). Smoke board
+  result recorded in the M5a report.
+- **Not done, stated:** no 17559 runtime (`?build=17559` is not served;
+  `packages/runtime/src/build.ts` still lists two builds); the XACT wave
+  bank (`dashcomm/dash.xwb`) and the 44 XuiSoundXACT cues are not converted;
+  `SegoeXbox-Light.xtt` is not in the archive, so 17559 text would fall back
+  to the Convection decode; the Lua bytecode apps are classified, not
+  decoded.

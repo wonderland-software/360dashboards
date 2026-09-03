@@ -13,11 +13,41 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r\n|\r|\n/g, '\r\n');
 }
 
+/**
+ * A float as XUIHelper prints it. Floats and vectors go through
+ * `((double)v).ToString("0.000000")`: the exact value, which toFixed(6)
+ * renders identically, except that .NET prints negative zero as "-0.000000".
+ */
 export function f6(v: number): string {
-  // .NET prints negative zero as "-0.000000"; JS toFixed does not.
   if (Object.is(v, -0)) return '-0.000000';
   const s = v.toFixed(6);
   return s === '-0.000000' ? '-0.000000' : s;
+}
+
+/**
+ * A quaternion component as XUIHelper prints it: `quat.X.ToString("0.000000")`
+ * on the FLOAT, and .NET gives a Single seven significant digits under a
+ * custom format before rounding to the format. So 0x3D0EF5F0 (exactly
+ * 0.03489949554...) becomes "0.0348995" and then "0.034900", where the
+ * double path prints "0.034899" (17559 dashuisk/skin.xur, RING_A's
+ * Rotation). Reproduced by rounding the exact value to seven significant
+ * digits first, then rounding that decimal string half away from zero.
+ */
+export function f6single(v: number): string {
+  if (Object.is(v, -0)) return '-0.000000';
+  const seven = Math.fround(v).toPrecision(7);
+  if (/e/i.test(seven)) return f6(v);
+  const neg = seven.startsWith('-');
+  const [intPart, fracPart = ''] = seven.replace('-', '').split('.') as [string, string?];
+  if (fracPart.length <= 6) return `${neg ? '-' : ''}${intPart}.${fracPart.padEnd(6, '0')}`;
+  const digits = (intPart + fracPart.slice(0, 6)).split('').map(Number);
+  if (Number(fracPart[6]) >= 5) {
+    let i = digits.length - 1;
+    while (i >= 0) { if (digits[i] === 9) { digits[i] = 0; i--; } else { digits[i]!++; break; } }
+    if (i < 0) digits.unshift(1);
+  }
+  const all = digits.join('');
+  return `${neg ? '-' : ''}${all.slice(0, all.length - 6)}.${all.slice(all.length - 6)}`;
 }
 
 function scalar(def: XuPropertyDef, v: XuScalar): string {
@@ -28,7 +58,7 @@ function scalar(def: XuPropertyDef, v: XuScalar): string {
     case 'string': return esc(v as string);
     case 'float': return f6(v as number);
     case 'vector': { const p = v as XuVector; return `${f6(p.x)},${f6(p.y)},${f6(p.z)}`; }
-    case 'quaternion': { const q = v as XuQuaternion; return `${f6(q.x)},${f6(q.y)},${f6(q.z)},${f6(q.w)}`; }
+    case 'quaternion': { const q = v as XuQuaternion; return `${f6single(q.x)},${f6single(q.y)},${f6single(q.z)},${f6single(q.w)}`; }
     case 'color': { const c = v as XuColour; return '0x' + [c.a, c.r, c.g, c.b].map((n) => n.toString(16).padStart(2, '0')).join(''); }
     case 'custom': {
       const f = v as XuFigure;
@@ -40,7 +70,11 @@ function scalar(def: XuPropertyDef, v: XuScalar): string {
   }
 }
 
+/** Property names left out of the text (XUIHelper's <IgnoreProperties>: consumed by its reader, never written). */
+let omit: ReadonlySet<string> = new Set();
+
 function writeProperty(out: string[], p: XuProperty): void {
+  if (omit.has(p.def.name)) return;
   if (p.def.type === 'object') {
     out.push(`<${p.def.name}>`, '<Properties>');
     for (const c of p.value as XuProperty[]) writeProperty(out, c);
@@ -78,7 +112,7 @@ function writeTimeline(out: string[], tl: XuTimeline, owner: XuObject): void {
   out.push('<Timeline>', `<Id>${esc(tl.elementId)}</Id>`);
   // Merge tracks by definition, first appearance wins (XUIHelper's order).
   const defs: XuPropertyDef[] = [];
-  for (const t of tl.tracks) if (!defs.includes(t.def)) defs.push(t.def);
+  for (const t of tl.tracks) if (!defs.includes(t.def) && !omit.has(t.def.name)) defs.push(t.def);
   const baseList = (def: XuPropertyDef): XuScalar[] => {
     const v = element ? findValue(element.properties, def) : undefined;
     if (!Array.isArray(v)) throw new Error(`timeline "${tl.elementId}": element has no indexed value for ${def.name}`);
@@ -140,10 +174,21 @@ function writeObject(out: string[], o: XuObject, root: boolean): void {
   out.push(`</${o.className}>`);
 }
 
-/** XUIHelper-compatible XUI 000c text (no BOM; CRLF line ends, no trailing newline). */
-export function toXui(root: XuObject): string {
+/**
+ * XUIHelper-compatible XUI 000c text (no BOM; CRLF line ends, no trailing
+ * newline). `omitProperties` reproduces XUIHelper's <IgnoreProperties>: the
+ * named properties are left out of every <Properties> block AND out of every
+ * timeline (their TimelineProp and their per-keyframe Prop), which is what
+ * its writer does with a definition its .xhe ignores.
+ */
+export function toXui(root: XuObject, omitProperties: Iterable<string> = []): string {
+  omit = new Set(omitProperties);
   const out: string[] = [];
-  writeObject(out, root, true);
+  try {
+    writeObject(out, root, true);
+  } finally {
+    omit = new Set();
+  }
   return out.join('\r\n');
 }
 

@@ -90,6 +90,16 @@ export interface XuKeyframe {
   easeScale: number;
   /** One value per track, in track order. */
   values: XuScalar[];
+  /**
+   * XUR v8 only: the KEYD record's flag byte as stored (low six bits = the
+   * console's keyframe TYPE 0..0xc, top two bits a separate field), the
+   * VECT index types 7/0xa/0xb/0xc carry, and that vector (see parse8.ts,
+   * "KEYD flag byte"). Kept raw so the meaning of each type is a separate,
+   * checkable claim.
+   */
+  flags8?: number;
+  extra8?: number | null;
+  curve8?: XuVector;
 }
 
 export interface XuTimeline {

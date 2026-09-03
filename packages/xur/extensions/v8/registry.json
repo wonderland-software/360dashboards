@@ -1,0 +1,9199 @@
+{
+ "version": 8,
+ "group": "17559",
+ "classes": [
+  {
+   "name": "XuiElement",
+   "base": null,
+   "props": [
+    {
+     "id": 0,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 1,
+     "name": "Width",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "60.000000",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 2,
+     "name": "Height",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "30.000000",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 3,
+     "name": "Position",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 4,
+     "name": "Scale",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "1.000000,1.000000,1.000000",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 5,
+     "name": "Rotation",
+     "type": "quaternion",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000,1.000000",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 6,
+     "name": "Opacity",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 7,
+     "name": "Anchor",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 8,
+     "name": "Pivot",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0, 0, 0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 9,
+     "name": "Show",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "true",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 10,
+     "name": "BlendMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 11,
+     "name": "DisableTimelineRecursion",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 12,
+     "name": "DesignTime",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 13,
+     "name": "ColorWriteFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 14,
+     "name": "ClipChildren",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 15,
+     "name": "EnableEffects",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 16,
+     "name": "DisableFocusRecursion",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 17,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 18,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 19,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    },
+    {
+     "id": 20,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 21,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 22,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 23,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 24,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 25,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XuiElement"
+    },
+    {
+     "id": 26,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiElement"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiCanvas",
+   "base": "XuiElement",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiGroup",
+   "base": "XuiElement",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiVisual",
+   "base": "XuiElement",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiFigure",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 27,
+     "name": "Stroke",
+     "type": "object",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 28,
+     "name": "Fill",
+     "type": "object",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 29,
+     "name": "Closed",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    },
+    {
+     "id": 30,
+     "name": "Points",
+     "type": "custom",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiFigure"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiFigureFill",
+   "base": null,
+   "props": [
+    {
+     "id": 1,
+     "name": "FillType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "FillColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xFF0F0F80",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "Gradient",
+     "type": "object",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "Translation",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "Scale",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "1.0,1.0,1.0",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "Rotation",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "WrapX",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "WrapY",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    },
+    {
+     "id": 1,
+     "name": "TransformVersion",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFill"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiFigureFillGradient",
+   "base": null,
+   "props": [
+    {
+     "id": 1,
+     "name": "Radial",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 1,
+     "name": "NumStops",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 1,
+     "name": "StopColor",
+     "type": "color",
+     "flags": [
+      "indexed"
+     ],
+     "defaultValue": "",
+     "owner": "XuiFigureFillGradient"
+    },
+    {
+     "id": 1,
+     "name": "StopPos",
+     "type": "float",
+     "flags": [
+      "indexed"
+     ],
+     "defaultValue": "",
+     "owner": "XuiFigureFillGradient"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiFigureStroke",
+   "base": null,
+   "props": [
+    {
+     "id": 1,
+     "name": "StrokeWidth",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiFigureStroke"
+    },
+    {
+     "id": 1,
+     "name": "StrokeColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xFF0F0FEB",
+     "owner": "XuiFigureStroke"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiControl",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 31,
+     "name": "ClassOverride",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 32,
+     "name": "Visual",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 33,
+     "name": "Enabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 34,
+     "name": "UnfocusedInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 35,
+     "name": "NavLeft",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 36,
+     "name": "NavRight",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 37,
+     "name": "NavUp",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 38,
+     "name": "NavDown",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 39,
+     "name": "NavTabForward",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 40,
+     "name": "NavTabBackward",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 41,
+     "name": "Text",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 42,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "-1.000000",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 43,
+     "name": "ImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 44,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 45,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 46,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    },
+    {
+     "id": 47,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 48,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XuiControl"
+    },
+    {
+     "id": 49,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiControl"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiScene",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 50,
+     "name": "DefaultFocus",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 51,
+     "name": "TransFrom",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 52,
+     "name": "TransTo",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 53,
+     "name": "TransBackFrom",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 54,
+     "name": "TransBackTo",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 55,
+     "name": "InterruptTransitions",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiScene"
+    },
+    {
+     "id": 56,
+     "name": "IgnorePresses",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    },
+    {
+     "id": 57,
+     "name": "RecurseTransitions",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiScene"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiTabScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 134,
+     "name": "TabCount",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 135,
+     "name": "Wrap",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 136,
+     "name": "UserInterrupt",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 137,
+     "name": "VerticalTabs",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 138,
+     "name": "NoAutoHide",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTabScene"
+    },
+    {
+     "id": 139,
+     "name": "DefaultTab",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiTabScene"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiLabel",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 133,
+     "name": "MaxFlowLines",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiLabel"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiEdit",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 118,
+     "name": "TextLimit",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "65534",
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 119,
+     "name": "AllowedChars",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 120,
+     "name": "PasswordChar",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 121,
+     "name": "ReadOnly",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 122,
+     "name": "Multiline",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    },
+    {
+     "id": 123,
+     "name": "SmoothScroll",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiEdit"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiButton",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 58,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "22592",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 59,
+     "name": "PressAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 60,
+     "name": "PressAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 61,
+     "name": "PressAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 62,
+     "name": "FocusAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 63,
+     "name": "FocusAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    },
+    {
+     "id": 64,
+     "name": "FocusAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiButton"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiMessageBoxButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": null,
+     "name": "MessageBoxCenter",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiMessageBoxButton"
+    },
+    {
+     "id": null,
+     "name": "MessageBoxVisual",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiMessageBoxButton"
+    },
+    {
+     "id": null,
+     "name": "MessageBoxTitle",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiMessageBoxButton"
+    },
+    {
+     "id": null,
+     "name": "MessageBoxText",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiMessageBoxButton"
+    },
+    {
+     "id": null,
+     "name": "MessageBoxButtons",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiMessageBoxButton"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiNavButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 65,
+     "name": "PressPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 66,
+     "name": "StayVisible",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 67,
+     "name": "SrcTransIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNavButton"
+    },
+    {
+     "id": 68,
+     "name": "DestTransIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNavButton"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiBackButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiCheckbox",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 69,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "22592",
+     "owner": "XuiCheckbox"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiRadioButton",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 70,
+     "name": "PressKey",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "22592",
+     "owner": "XuiRadioButton"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiProgressBar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 108,
+     "name": "RangeMin",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiProgressBar"
+    },
+    {
+     "id": 109,
+     "name": "RangeMax",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "100",
+     "owner": "XuiProgressBar"
+    },
+    {
+     "id": 110,
+     "name": "Value",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiProgressBar"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiSlider",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 111,
+     "name": "RangeMin",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 112,
+     "name": "RangeMax",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "100",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 113,
+     "name": "Value",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 114,
+     "name": "Step",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 115,
+     "name": "Vertical",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 116,
+     "name": "AccelInc",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiSlider"
+    },
+    {
+     "id": 117,
+     "name": "AccelTime",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiSlider"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiList",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 103,
+     "name": "Wrap",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiList"
+    },
+    {
+     "id": 104,
+     "name": "WrapBump",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiList"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiCommonList",
+   "base": "XuiList",
+   "props": [
+    {
+     "id": 105,
+     "name": "ItemsText",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiCommonList"
+    },
+    {
+     "id": 106,
+     "name": "ItemsImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiCommonList"
+    },
+    {
+     "id": 107,
+     "name": "ItemsNavPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiCommonList"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiComboBox",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 105,
+     "name": "ComboBoxStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiComboBox"
+    },
+    {
+     "id": 106,
+     "name": "MaxVisibleVertItems",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiComboBox"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiImage",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 128,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImage"
+    },
+    {
+     "id": 129,
+     "name": "ImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiImage"
+    },
+    {
+     "id": 130,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImage"
+    },
+    {
+     "id": 131,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiImage"
+    },
+    {
+     "id": 132,
+     "name": "LoadType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImage"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiImagePresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 124,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImagePresenter"
+    },
+    {
+     "id": 125,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImagePresenter"
+    },
+    {
+     "id": 126,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImagePresenter"
+    },
+    {
+     "id": 127,
+     "name": "LoadType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiImagePresenter"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiText",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 71,
+     "name": "Text",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiText"
+    },
+    {
+     "id": 72,
+     "name": "TextColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xff000000",
+     "owner": "XuiText"
+    },
+    {
+     "id": 73,
+     "name": "DropShadowColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0x80000000",
+     "owner": "XuiText"
+    },
+    {
+     "id": 74,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "14.000000",
+     "owner": "XuiText"
+    },
+    {
+     "id": 75,
+     "name": "Font",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiText"
+    },
+    {
+     "id": 76,
+     "name": "TextStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "16",
+     "owner": "XuiText"
+    },
+    {
+     "id": 77,
+     "name": "LineSpacingAdjust",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiText"
+    },
+    {
+     "id": 78,
+     "name": "TextScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.0",
+     "owner": "XuiText"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiTextPresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 79,
+     "name": "TextColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xff000000",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 80,
+     "name": "DropShadowColor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0x80000000",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 81,
+     "name": "PointSize",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "14.000000",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 82,
+     "name": "Font",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 83,
+     "name": "TextStyle",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "16",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 84,
+     "name": "LineSpacingAdjust",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 85,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiTextPresenter"
+    },
+    {
+     "id": 86,
+     "name": "TextScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.000000",
+     "owner": "XuiTextPresenter"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiNineGrid",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 143,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 144,
+     "name": "LeftOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 145,
+     "name": "TopOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 146,
+     "name": "RightOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 147,
+     "name": "BottomOffset",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiNineGrid"
+    },
+    {
+     "id": 148,
+     "name": "NoCenter",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiNineGrid"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiRadioGroup",
+   "base": "XuiControl",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiScrollEnd",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 100,
+     "name": "Direction",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiScrollEnd"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiScrollBar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 101,
+     "name": "Direction",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiScrollBar"
+    },
+    {
+     "id": 102,
+     "name": "MinThumbSize",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiScrollBar"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiVideo",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "File",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiVideo"
+    },
+    {
+     "id": null,
+     "name": "SizeMode",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiVideo"
+    },
+    {
+     "id": null,
+     "name": "Pause",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVideo"
+    },
+    {
+     "id": null,
+     "name": "Loop",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiVideo"
+    },
+    {
+     "id": null,
+     "name": "Volume",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "-12.000000",
+     "owner": "XuiVideo"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiSound",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 87,
+     "name": "State",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "2",
+     "owner": "XuiSound"
+    },
+    {
+     "id": 88,
+     "name": "Loop",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiSound"
+    },
+    {
+     "id": 89,
+     "name": "Finish",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiSound"
+    },
+    {
+     "id": 90,
+     "name": "Volume",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "-12.000000",
+     "owner": "XuiSound"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiSoundXAudio",
+   "base": "XuiSound",
+   "props": [
+    {
+     "id": 178,
+     "name": "File",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiSoundXAudio"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiSoundXACT",
+   "base": "XuiSound",
+   "props": [
+    {
+     "id": 179,
+     "name": "Cue",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiSoundXACT"
+    },
+    {
+     "id": 180,
+     "name": "SoundBank",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiSoundXACT"
+    },
+    {
+     "id": 181,
+     "name": "WaveBank",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiSoundXACT"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiListItem",
+   "base": "XuiCheckbox",
+   "props": [
+    {
+     "id": 91,
+     "name": "Layout",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 92,
+     "name": "Checkable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 93,
+     "name": "SelectedSize",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 94,
+     "name": "KeepSizeUnfocused",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 95,
+     "name": "InterItemSpacing",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 96,
+     "name": "SmoothScroll",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 97,
+     "name": "SmoothScrollBaseSpeed",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "180.000000",
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 98,
+     "name": "SmoothScrollMaxSpeed",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1080.000000",
+     "owner": "XuiListItem"
+    },
+    {
+     "id": 99,
+     "name": "SmoothScrollAcceleration",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "3.000000",
+     "owner": "XuiListItem"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiCaret",
+   "base": "XuiControl",
+   "props": [],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiHtmlElement",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "TeletypeCount",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "-1",
+     "owner": "XuiHtmlElement"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiHtmlControl",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": null,
+     "name": "TeletypeCount",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "-1",
+     "owner": "XuiHtmlControl"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiHtmlPresenter",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "DataAssociation",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiHtmlPresenter"
+    }
+   ],
+   "source": "XuiElements.xml"
+  },
+  {
+   "name": "XuiDataBoundTextPresenter",
+   "base": "XuiTextPresenter",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundTextPresenter"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiDataBoundHtmlPresenter",
+   "base": "XuiHtmlPresenter",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundHtmlPresenter"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiDataBoundImagePresenter",
+   "base": "XuiImagePresenter",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundImagePresenter"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiDataBoundHtmlControl",
+   "base": "XuiHtmlControl",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundHtmlControl"
+    },
+    {
+     "id": null,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiDataBoundHtmlControl"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiDataBoundImage",
+   "base": "XuiImage",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundImage"
+    },
+    {
+     "id": null,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiDataBoundImage"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiDataBoundLabel",
+   "base": "XuiLabel",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBinding",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiDataBoundLabel"
+    },
+    {
+     "id": null,
+     "name": "DataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiDataBoundLabel"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XuiListItemDataBinder",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "DataBindings",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiListItemDataBinder"
+    }
+   ],
+   "source": "XuiDataBinding.xml"
+  },
+  {
+   "name": "XamElement",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamElement"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamElement"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamCanvas",
+   "base": "XuiCanvas",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamCanvas"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCanvas"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamGroup",
+   "base": "XuiGroup",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamGroup"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamGroup"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    },
+    {
+     "id": null,
+     "name": "RecurseTransitions",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScene"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamTabScene",
+   "base": "XuiTabScene",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    },
+    {
+     "id": null,
+     "name": "RecurseTransitions",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTabScene"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamPerspectiveScene",
+   "base": "XamScene",
+   "props": [
+    {
+     "id": null,
+     "name": "ProjectionScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.000000",
+     "owner": "XamPerspectiveScene"
+    },
+    {
+     "id": null,
+     "name": "ProjectionCenterU",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.500000",
+     "owner": "XamPerspectiveScene"
+    },
+    {
+     "id": null,
+     "name": "ProjectionCenterV",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.500000",
+     "owner": "XamPerspectiveScene"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamControl",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamControl"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamControl"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamLabel",
+   "base": "XuiLabel",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamLabel"
+    },
+    {
+     "id": null,
+     "name": "MaxFlowLines",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamLabel"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamEdit",
+   "base": "XuiEdit",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamEdit"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamEdit"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamButton"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamBackButton",
+   "base": "XuiBackButton",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamBackButton"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "PressAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimObject",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimStartFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    },
+    {
+     "id": null,
+     "name": "FocusAnimEndFrame",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamNavButton"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamCheckbox",
+   "base": "XuiCheckbox",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamCheckbox"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCheckbox"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamRadioButton",
+   "base": "XuiRadioButton",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamRadioButton"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioButton"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamProgressBar",
+   "base": "XuiProgressBar",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamProgressBar"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamProgressBar"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamSlider",
+   "base": "XuiSlider",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamSlider"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSlider"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamList",
+   "base": "XuiList",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamList"
+    },
+    {
+     "id": null,
+     "name": "WrapBump",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamList"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamCommonList",
+   "base": "XuiCommonList",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCommonList"
+    },
+    {
+     "id": null,
+     "name": "WrapBump",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamCommonList"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamImage",
+   "base": "XuiImage",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamImage"
+    },
+    {
+     "id": null,
+     "name": "LoadType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImage"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamImagePresenter",
+   "base": "XuiImagePresenter",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamImagePresenter"
+    },
+    {
+     "id": null,
+     "name": "LoadType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamImagePresenter"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamText",
+   "base": "XuiText",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamText"
+    },
+    {
+     "id": null,
+     "name": "TextScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.0",
+     "owner": "XamText"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamTextPresenter",
+   "base": "XuiTextPresenter",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextPresenter"
+    },
+    {
+     "id": null,
+     "name": "TextScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.000000",
+     "owner": "XamTextPresenter"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamNineGrid",
+   "base": "XuiNineGrid",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamNineGrid"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamNineGrid"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamRadioGroup",
+   "base": "XuiRadioGroup",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamRadioGroup"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamRadioGroup"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamScrollEnd",
+   "base": "XuiScrollEnd",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamScrollEnd"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamScrollEnd"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamSound",
+   "base": "XuiSound",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamSound"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSound"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamSoundXAudio",
+   "base": "XuiSoundXAudio",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamSoundXAudio"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamSoundXAudio"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamListItem",
+   "base": "XuiListItem",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamListItem"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamListItem"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamCaret",
+   "base": "XuiCaret",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "HasContextMenu",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "SizeToText",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "UseNuiAsMouse",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "AutoId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "HoverSelectTimer",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.750000",
+     "owner": "XamCaret"
+    },
+    {
+     "id": null,
+     "name": "QuickInput",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamCaret"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamShader",
+   "base": "XamElement",
+   "props": [
+    {
+     "id": null,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "ShaderFile",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "WrapX",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "WrapY",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "CompositeEdge",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "ForceComposite",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "EffectParams1",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "EffectParams2",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "EffectParams3",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "EffectParams4",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamShader"
+    },
+    {
+     "id": null,
+     "name": "EffectParams5",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamShader"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamGridPanel",
+   "base": "XamElement",
+   "props": [
+    {
+     "id": null,
+     "name": "Columns",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "Rows",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "CellSpacing",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "Param0",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "Param1",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "Param2",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamGridPanel"
+    },
+    {
+     "id": null,
+     "name": "Param3",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamGridPanel"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamTextureSurface",
+   "base": "XamGroup",
+   "props": [
+    {
+     "id": null,
+     "name": "Offscreen",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamTextureSurface"
+    },
+    {
+     "id": null,
+     "name": "DepthStencil",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamTextureSurface"
+    },
+    {
+     "id": null,
+     "name": "PreRender",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextureSurface"
+    },
+    {
+     "id": null,
+     "name": "Buffered",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamTextureSurface"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamVariable",
+   "base": "XamElement",
+   "props": [
+    {
+     "id": null,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamVariable"
+    },
+    {
+     "id": null,
+     "name": "VectorVariable",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XamVariable"
+    },
+    {
+     "id": null,
+     "name": "FloatVariable",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XamVariable"
+    },
+    {
+     "id": null,
+     "name": "IntegerVariable",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamVariable"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamFigure",
+   "base": "XuiFigure",
+   "props": [
+    {
+     "id": null,
+     "name": "GripTarget",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "Hittable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "LayoutLineBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "LayoutFloat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "Column",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "Row",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "ColumnSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "RowSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "1",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "ColorFactor",
+     "type": "color",
+     "flags": [],
+     "defaultValue": "0xffffffff",
+     "owner": "XamFigure"
+    },
+    {
+     "id": null,
+     "name": "CenterPivot",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XamFigure"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XamGuideNavButton",
+   "base": "XamNavButton",
+   "props": [
+    {
+     "id": null,
+     "name": "CommandId",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XamGuideNavButton"
+    },
+    {
+     "id": null,
+     "name": "MainImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XamGuideNavButton"
+    }
+   ],
+   "source": "XamElements.xml"
+  },
+  {
+   "name": "XuiDivider1",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiDivider2",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiShader",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 149,
+     "name": "ShaderId",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 150,
+     "name": "ShaderFile",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 151,
+     "name": "TextureFileName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 152,
+     "name": "TextureSurfaceElement",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 153,
+     "name": "WrapX",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 154,
+     "name": "WrapY",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 155,
+     "name": "BrushFlags",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 156,
+     "name": "CompositeEdge",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 157,
+     "name": "ForceComposite",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiShader"
+    },
+    {
+     "id": 158,
+     "name": "EffectParams1",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 159,
+     "name": "EffectParams2",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 160,
+     "name": "EffectParams3",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 161,
+     "name": "EffectParams4",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiShader"
+    },
+    {
+     "id": 162,
+     "name": "EffectParams5",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiShader"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiTextureSurface",
+   "base": "XuiGroup",
+   "props": [
+    {
+     "id": 163,
+     "name": "Offscreen",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiTextureSurface"
+    },
+    {
+     "id": 164,
+     "name": "DepthStencil",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": "false",
+     "owner": "XuiTextureSurface"
+    },
+    {
+     "id": 165,
+     "name": "PreRender",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextureSurface"
+    },
+    {
+     "id": 166,
+     "name": "Buffered",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTextureSurface"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiVariable",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 167,
+     "name": "Id",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 168,
+     "name": "VectorVariable",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": "0.000000,0.000000,0.000000",
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 169,
+     "name": "FloatVariable",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiVariable"
+    },
+    {
+     "id": 170,
+     "name": "IntegerVariable",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiVariable"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiGridPanel",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 171,
+     "name": "Columns",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 172,
+     "name": "Rows",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 173,
+     "name": "CellSpacing",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 174,
+     "name": "Param0",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 175,
+     "name": "Param1",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 176,
+     "name": "Param2",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiGridPanel"
+    },
+    {
+     "id": 177,
+     "name": "Param3",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.000000",
+     "owner": "XuiGridPanel"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiTouch",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 179,
+     "name": "PositionOffset",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 180,
+     "name": "HorizontalScrub",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 181,
+     "name": "HorizontalFling",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 182,
+     "name": "HorizontalRubberBand",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 183,
+     "name": "HorizontalClamp",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 184,
+     "name": "VerticalScrub",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 185,
+     "name": "VerticalFling",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 186,
+     "name": "VerticalRubberBand",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 187,
+     "name": "VerticalClamp",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 188,
+     "name": "CenterSmallCanvas",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 189,
+     "name": "StretchToFit",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 190,
+     "name": "EnableBandBreak",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    },
+    {
+     "id": 191,
+     "name": "Hollow",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTouch"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiTwist",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 192,
+     "name": "Wrap",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTwist"
+    },
+    {
+     "id": 193,
+     "name": "Center",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiTwist"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiCompVideo",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "LiveVisionDashEffect",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CDashListChooser",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CXuiEditRThumbScroll",
+   "base": "XuiEdit",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ScriptList",
+   "base": "XuiList",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataSet",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    },
+    {
+     "id": 2,
+     "name": "Embedded",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptList"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ScriptData",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "Query",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 1,
+     "name": "State",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 2,
+     "name": "ItemCount",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    },
+    {
+     "id": 3,
+     "name": "Selected",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptData"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ScriptImage",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "DataSet",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 1,
+     "name": "DataAssociation",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 2,
+     "name": "Embedded",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    },
+    {
+     "id": 3,
+     "name": "Item",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptImage"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "DashData",
+   "base": "ScriptData",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "DashDataList",
+   "base": "ScriptList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CLiveMessageBox",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MultiImage",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "ForegroundImgDataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "MultiImage"
+    },
+    {
+     "id": 1,
+     "name": "BackgroundImgDataAssociation",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "MultiImage"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NuiBack",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "SingleHandleVisual",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NuiVScroll",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NuiNotch",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NuiSideNav",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCValueSpin",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCTextSpin",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCTimezone",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCLanguage",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCCountry",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCRatingView",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCScreenSize",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCHints",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashPasscodeEdit",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashPasscodeNEdit",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "DashSettingsList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CFamilyTimerDurationList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CGameExemptionsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashPControlSettingsMenuButtons",
+   "base": "XuiRadioGroup",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashRemoteCList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ChangeTVProviderList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCCSettingsMenuButtons",
+   "base": "XuiRadioGroup",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "dashCCSettings_ValuesListView",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "GridList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ImageRenderControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "SongList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MediaContainerList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NowPlayingList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MusicPlayPauseButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "NowPlayingRipOrEditButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MusicPlaybackModeButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "VisualizerButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "EditNowPlayingQueueList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "RipCDProgressList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "EditBoxButton",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "FileViewList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MusicEqualizer",
+   "base": "XuiLabel",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "VideoData",
+   "base": "DashData",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "VideoContentList",
+   "base": "DashDataList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CLiveKeyboard",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "C4LineBtn",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CNetworkListItem",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CTestStatus",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "TracerouteDNSList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "DeviceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "CategoriesList",
+   "base": "XuiCommonList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ItemsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "HDDVDContentsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "WizDeviceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "WizCategoriesList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "WizDetailsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "WizSourceSelectorList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "AsyncTaskManager0",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MeGamercardWorker",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "YouGamercardWorker",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiGamerCard",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "Format",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiGamerCard"
+    },
+    {
+     "id": 1,
+     "name": "ShowExtendedPanel",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiGamerCard"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "LiveVisionControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "MediaSourceList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "SlotContainerButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "XuiAvatar",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "UseActiveUserAvatar",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 1,
+     "name": "EnableUserControl",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 2,
+     "name": "UseCustomView",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 3,
+     "name": "RenderView",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 4,
+     "name": "CustomViewEyePosition",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 5,
+     "name": "CustomViewFocusPosition",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 6,
+     "name": "CustomViewUpDirection",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 7,
+     "name": "ShowSelfShadow",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 8,
+     "name": "ShowShadow",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 9,
+     "name": "ShowCarryable",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 10,
+     "name": "ShowHat",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 11,
+     "name": "FreezeAvatar",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 12,
+     "name": "UseAvateering",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 13,
+     "name": "FullBodyAvateering",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    },
+    {
+     "id": 14,
+     "name": "AvateeringTrackingID",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "XuiAvatar"
+    }
+   ],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "COptionList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "VisionEffectList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "SkinsList",
+   "base": "XuiList",
+   "props": [],
+   "source": "17559CustomElements.xml"
+  },
+  {
+   "name": "ScriptScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "Script",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptScene"
+    },
+    {
+     "id": 1,
+     "name": "Visible",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ScriptScene"
+    }
+   ],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "PanelSettings",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    },
+    {
+     "id": 1,
+     "name": "PanelStrings",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    },
+    {
+     "id": 2,
+     "name": "PanelScenePaths",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashScene"
+    }
+   ],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "XuiPerspectiveScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 140,
+     "name": "ProjectionScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "1.000000",
+     "owner": "XuiPerspectiveScene"
+    },
+    {
+     "id": 141,
+     "name": "ProjectionCenterU",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.500000",
+     "owner": "XuiPerspectiveScene"
+    },
+    {
+     "id": 142,
+     "name": "ProjectionCenterV",
+     "type": "float",
+     "flags": [],
+     "defaultValue": "0.500000",
+     "owner": "XuiPerspectiveScene"
+    }
+   ],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "VideoContentScene",
+   "base": "ScriptScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashVideoFullScreenScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MetaPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashLoading",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashBkgnd",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ChannelListScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SpeechPackVuiBarScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCCInputScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCTime",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCDate",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashSystemScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashSettingsRoot",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashVideoSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashVideoSettings_HD",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashVideoSettings_Format",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashVideoSettings_60",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAudioSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAudioSettings_D",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAudioSettings_FX",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAudioSettings_Nielsen",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashClockSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashClockSettings_Menu",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashClockSettings_TZone",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashClockSettings_DSaving",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashClockSettings_1224",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashLangLocaleSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashLanguageSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCountrySettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CFamilyTimerSettingsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CGameExemptionsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettingsMenu",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_Game",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_Video",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_VideoMovie",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_VideoTV",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_VideoExplicit",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_VideoUnrated",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_LiveA",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_LiveC",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_Passcode",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_PasscodeHint",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAutoOff",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashStartupShutdownSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashStartUp",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashRemoteC",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashScreensaver",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashOutputLevels",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashColorSpaceSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashDisplayDiscoverySettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashSystemReset",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashLiveVisionSettingsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashBackgroundDownloads",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashMediaAutoLaunch",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashPControlSettings_ContentSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "KinectSettingsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "KinectChatMicSettingScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "KinectSensorSettingScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SpeechSettingScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dash3DEnableSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashTVScreenSizeSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashConsoleDiscoverable",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ChangeTVProvider",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashConsoleName",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCCSettingsMenu",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCCSettings_List",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashCCSettings_ValuesList",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "dashAutoDownloads",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DeviceMainScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "FullScreenPhotoScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "TransportControlsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DownloadLiveSignupScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CongratulationsScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "GotoMusicPlayerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "GotoMusicPlayerDashScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MusicLibraryScene",
+   "base": "GotoMusicPlayerDashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SongListScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MediaContainerListScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MediaContainerOptionsScene",
+   "base": "GotoMusicPlayerScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ArtistOptionsScene",
+   "base": "GotoMusicPlayerScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SongOptionsScene",
+   "base": "GotoMusicPlayerScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SongMetadataScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NowPlayingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "VisualizerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "EditNowPlayingQueueScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "RipCDProgressScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "RipCDSelectScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "EditTagInfoScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "FileViewScene",
+   "base": "GotoMusicPlayerScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DeviceNotBrowseableScene",
+   "base": "GotoMusicPlayerScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MusicTransportControlsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "VideoScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "FiltersCollectionsScene",
+   "base": "ScriptScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MediaSourceSelectionScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2004_NetworkDetails",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2004_MasterTab",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2005_AdditionalSettings",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2016_EditIPSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2018_IPSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2033_DNSConfig",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2034_DNSSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2036_PPPoESettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2038_ConsoleInformation",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2020_AvailableWirelessNetworks",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2022_WirelessSecuritySettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2024_EnterSettings",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2026_ChannelList",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2028_WirelessModes",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "C2015_WirelessInformation",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CSuggestionScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CConnectBar",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CTestingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CNetworkMenu",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CNetworkMain",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CNetworkTraceroute",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CNetworkTracerouteResults",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionOOBE",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionWiredSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionScanningSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionWirelessSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionWirelessInfoSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionNoWirelessNetworksFoundSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionAdvancedWirelessSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSelectionConfiguredWirelessSlot",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkDeviceSelectScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkDeviceMetaPanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkDeviceManagementScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DeviceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DeviceDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CategoriesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ItemsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ItemDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "OperationProgressScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "FormatHDScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DeleteMusicScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "HDDVDDeviceScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "HDDVDContentsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "HDDVDContentDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WizDeviceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WizCategoriesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WizDetailsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WizSourceSelectorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ConfigureScene",
+   "base": "DashScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ConfigureAdvanced",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "InstallTitleScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ErrorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WelcomeScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ContactErrorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "WaitingScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "OldVersionScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MediaCenterScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NetworkSettingsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "PcSoftwareScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "NoNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SlowNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "Wireless80211bScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ReconfigureWirelessScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "LimitedNetworkScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MCXFullscreenVideo",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "BaseScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ExtendedScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "GamerCardScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ReputationScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MiniGamerCardScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "MediaSourceNoComputersMetapanelScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "TraySlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CImageDestSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "LiveTileSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CMovieSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CarouselSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "SlotContainerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "QuickplaySlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ThemePickerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ThemeVisionEffectsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "FullscreenVideo",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "VideoURL",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "FullscreenVideo"
+    },
+    {
+     "id": 1,
+     "name": "VideoCaptionURL",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "FullscreenVideo"
+    }
+   ],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "DashAppHostScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "DashAppName",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "DashAppHostScene"
+    }
+   ],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CTaskManagerScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CProfileSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CActionSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CSignInTemplateScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CModalMenuScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "CSkipSlotScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "InactiveImage",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "OuterRing",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559SceneElements.xml"
+  },
+  {
+   "name": "ControlPackAuraControl",
+   "base": "XuiElement",
+   "props": [
+    {
+     "id": 0,
+     "name": "ThemeImageIndex",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    },
+    {
+     "id": 1,
+     "name": "BackgroundImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    },
+    {
+     "id": 2,
+     "name": "SurfaceSphere",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    },
+    {
+     "id": 3,
+     "name": "BannerImage",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    },
+    {
+     "id": 4,
+     "name": "BackgroundImagePanScale",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    },
+    {
+     "id": 5,
+     "name": "SurfaceVignette",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackAuraControl"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackAuraScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackDashCursorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackGuideItem",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackGuideLabel",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackGuideScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "ColumnBlocks",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackGuideScene"
+    },
+    {
+     "id": 1,
+     "name": "ColumnBlockSpan",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackGuideScene"
+    },
+    {
+     "id": 2,
+     "name": "BumperBlocks",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackGuideScene"
+    },
+    {
+     "id": 3,
+     "name": "MaxColumns",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackGuideScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackLegacyControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackLegendScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "LeftEdgeGutter",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackLegendScene"
+    },
+    {
+     "id": 1,
+     "name": "RightEdgeGutter",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackLegendScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackMiniPIPControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackMobyScene",
+   "base": "XuiPerspectiveScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "FocusScalingEnabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackMobyScene"
+    },
+    {
+     "id": 1,
+     "name": "OverflowPages",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackMobyScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackRomeScene",
+   "base": "XuiPerspectiveScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "FocusScalingEnabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRomeScene"
+    },
+    {
+     "id": 1,
+     "name": "OverflowPages",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRomeScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackScourScene",
+   "base": "XuiPerspectiveScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackRuneScene",
+   "base": "XuiPerspectiveScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "NuiFastAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRuneScene"
+    },
+    {
+     "id": 1,
+     "name": "NuiSlowAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRuneScene"
+    },
+    {
+     "id": 2,
+     "name": "NuiSlowDetachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRuneScene"
+    },
+    {
+     "id": 3,
+     "name": "NuiApproachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackRuneScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackSlotListControl",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "BetweenSlotSpacing",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 1,
+     "name": "HorzAnchorJustify",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 2,
+     "name": "VertAnchorJustify",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 3,
+     "name": "OverflowPages",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 4,
+     "name": "FocusScalingEnabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 5,
+     "name": "AllowFocusOnSlots",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 6,
+     "name": "PreviewModeEnabled",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 7,
+     "name": "AdjustProjection",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    },
+    {
+     "id": 8,
+     "name": "VerticalLayout",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackSlotListControl"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackHandleTracker",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "PositionRay",
+     "type": "quaternion",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 1,
+     "name": "ScreenOffset",
+     "type": "quaternion",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 2,
+     "name": "Handedness",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 3,
+     "name": "Size",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 4,
+     "name": "Direction",
+     "type": "quaternion",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 5,
+     "name": "AngleHigh",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    },
+    {
+     "id": 6,
+     "name": "DeadZoneAngleHigh",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHandleTracker"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackWiperScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackScourThumbnailControl",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackPageGrid",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "ColumnsPerPage",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackPageGrid"
+    },
+    {
+     "id": 1,
+     "name": "RowsPerPage",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackPageGrid"
+    },
+    {
+     "id": 2,
+     "name": "PagePadding",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackPageGrid"
+    },
+    {
+     "id": 3,
+     "name": "IntraPagePadding",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackPageGrid"
+    },
+    {
+     "id": 4,
+     "name": "PreviewScenePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackPageGrid"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackHubScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "TemplatePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHubScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackInputScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "TemplatePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackInputScene"
+    },
+    {
+     "id": 1,
+     "name": "KeyboardInput",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackInputScene"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackVuiBling",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackHorizonControl",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 0,
+     "name": "ScenePadding",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHorizonControl"
+    },
+    {
+     "id": 1,
+     "name": "RightSidePadding",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackHorizonControl"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiTipsScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiHoverButton",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 0,
+     "name": "Handedness",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 1,
+     "name": "Magnetism",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 2,
+     "name": "NuiFastAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 3,
+     "name": "NuiSlowAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 4,
+     "name": "NuiSlowDetachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 5,
+     "name": "NuiApproachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    },
+    {
+     "id": 6,
+     "name": "MagnetOffset",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverButton"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiHoverBack",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 0,
+     "name": "Handedness",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 1,
+     "name": "Magnetism",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 2,
+     "name": "NuiFastAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 3,
+     "name": "NuiSlowAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 4,
+     "name": "NuiSlowDetachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 5,
+     "name": "NuiApproachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    },
+    {
+     "id": 6,
+     "name": "MagnetOffset",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverBack"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiHoverChrome",
+   "base": "XuiButton",
+   "props": [
+    {
+     "id": 0,
+     "name": "Handedness",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 1,
+     "name": "Magnetism",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 2,
+     "name": "NuiFastAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 3,
+     "name": "NuiSlowAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 4,
+     "name": "NuiSlowDetachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 5,
+     "name": "NuiApproachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    },
+    {
+     "id": 6,
+     "name": "MagnetOffset",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverChrome"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiHoverCheckbox",
+   "base": "XuiCheckbox",
+   "props": [
+    {
+     "id": 0,
+     "name": "Handedness",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 1,
+     "name": "Magnetism",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 2,
+     "name": "NuiFastAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 3,
+     "name": "NuiSlowAttachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 4,
+     "name": "NuiSlowDetachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 5,
+     "name": "NuiApproachRadius",
+     "type": "float",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    },
+    {
+     "id": 6,
+     "name": "MagnetOffset",
+     "type": "vector",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiHoverCheckbox"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackVariablesScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiBack",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "AutoDisableHandle",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiBack"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackSimpleCursorScene",
+   "base": "XuiScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiRadioButton",
+   "base": "XuiRadioButton",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiCheckbox",
+   "base": "XuiCheckbox",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiButton",
+   "base": "XuiButton",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiVScroll",
+   "base": "XuiElement",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiSideNav",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "XurPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiSideNav"
+    },
+    {
+     "id": 1,
+     "name": "UseLeftRail",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiSideNav"
+    },
+    {
+     "id": 2,
+     "name": "UseRightRail",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiSideNav"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackNuiSwipeNav",
+   "base": "XuiControl",
+   "props": [
+    {
+     "id": 0,
+     "name": "IsLeftSide",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "ControlPackNuiSwipeNav"
+    }
+   ],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "DetailsRootScene",
+   "base": "ControlPackRomeScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "FiltersRootScene",
+   "base": "ControlPackRomeScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "NetworkSelectionMainScene",
+   "base": "ControlPackRomeScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "CGamerRootScene",
+   "base": "ControlPackRomeScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ThemesRootScene",
+   "base": "ControlPackRomeScene",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "ControlPackSystemGesture",
+   "base": "XuiControl",
+   "props": [],
+   "source": "17559ControlPackElements.xml"
+  },
+  {
+   "name": "HUDScene",
+   "base": "XuiScene",
+   "props": [
+    {
+     "id": 182,
+     "name": "OpenType",
+     "type": "unsigned",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "HUDScene"
+    },
+    {
+     "id": 183,
+     "name": "LegendA",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "HUDScene"
+    },
+    {
+     "id": 184,
+     "name": "LegendB",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "HUDScene"
+    },
+    {
+     "id": 185,
+     "name": "LegendX",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "HUDScene"
+    },
+    {
+     "id": 186,
+     "name": "LegendY",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "HUDScene"
+    },
+    {
+     "id": 187,
+     "name": "ShowGamerInfo",
+     "type": "bool",
+     "flags": [],
+     "defaultValue": null,
+     "owner": "HUDScene"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "GuideDashCommandNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": null,
+     "name": "DashCommand",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "GuideDashCommandNavButton"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "GuideMainSceneNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": null,
+     "name": "MainScenePressPath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "GuideMainSceneNavButton"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "ScriptActionNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": 188,
+     "name": "Param",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    },
+    {
+     "id": 189,
+     "name": "Param2",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    },
+    {
+     "id": 190,
+     "name": "Param3",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    },
+    {
+     "id": 191,
+     "name": "Param4",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    },
+    {
+     "id": 192,
+     "name": "Param5",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    },
+    {
+     "id": 193,
+     "name": "Param6",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "ScriptActionNavButton"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "AccountManagementNavButton",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "VideoMarketplaceNavButton",
+   "base": "XuiNavButton",
+   "props": [],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "AvatarEditorNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": null,
+     "name": "EntryPoint",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "AvatarEditorNavButton"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  },
+  {
+   "name": "XuiGuideNavButton",
+   "base": "XuiNavButton",
+   "props": [
+    {
+     "id": 194,
+     "name": "CommandId",
+     "type": "integer",
+     "flags": [],
+     "defaultValue": "0",
+     "owner": "XuiGuideNavButton"
+    },
+    {
+     "id": 195,
+     "name": "MainImagePath",
+     "type": "string",
+     "flags": [],
+     "defaultValue": "",
+     "owner": "XuiGuideNavButton"
+    }
+   ],
+   "source": "17559HUDElements.xml"
+  }
+ ]
+}

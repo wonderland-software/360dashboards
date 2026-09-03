@@ -2,17 +2,18 @@
 //
 //   node --import tsx tools/xur2json.ts <file.xur> [--strict]      # JSON to stdout
 //   node --import tsx tools/xur2json.ts --corpus <dir> [--strict]  # sweep every .xur under dir
-//   --registry 6770|9199|v5   which class registry to parse with (default 6770,
-//                             or DASH_BUILD); 6770 and 9199 are generated from
-//                             their own executables (tools/build-registry.ts),
-//                             v5 is XUIHelper's hand-written 9199 XML.
+//   --registry 6770|9199|17559|v5|v8   which class registry to parse with
+//                             (default 6770, or DASH_BUILD); 6770, 9199 and
+//                             17559 are generated from their own executables
+//                             (tools/build-registry.ts), v5/v8 are XUIHelper's
+//                             hand-written 9199 / 17559 XML.
 //
 // --strict fails a file whose recomputed count header differs from the one
 // stored in it. In corpus mode failures are grouped by message so a registry
 // gap shows up as one line, not two hundred.
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { XuRegistry, parseXur, computeCounts, diffCounts, type XurDocument } from '@xur/index';
+import { XuRegistry, parseXur, computeCounts, diffCounts, computeCounts8, diffCounts8, type XurDocument } from '@xur/index';
 
 const args = process.argv.slice(2);
 const strict = args.includes('--strict');
@@ -26,6 +27,7 @@ const reg = new XuRegistry(JSON.parse(readFileSync(`packages/xur/extensions/${re
 // object's declared property count, every class's packed-byte count, every
 // compound's value count, and the DATA section ending on its last byte.
 function check(doc: XurDocument): string[] {
+  if (doc.counts8) return diffCounts8(doc.counts8, computeCounts8(doc));
   if (!doc.counts) return [];
   return diffCounts(doc.counts, computeCounts(doc.root, reg));
 }
@@ -48,7 +50,7 @@ if (corpusIx >= 0) {
   for (const f of files) {
     try {
       const doc = parseXur(new Uint8Array(readFileSync(f)), reg);
-      if (!doc.counts) noCounts++;
+      if (!doc.counts && !doc.counts8) noCounts++;
       const problems = check(doc);
       if (problems.length === 0) ok++;
       else for (const p of problems) failures.set(p, [...(failures.get(p) ?? []), relative(dir, f)]);
@@ -68,7 +70,7 @@ if (corpusIx >= 0) {
   const doc = parseXur(new Uint8Array(readFileSync(file)), reg);
   const problems = check(doc);
   const json = JSON.stringify(
-    { header: doc.header, counts: doc.counts, computed: doc.counts ? computeCounts(doc.root, reg) : null, root: doc.root },
+    { header: doc.header, counts: doc.counts ?? doc.counts8, computed: doc.counts8 ? computeCounts8(doc) : doc.counts ? computeCounts(doc.root, reg) : null, root: doc.root },
     (k, v) => (k === 'def' ? `${v.owner}.${v.name}` : v),
     2,
   );

@@ -2,7 +2,7 @@
 // image path forms, visual names, figure shapes, animation reach. Sizes the
 // renderer honestly and feeds the judges' coverage checks.
 //
-//   node --import tsx tools/class-census.ts [extracted/6770/xuiz] [--registry 6770|9199]
+//   node --import tsx tools/class-census.ts [extracted/6770/xuiz] [--registry 6770|9199|17559]
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { XuRegistry, parseXur, idOf, type XuObject, type XuProperty, type XuFigure } from '@xur/index';

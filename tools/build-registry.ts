@@ -1,6 +1,6 @@
 // Generate a dashboard build's XUI class registry FROM ITS EXECUTABLE.
 //
-//   node --import tsx tools/build-registry.ts [--build 6770|9199] [--corpus extracted/<build>/xuiz]
+//   node --import tsx tools/build-registry.ts [--build 6770|9199|17559] [--corpus extracted/<build>/xuiz]
 //
 // Output: packages/xur/extensions/<build>/registry.json with a provenance
 // note per class. Every class's property list, order and type come from the
@@ -37,7 +37,11 @@ const CORPUS = corpusIx >= 0 ? args[corpusIx + 1]! : `${R}/extracted/${BUILD}/xu
 const BIN = `${R}/extracted/${BUILD}/basefile.exe`;
 if (!existsSync(BIN)) { console.error(`REGISTRY_FAIL ${BIN} missing; run npm run extract -- --build ${BUILD}`); process.exit(1); }
 const pd = extractPropDefs(readFileSync(BIN));
-const xml = JSON.parse(readFileSync(`${R}/packages/xur/extensions/v5/registry.json`, 'utf8')) as XuRegistryJson;
+// XuiTool's compile-time view as XUIHelper transcribed it: the 9199 XML for
+// the XUR v5 builds, the 17559 XML for Metro. Comparison target only, plus
+// XuiElement's tail on v5 (see step 3).
+const XML_GROUP = BUILD === '17559' ? 'v8' : 'v5';
+const xml = JSON.parse(readFileSync(`${R}/packages/xur/extensions/${XML_GROUP}/registry.json`, 'utf8')) as XuRegistryJson;
 
 const sig = (names: string[]) => names.join(',');
 const va = (s: string) => parseInt(s, 16);
@@ -147,14 +151,46 @@ function rootMaskBytes(bytes: Buffer): number | null {
   const packed = bytes[data + 5]!;
   return packed === 0 ? null : packed & 7;
 }
+/**
+ * XUR v8 (17559) has no mask bytes: a class's mask is one packed uint. The
+ * scene evidence there is the highest XuiElement bit any object sets, which
+ * this reads registry-free from every scene's ROOT object (a lower bound;
+ * the strict sweep over every object is the full check, and it refuses a set
+ * bit beyond the registered definitions).
+ */
+function rootMask8(bytes: Buffer): number | null {
+  if (bytes.toString('latin1', 0, 4) !== 'XUIB' || bytes.readUInt32BE(4) !== 8) return null;
+  let p = 20;
+  const packed = (): number => { const f = bytes[p++]!; if (f < 0xf0) return f; if (f !== 0xff) return ((f & 0x0f) << 8) | bytes[p++]!; const v = bytes.readUInt32BE(p); p += 4; return v; };
+  for (let i = 0; i < 12; i++) packed();
+  const sections = bytes.readUInt16BE(18);
+  let data = -1;
+  for (let i = 0; i < sections; i++, p += 12) if (bytes.toString('latin1', p, p + 4) === 'DATA') data = bytes.readUInt32BE(p + 4);
+  if (data < 0) return null;
+  p = data;
+  packed(); // class name
+  const flags = bytes[p++]!;
+  if (!(flags & 1)) return null;
+  packed(); // total
+  return packed(); // XuiElement's mask
+}
 {
   const el = classes.find((c) => c.name === 'XuiElement');
   if (!el) throw new Error('no XuiElement table recovered from the binary');
   if (!existsSync(CORPUS)) { console.error(`REGISTRY_FAIL ${CORPUS} missing: the XuiElement mask-byte count is measured from the scenes`); process.exit(1); }
   const hist = new Map<number, number>();
-  const walk = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walk(p); else if (/\.xur$/i.test(e)) { const n = rootMaskBytes(readFileSync(p)); if (n !== null) hist.set(n, (hist.get(n) ?? 0) + 1); } } };
+  let mask8 = 0, scenes8 = 0;
+  const walk = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walk(p); else if (/\.xur$/i.test(e)) { const b = readFileSync(p); const n = rootMaskBytes(b); if (n !== null) hist.set(n, (hist.get(n) ?? 0) + 1); const m = rootMask8(b); if (m !== null) { mask8 |= m; scenes8++; } } } };
   walk(CORPUS);
+  if (scenes8 > 0 && hist.size > 0) throw new Error('corpus mixes XUR v5 and v8 scenes');
+  if (scenes8 > 0) {
+    const highest = 31 - Math.clz32(mask8);
+    if (highest >= el.props.length) throw new Error(`scenes set XuiElement bit ${highest} but the binary registers ${el.props.length} properties`);
+    el.source += `; XUR v8: no mask bytes to measure, the ${scenes8} scenes' root objects set XuiElement bits up to ${highest} (mask 0x${mask8.toString(16)}) within the ${el.props.length} the binary registers`;
+    console.log(`XuiElement: binary registers ${el.props.length}; ${scenes8} v8 roots set bits up to ${highest}`);
+  }
   const counts = [...hist.keys()].sort((a, b) => a - b);
+  if (scenes8 === 0) {
   if (counts.length !== 1) throw new Error(`scenes disagree on XuiElement's mask-byte count: ${[...hist].map(([k, v]) => `${k} bytes x${v}`).join(', ')}`);
   const fileBytes = counts[0]!;
   const runtimeBytes = Math.ceil(el.props.length / 8);
@@ -167,6 +203,7 @@ function rootMaskBytes(bytes: Buffer): number | null {
     const first = el.props.length, last = xmlEl.props.length - 1;
     el.props.push(...tail.map((p, i) => ({ ...p, id: first + i, owner: 'XuiElement', origin: 'xuitool-xml' })));
     el.source += `; definitions ${first}-${last} from XuiTool's list (XUIHelper 9199 XML): every scene writes ${fileBytes} mask bytes, so XuiTool declared ${fileBytes * 8 - 7}-${fileBytes * 8} definitions, and the runtime registers only ${first}; the exact names of the tail rest on XuiTool's transcription, not the binary`;
+  }
   }
 }
 
@@ -218,14 +255,14 @@ if (BUILD === '6770') {
 }
 
 // --- 6. write, then compare with XuiTool's XML ------------------------------
-const out: XuRegistryJson & { notes: Record<string, string> } = { version: 5, group: BUILD, classes, notes: {} };
+const out: XuRegistryJson & { notes: Record<string, string> } = { version: BUILD === '17559' ? 8 : 5, group: BUILD, classes, notes: {} };
 mkdirSync(`${R}/packages/xur/extensions/${BUILD}`, { recursive: true });
 writeFileSync(`${R}/packages/xur/extensions/${BUILD}/registry.json`, JSON.stringify(out, null, 1));
 const withProps = classes.filter((c) => c.props.length);
 console.log(`registry ${BUILD}: ${classes.length} classes (${withProps.length} with property tables from the binary, ${pd.registrations.length} registrations)`);
 for (const c of withProps) console.log(`  ${c.name} < ${c.base}: ${c.props.map((p) => p.name + ':' + p.type + (p.origin ? '*' : '')).join(' ')}`);
 
-console.log(`\nversus XuiTool's 9199 XML (XUIHelper), binary wins:`);
+console.log(`\nversus XuiTool's ${XML_GROUP === 'v8' ? '17559' : '9199'} XML (XUIHelper), binary wins:`);
 const xmlBy = new Map(xml.classes.map((c) => [c.name, c]));
 let same = 0;
 for (const c of classes) {

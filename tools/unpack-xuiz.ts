@@ -9,10 +9,12 @@
 // to the last byte. --probe adds one more: every PNG / RIFF / XUIB / XUIS
 // signature found anywhere in the data region must sit at an entry start
 // (a stray signature would mean an entry boundary is wrong or a file hides
-// another). It fails on strays.
+// another). It fails on strays. An entry named `..\x` (17559's controlp
+// pack names thirty handles that way) is written as `__parent__/x` inside
+// the pack directory (entryDiskPath); the manifest restores the name.
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, join, dirname } from 'node:path';
-import { readXuiz, entryBytes, entryPath, checkTiling } from '@xuiz/xuiz';
+import { readXuiz, entryBytes, entryPath, entryDiskPath, checkTiling } from '@xuiz/xuiz';
 
 const args = process.argv.slice(2);
 const outIx = args.indexOf('--out');
@@ -116,7 +118,7 @@ for (const file of files) {
   if (outDir) {
     const dir = join(outDir, basename(file).replace(/\.xzp$/, ''));
     for (const e of pack.entries) {
-      const p = join(dir, entryPath(e));
+      const p = join(dir, entryDiskPath(e));
       mkdirSync(dirname(p), { recursive: true });
       writeFileSync(p, entryBytes(bytes, e));
     }
