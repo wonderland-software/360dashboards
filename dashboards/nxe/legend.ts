@@ -295,7 +295,13 @@ export function bindLegend(
     // dashcomm/742_SelectNetworkDevice.xur's legend_x reads "\n" and is
     // Enabled=false, and M4d drew a blank X entry for it [COVERAGE N9] (M4e).
     const text = (given ? given.text : ob ? String(propByName(ob, 'Text')?.value ?? '') : '').trim();
-    const enabled = given ? true : ob ? propByName(ob, 'Enabled')?.value !== false : false;
+    // Enabled is the carrier's LIVE state: the authored flag unless the shell
+    // wrote an override on the carrier's node the way the console's code
+    // does (arcade/RecentGamesFilterPanel disables legend_a / legend_y while
+    // its list is empty, 0x92271f04 / 0x92271f10) (M4f).
+    const carrier = ob && o.source ? findObj(o.source, ob) : null;
+    const liveEnabled = carrier?.overrides.get('Enabled');
+    const enabled = given ? true : ob ? (typeof liveEnabled === 'boolean' ? liveEnabled : propByName(ob, 'Enabled')?.value !== false) : false;
     const node = find(root, group);
     if (!node) continue;
     if (!text) {
@@ -357,6 +363,18 @@ function find(root: NodeRecord, id: string): NodeRecord | null {
   const go = (n: NodeRecord): void => {
     if (out) return;
     if (idOf(n.obj) === id) { out = n; return; }
+    n.children.forEach(go);
+  };
+  go(root);
+  return out;
+}
+
+/** The node that renders exactly this object (a page's own copy of a carrier). */
+function findObj(root: NodeRecord, ob: XuObject): NodeRecord | null {
+  let out: NodeRecord | null = null;
+  const go = (n: NodeRecord): void => {
+    if (out) return;
+    if (n.obj === ob) { out = n; return; }
     n.children.forEach(go);
   };
   go(root);

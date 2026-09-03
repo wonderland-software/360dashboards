@@ -31,6 +31,9 @@
 //                           own <defaultchannelid>
 //   &iptv                   (9199 too) an IPTV provider is configured, so
 //                           System Settings shows its eighth row
+//   &avpack0                (9199) the AV pack is 0 (no HD cable): the Display
+//                           and HDTV Settings pages take the code's AV-pack-0
+//                           branch (switch art shown, labAVPackInfo written)
 //
 // On ?build=9199 the pad drives the strip: left/right move the PANEL cursor,
 // up/down the CHANNEL cursor (the opposite axis assignment to Blades), A runs
@@ -557,6 +560,7 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
       page: params.get('page'),
       channel: params.get('channel'),
       iptv: params.has('iptv'),
+      avPack0: params.has('avpack0'),
       // Every console-state predicate is a switch, because none of them can be
       // answered from this archive; the defaults are the offline/no-profile
       // state the 8955 capture is in (dashboards/nxe/epix.ts).

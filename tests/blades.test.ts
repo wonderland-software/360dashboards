@@ -459,3 +459,125 @@ test('focus: a NavLeft/NavRight authored deeper in the tree is honoured, an empt
   sys.set('navNetwork');
   assert.equal(sys.move('Down'), null);
 });
+
+/* ------------------------------------------------- M3f: Judge E round 3 fixes */
+
+import { existsSync, readFileSync } from 'node:fs';
+import { transitionId, transitionKey } from '@dash/blades/transitions';
+import { keyCarrierOf, PRESS_KEY } from '@dash/blades/BladeShell';
+import { rowSpan, templateOf, pathOf, Anchor, type NodeRecord } from '@runtime/index';
+import { TIMEZONE_ROWS as TZ_ROWS } from '@dash/blades/localeSettings';
+
+/** A NodeRecord stub with only what `pathOf` reads: the object's Id, the mount
+ *  key and the parent link. Nothing here renders. */
+function rec(id: string, parentNode?: NodeRecord, pathKey?: string): NodeRecord {
+  const o = obj('XuiScene', [prop('Id', id, 'XuiScene')]);
+  return { obj: o, parentNode, ...(pathKey ? { pathKey } : {}) } as unknown as NodeRecord;
+}
+
+test('a transition is keyed by the node PATH, so two scenes with one Id never share a scope [Judge E round 3, finding 2]', () => {
+  // Four clock pages carry the scene Id scClockSettings and the two pass-code
+  // pages carry scRating. Hosted under one TabN, keyed by Id, they are the
+  // same string - which is what popped the parent's FadeIn with the child.
+  const tab = rec('Tab5');
+  const bare1 = rec('scClockSettings', rec('XuiCanvas', tab));
+  const bare2 = rec('scClockSettings', rec('XuiCanvas', tab));
+  assert.equal(pathOf(bare1), pathOf(bare2), 'without a mount key the two paths ARE the same - the bug');
+
+  // Every BladeShell.renderInto mount gives its root a pathKey, so they are not.
+  const clock = rec('scClockSettings', rec('XuiCanvas', tab, 'XuiCanvas@dashSysCslSetClock.xur#3'));
+  const format = rec('scClockSettings', rec('XuiCanvas', tab, 'XuiCanvas@dashSysCslSetClockFormat.xur#4'));
+  assert.notEqual(transitionKey(clock), transitionKey(format));
+  assert.ok(transitionKey(clock).endsWith('/scClockSettings'), transitionKey(clock));
+  for (const role of ['in', 'out']) {
+    assert.notEqual(transitionId(role, transitionKey(clock)), transitionId(role, transitionKey(format)));
+  }
+  // and the two roles of ONE node still differ, which is what the id was for
+  assert.notEqual(transitionId('in', transitionKey(clock)), transitionId('out', transitionKey(clock)));
+  assert.equal(transitionId('in', 'K'), '(trans)in/K');
+});
+
+test('a list row takes the span its TEMPLATE anchors to, not the list\'s width [Judge E round 3, finding 3]', () => {
+  const A = Anchor;
+  // XuiList's control_ListItem: 420 wide, LEFT|RIGHT, in a 420-wide visual. On
+  // the 423-wide Console Settings list the row is 423 - the old rule's answer.
+  assert.deepEqual(rowSpan({ itemWidth: 420, itemX: 0, itemAnchor: A.LEFT | A.RIGHT, visualWidth: 420 }, 423), { x: 0, w: 423 });
+  // List_VerticalSpin's is 83 wide in a 53-wide visual: the year spinner is 75
+  // wide, so the row is 83 + 22 = 105 and the four-digit year fits.
+  assert.deepEqual(rowSpan({ itemWidth: 83, itemX: 0, itemAnchor: A.LEFT | A.RIGHT, visualWidth: 53 }, 75), { x: 0, w: 105 });
+  // A template anchored to neither side keeps its authored width AND its x.
+  assert.deepEqual(rowSpan({ itemWidth: 373, itemX: 21.7, itemAnchor: A.NONE, visualWidth: 420 }, 420), { x: 21.7, w: 373 });
+  // and the width is floored at 0 (music/1030_EditPlaylist's 42-in-420 row in
+  // a 40-wide list, which neither build mounts offline)
+  assert.deepEqual(rowSpan({ itemWidth: 42, itemX: 0, itemAnchor: A.LEFT | A.RIGHT, visualWidth: 420 }, 40), { x: 0, w: 0 });
+  // RIGHT alone slides by the delta; HCENTER by half of it.
+  assert.deepEqual(rowSpan({ itemWidth: 100, itemX: 10, itemAnchor: A.RIGHT, visualWidth: 400 }, 420), { x: 30, w: 100 });
+  assert.deepEqual(rowSpan({ itemWidth: 100, itemX: 10, itemAnchor: A.HCENTER, visualWidth: 400 }, 420), { x: 20, w: 100 });
+  // The default template (no visual at all) is unchanged by the rule.
+  const t = templateOf(undefined);
+  assert.equal(t.itemAnchor, 15);
+  assert.deepEqual(rowSpan(t, t.visualWidth), { x: 0, w: t.itemWidth });
+});
+
+const SKIN = 'extracted/6770/xuiz/dashuisk/skin.xur';
+const CLOCK_TIME = 'extracted/6770/xuiz/consoles/dashSysCslSetClockTime.xur';
+test('the spinner numbers come from the build: List_VerticalSpin 83-in-53, lstYear 75 (skipped without extracted/6770)',
+  { skip: !existsSync(SKIN) || !existsSync(CLOCK_TIME) }, async () => {
+    const { XuRegistry, parseXur } = await import('@xur/index');
+    const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')) as never);
+    const idOfObj = (o: XuObject): string => { const p = o.properties.find((x) => x.def.name === 'Id'); return typeof p?.value === 'string' ? p.value : ''; };
+    const skin = parseXur(new Uint8Array(readFileSync(SKIN)), reg);
+    const find = (o: XuObject, id: string): XuObject | undefined => {
+      if (idOfObj(o) === id) return o;
+      for (const c of o.children) { const hit = find(c, id); if (hit) return hit; }
+      return undefined;
+    };
+    const spin = find(skin.root, 'List_VerticalSpin');
+    assert.ok(spin, 'the skin ships List_VerticalSpin');
+    const tpl = templateOf(spin);
+    assert.equal(tpl.visualWidth, 53);
+    assert.equal(tpl.itemWidth, 83);
+    assert.equal(tpl.itemAnchor & (Anchor.LEFT | Anchor.RIGHT), Anchor.LEFT | Anchor.RIGHT, 'the row is anchored to both sides');
+    const clock = parseXur(new Uint8Array(readFileSync(CLOCK_TIME)), reg);
+    const year = find(clock.root, 'lstYear');
+    assert.ok(year);
+    const w = year.properties.find((p) => p.def.name === 'Width')?.value;
+    assert.equal(w, 75, 'lstYear is 75 wide in the scene');
+    assert.deepEqual(rowSpan(tpl, 75), { x: 0, w: 105 });
+  });
+
+test('B resolves the same way X and Y do: the control carrying PressKey 0x5841 [Judge E round 3, finding 6]', () => {
+  const back = (id: string): XuObject => obj('XuiNavButton', [prop('Id', id, 'XuiNavButton'), prop('PressKey', PRESS_KEY.B, 'XuiNavButton')]);
+  assert.equal(PRESS_KEY.B, 0x5841);
+  // The three names the build actually uses for the same job.
+  for (const id of ['legend_b', 'navB', 'btnB']) {
+    const scene = obj('XuiScene', [prop('Id', 'scene', 'XuiScene')], [obj('XuiGroup', [prop('Id', 'g', 'XuiGroup')], [back(id)])]);
+    const hit = keyCarrierOf(scene, PRESS_KEY.B);
+    assert.ok(hit, `${id} carries B`);
+    assert.equal(hit.properties.find((p) => p.def.name === 'Id')?.value, id);
+  }
+  // X and Y are the same lookup with the other codes, and a scene with none
+  // answers nothing rather than guessing a name.
+  const none = obj('XuiScene', [prop('Id', 'scene', 'XuiScene')], [obj('XuiButton', [prop('Id', 'btnDone', 'XuiButton')])]);
+  assert.equal(keyCarrierOf(none, PRESS_KEY.B), undefined);
+  assert.equal(PRESS_KEY.X, 0x5802);
+  assert.equal(PRESS_KEY.Y, 0x5803);
+});
+
+test('the Time Zone page writes the row INDEX, for all 75 rows', () => {
+  const page = OPTION_PAGES['consoles/dashSysCslSetClockTimeZone.xur'];
+  assert.ok(page);
+  assert.equal(page.rows.length, TZ_ROWS.length);
+  assert.equal(TZ_ROWS.length, 75);
+  for (let k = 0; k < TZ_ROWS.length; k++) {
+    assert.equal(page.rows[k]!.control, `lstTimezone_item${k}`);
+    assert.equal(page.rows[k]!.value, k);
+    const s = { timeZone: null as number | null, dstOff: false } as never;
+    page.write(s, k);
+    assert.equal((s as { timeZone: number }).timeZone, k, `row ${k} writes ${k}`);
+    // the zone with no daylight rule sets the DST-off bit with it
+    assert.equal((s as { dstOff: boolean }).dstOff, !TZ_ROWS[k]!.observesDst, `row ${k} DST`);
+    assert.equal(page.current(s), k);
+    assert.deepEqual(page.label(s), { idx: TZ_ROWS[k]!.label });
+  }
+});

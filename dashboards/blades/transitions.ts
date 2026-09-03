@@ -23,9 +23,9 @@
 // The visuals carry NO named frames, so neither playRange nor the ambient loop
 // describes them: they run once from frame 0 and hold. That is
 // TimelineScope.playOnce.
-import { idOf, type XuObject } from '@xur/index';
+import type { XuObject } from '@xur/index';
 import {
-  TimelineScope, updateNode,
+  TimelineScope, updateNode, pathOf,
   type TimelineEngine, type NodeRecord, type VisualScope,
 } from '@runtime/index';
 
@@ -41,8 +41,9 @@ export interface RunningTransition {
 }
 
 /**
- * Play `visualName` onto `target`. The scope id is unique per target and per
- * role so an outgoing fade and an incoming fade never fight over one scope.
+ * Play `visualName` onto `target`. The scope id is unique per target NODE and
+ * per role so an outgoing fade and an incoming fade never fight over one
+ * scope, and two scenes that share an Id never share one either.
  * Returns null (and records nothing) when the skin does not define the visual:
  * a missing transition is reported by the caller, never invented.
  */
@@ -54,7 +55,7 @@ export function playTransition(
   if (!v) return null;
   const proxyId = proxyOf(v);
   if (!proxyId) return null;
-  const id = transitionId(role, idOf(target.obj) || target.obj.className);
+  const id = transitionId(role, transitionKey(target));
   engine.remove(id);
   const scope = new TimelineScope(id, v, null);
   engine.add(scope, (_s, delta) => {
@@ -73,7 +74,22 @@ export function playTransition(
 
 /** The scope id a transition runs under, so a destroyed scene can take its own
  *  transitions with it instead of leaving them ticking against detached DOM. */
-export const transitionId = (role: string, targetId: string) => `(trans)${role}/${targetId}`;
+export const transitionId = (role: string, targetKey: string) => `(trans)${role}/${targetKey}`;
+
+/**
+ * What a transition is keyed by: the target's NODE PATH, never its scene Id.
+ *
+ * Four of the clock pages share the scene Id `scClockSettings` (the Clock
+ * menu, Time Format, Time Zone, Daylight Saving) and the two pass-code pages
+ * share `scRating`. Keyed by Id, popping Time Format played the Clock menu's
+ * TransBackTo under "in/scClockSettings" and then the popped page's teardown -
+ * which removes its own "in" and "out" scopes - removed the PARENT's FadeIn
+ * on FadeOut's last frame, inside FadeIn's thirteen hidden frames: the menu
+ * came back with Show=false and stayed blank [Judge E round 3, finding 2].
+ * The path is unique per mounted node (a second same-Id sibling under one
+ * host is `#2`), so a level's transitions can only ever be its own.
+ */
+export const transitionKey = (target: NodeRecord) => pathOf(target);
 
 /** The element the visual's single timeline drives: "box" in FadeIn, "box1" in
  *  FadeOut. Read from the file, never assumed. */

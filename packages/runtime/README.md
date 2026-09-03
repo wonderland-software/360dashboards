@@ -309,6 +309,19 @@ TEMPLATE: `control_ListItem` (a `XuiListItem`, 420×**45**, Anchor 15,
 `Direction 1`). So the 45 px pitch, the row's look and where the arrows land
 are all data. Row *k* top = list y + 3 + 45*k*.
 
+The row's HORIZONTAL span is the template's own `Anchor`, read the way
+`applyAnchor` reads every other element's, against the delta between the
+list's width and the VISUAL the template is authored in (`rowSpan`).
+`control_ListItem` is 420 wide, LEFT|RIGHT, in a 420-wide visual, so on the
+423-wide Console Settings list it is 423 - which is what taking the list's
+width outright gave, on every ordinary list in the build.
+`List_VerticalSpin`'s row is 83 wide in a 53-wide visual, so on the 75-wide
+year spinner it is 83 + 22 = 105 and a four-digit year fits; taking 75
+ellipsized it to "2..." [Judge E round 3, finding 3]. A template anchored to
+neither side keeps its authored width and x (`btn_horizontal_spinner_Arrows`'
+373-wide row at x 21.7 in a 420-wide list, the arrows outside it); RIGHT alone
+slides it by the delta; the width is floored at 0.
+
 A control with no `Visual` falls back to a visual named after its **class**, and
 this is now the general rule in `DomRenderer.defaultVisualFor`, not a
 list-only convenience. `dashuisk/skin.xur` says so itself: it carries a literal
@@ -1766,3 +1779,25 @@ row's / `legend_b`'s Press for the skin's cues, routes X and Y by `PressKey`,
 and clears every authoring token on push. `__dash.nxe` grew `codePaths`,
 `codeUnfilled`, and per page `arrivalBy`, `focusClass`, `codeFilled`,
 `tokens`, `strip`.
+
+## Blades M3f: two runtime changes, and why an id needed a mount key (2026-09-03)
+
+- **`ListView.rowSpan`** (above, under Lists). Surveyed across both corpora
+  before it shipped: 86 lists in 6770 and 89 in 9199, of which 14 and 17 move,
+  and only three that this dashboard mounts with rows offline (the year
+  spinner 75 -> 105, the Family Timer's row 420 -> 373 at x 22, LiveVision's
+  three chooser rows 480 -> 419 at x 31). 9199's affected lists are all the
+  ones its code tables leave empty offline, so `smoke-nxe` is unchanged.
+- **`NodeRecord.pathKey`, read by `pathOf`, passed by `renderElement`** (M4f's
+  change, for the same collision on 9199; `BladeShell.renderInto` now sets it
+  too). `pathOf` is the id of every timeline scope (`NodeIndex.scope`), and it
+  is a chain of element Ids: two scenes with the same ROOT Id mounted under one
+  host therefore had the same ids for every control under them. Four of 6770's
+  clock pages are `scClockSettings` and its two pass-code pages are `scRating`,
+  so pushing one over the other replaced the parent's scopes in the engine and
+  popping it removed them - the page underneath came back at FadeOut's
+  `Show=false` with no FadeIn left to undo it. Each mount's root now carries
+  `<root Id>@<file>#<serial>`, which is only ever the FIRST segment of a
+  scene's ids, so a scope matched by its tail (`endsWith('metaScene_1line')`)
+  is unaffected. `dashboards/blades/transitions.ts` keys a transition by
+  `pathOf(target)` for the same reason.

@@ -1272,6 +1272,41 @@ function signinFrame() { return `${FRAMES}/nxe-9199-YrtwSj1f6aY/f0268.png`; }
 function rome2Frame() { return `${FRAMES}/nxe-9199-Kparblu6r14/f0300.png`; }
 
 /** The vertical extent of bright ink inside a design region, on either image. */
+/**
+ * The screen box the Display / HDTV Settings pages' switch art fills when it
+ * is shown: `SwitchImage` (35,170) + `XuiImage1` (99,66) 160x96.6 in an
+ * 880x480 page at LEGACY_CENTRE_X 638.8 / LEGACY_TOP 114.7, widened by the
+ * group's own 306x175 box so the "TV" label and the plug's cable are inside
+ * it. Nothing else in the list column is darker than luma 40 (the rows are
+ * light text on the panel's blue-grey), so a count of such pixels is the
+ * detector for the art (M4f, Judge G F1).
+ */
+// A function, not a `const`: the driver at the top of this file runs the
+// suites before the module's later bindings are initialized, so a const
+// declared here is in its temporal dead zone inside the walk.
+function switchArtBox() { return { x0: 330, x1: 500, y0: 320, y1: 440 }; }
+function darkPixels(file, box, thr = 40) {
+  const im = readPng(file);
+  const k = im.w / 1280;
+  let n = 0;
+  for (let y = Math.round(box.y0 * k); y < Math.round(box.y1 * k); y++) {
+    for (let x = Math.round(box.x0 * k); x < Math.round(box.x1 * k); x++) if (luma(im, x, y) < thr) n++;
+  }
+  return n;
+}
+function darkBox(file, box, thr = 40) {
+  const im = readPng(file);
+  const k = im.w / 1280;
+  let X0 = Infinity, X1 = -Infinity, Y0 = Infinity, Y1 = -Infinity;
+  for (let y = Math.round(box.y0 * k); y < Math.round(box.y1 * k); y++) {
+    for (let x = Math.round(box.x0 * k); x < Math.round(box.x1 * k); x++) {
+      if (luma(im, x, y) >= thr) continue;
+      X0 = Math.min(X0, x / k); X1 = Math.max(X1, x / k); Y0 = Math.min(Y0, y / k); Y1 = Math.max(Y1, y / k);
+    }
+  }
+  return X1 < 0 ? null : { x0: X0, x1: X1, y0: Y0, y1: Y1 };
+}
+
 function inkRows(im, x0, x1, y0, y1, thr = 150) {
   const k = im.w / 1280;
   const rows = [];
@@ -1344,7 +1379,7 @@ async function completeness() {
       const l = r.legacy;
       return {
         top: l ? l.scene : null, kind: l?.kind ?? null, rows: l?.rows ?? [], focus: l?.focusId ?? null, focusClass: l?.focusClass ?? null, arrivalBy: l?.arrivalBy ?? null,
-        codeUnfilled: l?.codeUnfilled ?? [], tokensCleared: l?.tokens ?? [], painted: texts.filter((t) => /<[^<>]{1,40}>/.test(t)), texts,
+        codeUnfilled: l?.codeUnfilled ?? [], codeFilled: l?.codeFilled ?? [], hidden: l?.hidden ?? [], tokensCleared: l?.tokens ?? [], painted: texts.filter((t) => /<[^<>]{1,40}>/.test(t)), texts,
         legend: r.legend ? { buttons: r.legend.buttons.map((b) => `${b.group}=${b.text}`), title: r.legend.title, empty: r.legend.empty } : null,
         strip: l?.strip ? { counter: l.strip.counter, cursor: l.strip.cursor, row: l.strip.channelRow, panels: l.strip.panels.map((p) => ({ scene: p.scene, z: p.z, mounted: p.mounted, visible: p.visible, opacity: p.opacity })) } : null,
         counter: r.counter, cues: r.cues.length, audio: api.audio.log.length, errors: r.errors.slice(), codePaths: r.codePaths.slice(), unbound: r.unboundCommands.slice(),
@@ -1382,7 +1417,57 @@ async function completeness() {
     const here = await step('idle');
     const top = here.top;
     if (!top) return;
-    if (!visited.has(top)) visited.set(top, { label, rows: here.rows, focus: here.focus, arrivalBy: here.arrivalBy, painted: here.painted, tokens: here.tokensCleared, codeUnfilled: here.codeUnfilled, legend: here.legend, strip: here.strip });
+    if (!visited.has(top)) {
+      visited.set(top, { label, rows: here.rows, focus: here.focus, arrivalBy: here.arrivalBy, painted: here.painted, tokens: here.tokensCleared, codeUnfilled: here.codeUnfilled, codeFilled: here.codeFilled, hidden: here.hidden, texts: here.texts, legend: here.legend, strip: here.strip });
+      // Judge G round 3 F1: the Display and HDTV Settings pages author the
+      // TV/HDTV switch art SHOWN over the list, and the console hides it on
+      // every AV pack but 0 (UpdateCurrentSetting 0x92219790 / OnInit
+      // 0x92219000). Measured, not just reported: the picture's black cable
+      // is the only thing that dark in the list column, so a count of pixels
+      // under luma 40 in the box the art would fill is the gate.
+      if (top === 'consoles/dashSysCslSetDisplay.xur' || top === 'consoles/dashSysCslSetDisplayHiDef.xur') {
+        const file = `${OUT}/nxe-${top.replace(/^.*\//, '').replace(/\.xur$/, '')}.png`;
+        await nav.page.screenshot({ path: file });
+        const n = darkPixels(file, switchArtBox());
+        console.log(`    ${top}: dark pixels in the switch-art box ${JSON.stringify(switchArtBox())}: ${n}`);
+        ok(n === 0, `${top}: the TV/HDTV switch art is drawn on an HD console (${n} dark pixels in the list column; the code hides SwitchImage at 0x922197ac / 0x92219058)`);
+        ok(here.hidden.some((h) => h.startsWith('SwitchImage Show=false')), `${top}: SwitchImage's hide is not disclosed in hidden: ${here.hidden.join(' | ')}`);
+      }
+      // The same CLASS of defect on every other page Judge G asked about: a
+      // picture from outside a list drawn over the rows. The detector is the
+      // DOM, not the pixels, so it works on a page with no reference still,
+      // and it is not vacuous - run against `&avpack0`, where the console's
+      // own code DOES show the switch art, it reports XuiImage1 over
+      // lstSettings / listOptions by 15450 px2 on 2 of 2 pages (M4f).
+      const over = await nav.page.evaluate(() => {
+        const l = window.__dashApi.nxe().legacy;
+        const host = document.querySelector(`[data-xui-scene="${l?.scene}"]`);
+        if (!host) return [];
+        const hr = host.getBoundingClientRect();
+        const lists = [...host.querySelectorAll('[data-xui-class="XuiCommonList"],[data-xui-class="XuiList"]')].map((e) => ({ id: e.dataset.xuiId, r: e.getBoundingClientRect() }));
+        const out = [];
+        for (const e of host.querySelectorAll('img, svg')) {
+          if (!e.getClientRects().length) continue;
+          const r = e.getBoundingClientRect();
+          if (r.width < 8 || r.height < 8) continue;
+          // The page's own background plate covers the page; it is not art over.
+          if (r.width >= hr.width - 2 && r.height >= hr.height - 2) continue;
+          // A row's own visual lives inside a list. Only art from OUTSIDE every
+          // list counts: consoles/dashSysLiveVision.xur authors three lists 74
+          // tall on a 53 pitch (575,395 / 575,448 / 575,501), so each one's own
+          // focus highlight lands inside its neighbour's box.
+          if (lists.some((li) => e.closest(`[data-xui-id="${li.id}"]`))) continue;
+          let up = e, id = '';
+          while (up && !id) { id = up.dataset?.xuiId ?? ''; up = up.parentElement; }
+          for (const li of lists) {
+            const ov = Math.max(0, Math.min(r.right, li.r.right) - Math.max(r.left, li.r.left)) * Math.max(0, Math.min(r.bottom, li.r.bottom) - Math.max(r.top, li.r.top));
+            if (ov > 400) out.push(`${id} over ${li.id} by ${Math.round(ov)} px2`);
+          }
+        }
+        return out;
+      });
+      ok(over.length === 0, `${top}: a picture from outside the list is drawn over the rows: ${over.join(', ')}`);
+    }
     // Every mounted page: no painted token, an arrival focus wherever there is
     // something to focus, no shell error.
     ok(here.painted.length === 0, `${top}: authoring tokens PAINTED: ${here.painted.join(', ')}`);
@@ -1405,7 +1490,13 @@ async function completeness() {
         await walk(`${label} > ${before.focus}`, depth + 1);
         const back = await step('back', 30);
         ok(back.top === top, `B from ${pressed.top} landed on ${back.top}, not ${top}`);
-        ok(back.newAudio.includes('btn_Back') || back.newAudio.includes('snd_buttonback'), `B from ${pressed.top} played no back cue (${back.newAudio.join(',')})`);
+        // A LEGACY page's B is its own carrier's `btn_Back` (the skin's), every
+        // time: Judge G round 3 found three pops on `snd_buttonback` and the
+        // cause was a child page rooted on its parent's Id (scClockSettings,
+        // scRating, Scene_Main) taking the parent's scope ids (M4f, F2). A
+        // pushed ROOT has no carrier and plays the table cue.
+        if (pressed.kind === 'root') ok(back.newAudio.includes('snd_buttonback'), `B from the root ${pressed.top} played no back cue (${back.newAudio.join(',')})`);
+        else ok(back.newAudio.includes('btn_Back'), `B from ${pressed.top} did not play its carrier's btn_Back (${back.newAudio.join(',')})`);
       } else if (before.focus) {
         // A that goes nowhere: the row still presses (btn_Select, unless its
         // visual authors none: the radio buttons' does not) and the reason is
@@ -1455,6 +1546,27 @@ async function completeness() {
   ok(comp && !comp.legend.buttons.some((b) => b.startsWith('XButton')), `Computers draws an X entry for a "\\r\\n" caption: ${comp?.legend.buttons.join(' ')}`);
   const net = visited.get('network/NetworkMain.xur');
   ok(net && !net.legend.buttons.some((b) => b.startsWith('YButton')), `Network Settings draws its Show=false legend_y: ${net?.legend.buttons.join(' ')}`);
+  // Judge G round 3 F4: 2004_NetworkDetails' btn_IP (btn_4Line) and btn_DNS
+  // (btn_3Line) author no Text; C2004_NetworkDetails writes their captions
+  // from network/Strings.xus ([45..48], [41..43]) and their values from the
+  // network configuration. The captions are painted, the values disclosed.
+  const nd = visited.get('network/2004_NetworkDetails.xur');
+  for (const t of ['IP Settings', 'IP Address', 'Subnet Mask', 'Gateway', 'DNS Settings', 'Primary DNS Server', 'Secondary DNS Server']) {
+    ok(nd?.texts.includes(t), `2004_NetworkDetails does not paint "${t}" (network/Strings.xus): ${nd?.texts.slice(0, 20).join(' | ')}`);
+  }
+  ok(nd?.rows.join('|') === 'IP Settings|DNS Settings', `2004_NetworkDetails rows: ${nd?.rows.join('|')}`);
+  ok(nd?.codeFilled.some((c) => c.startsWith('btn_IP captions')) && nd?.codeFilled.some((c) => c.startsWith('btn_DNS captions')), `2004_NetworkDetails codeFilled: ${nd?.codeFilled.join(' | ')}`);
+  ok(nd?.codeUnfilled.some((c) => c.startsWith('network/2004_NetworkDetails.xur#btn_IP:')) && nd?.codeUnfilled.some((c) => c.startsWith('network/2004_NetworkDetails.xur#btn_DNS:')), `2004_NetworkDetails does not disclose its code-filled values: ${nd?.codeUnfilled.join(' | ')}`);
+  // F1's disclosure on both pages that carry the art (the pixels are gated
+  // inside the walk, where the page is on screen).
+  for (const id of ['consoles/dashSysCslSetDisplay.xur', 'consoles/dashSysCslSetDisplayHiDef.xur']) {
+    ok(visited.get(id)?.hidden.some((h) => h.startsWith('SwitchImage Show=false (avPack != 0')), `${id}: SwitchImage's hide not in hidden: ${visited.get(id)?.hidden.join(' | ')}`);
+  }
+  // F2's three parents: each has a child rooted on the same scene Id, and the
+  // walk above pressed B off every one of them gated on btn_Back. Say so.
+  for (const id of ['consoles/dashSysCslSetClockTimeZone.xur', 'consoles/dashSysCslSetPControlPasscodeHint.xur', 'network/2033_DNSConfig.xur']) {
+    ok(visited.has(id), `${id} (a child rooted on its parent's scene Id) was not walked, so F2's pop was not exercised`);
+  }
 
   /* --- (b) X and Y on Storage Devices --- */
   for (let i = 0; i < 12; i++) { const b = await step('back', 30); if (b.top === null) break; }
@@ -1526,6 +1638,15 @@ async function completeness() {
   ok(gl.top === 'arcade/ArcadeFilterScene.xur' && gl.strip?.counter === '1 of 2', `A on Games Library: ${gl.top} ${gl.strip?.counter}`);
   ok(gl.legend?.buttons.join(' ') === 'AButton=Select BButton=Back YButton=Play' && gl.legend.title === '', `Game Library legend: ${gl.legend?.buttons.join(' ')} title "${gl.legend?.title}" [FRAME Kpa f0300: no title, Y Play]`);
   ok(gl.codeUnfilled.length === 2, `Game Library empty lists disclosed: ${gl.codeUnfilled.length}`);
+  // Judge G round 3 F3: with no title enumerated, the Recent Games panel's
+  // refresh raises its own labEmpty and disables A and Y (0x92271ef8-
+  // 0x92271fd0). The label is painted; the legend reports the carriers'
+  // live Enabled and still draws the captions the frame shows (the glyph's
+  // disabled artwork on a hoisted legend is not measured against any frame).
+  ok(gl.texts.includes("You don't have any games in your library."), `Recent Games does not paint its labEmpty: ${gl.texts.slice(0, 12).join(' | ')}`);
+  ok(gl.hidden.some((h) => h.startsWith('RecentGamesFilterPanel.xur: labEmpty Show=true')), `Recent Games' labEmpty raise is not disclosed: ${gl.hidden.join(' | ')}`);
+  const glEnabled = await drive(() => window.__dashApi.nxe().legend?.buttons.map((b) => `${b.group}:${b.enabled}`) ?? []);
+  ok(glEnabled.join(' ') === 'AButton:false BButton:true YButton:false', `Game Library legend enabled flags: ${glEnabled.join(' ')} (the code disables A and Y on the empty list)`);
   await nav.page.screenshot({ path: `${OUT}/nxe-rome-strip.png` });
   if (existsSync(ROME2_FRAME)) {
     // The second panel at RomeDefaultSpacing 480 behind the front one: its
@@ -1563,6 +1684,79 @@ async function completeness() {
   await step('back', 130);
   const end = await step('idle');
   ok(end.errors.length === 0, `shell errors after the M4e walk: ${end.errors.join(' | ')}`);
+
+  /* --- (f) the AV-pack-0 branch: where the switch art lands when the code shows it (M4f, Judge G F1) --- */
+  // The art is authored on the scene ROOT at (35,170) + (99,66) and the code
+  // writes Show and nothing else, so when XGetAVPack returns 0 it draws over
+  // the list column at the file's own place - not in the right pane. Gated
+  // three ways: the element's DOM box is the authored box under the page's
+  // frame-solved placement; the dark ink sits inside that box and nowhere
+  // else in the column; labAVPackInfo carries dashCSettingsStrings[571].
+  const av = await load(`${BASE}/?build=9199&mute&manual&page=consoles/dashSysCslSetDisplay.xur&avpack0`);
+  ok(av.pageErrors.length === 0, `avpack0 js errors: ${av.pageErrors.join(' | ')}`);
+  const avr = await av.page.evaluate(() => {
+    const n = window.__dashApi.nxe(); const l = n.legacy;
+    const img = document.querySelector('[data-xui-id="SwitchImage"] [data-xui-id="XuiImage1"]');
+    const r = img?.getBoundingClientRect();
+    const vis = (el) => el.getClientRects().length > 0;
+    const texts = [...document.querySelectorAll('[data-xui-paint="text"]')].filter(vis).map((e) => e.textContent.trim());
+    return { scene: l?.scene, hidden: l?.hidden ?? [], codeFilled: l?.codeFilled ?? [], codePaths: n.codePaths.slice(), errors: n.errors.slice(), left: l?.left, top: l?.top,
+      box: r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null, texts };
+  });
+  ok(avr.scene === 'consoles/dashSysCslSetDisplay.xur' && avr.errors.length === 0, `avpack0 page: ${avr.scene} ${avr.errors.join(' | ')}`);
+  ok(avr.hidden.length === 0, `avpack0 hides something: ${avr.hidden.join(' | ')}`);
+  // Authored: group (35,170), image (99,66), 160 x 96.58 [SCENE]; page at (left, top).
+  const want = { x: avr.left + 35 + 99, y: avr.top + 170 + 66.17, w: 160, h: 96.58 };
+  console.log(`    avpack0 switch art DOM box ${JSON.stringify(avr.box)} vs authored ${JSON.stringify(want)} (page at ${avr.left}, ${avr.top})`);
+  ok(avr.box && Math.abs(avr.box.x - want.x) <= 1 && Math.abs(avr.box.y - want.y) <= 1 && Math.abs(avr.box.w - want.w) <= 1 && Math.abs(avr.box.h - want.h) <= 1, `the switch art is not where the file puts it: ${JSON.stringify(avr.box)} vs ${JSON.stringify(want)}`);
+  await av.page.screenshot({ path: `${OUT}/nxe-display-avpack0.png` });
+  const ink = darkBox(`${OUT}/nxe-display-avpack0.png`, switchArtBox());
+  const inkN = darkPixels(`${OUT}/nxe-display-avpack0.png`, switchArtBox());
+  console.log(`    avpack0 dark ink in the column: ${inkN} px, box ${JSON.stringify(ink)}`);
+  ok(inkN > 200, `avpack0 draws no switch art (${inkN} dark pixels)`);
+  ok(ink && ink.x0 >= want.x - 2 && ink.x1 <= want.x + want.w + 2 && ink.y0 >= want.y - 2 && ink.y1 <= want.y + want.h + 2, `the art's ink ${JSON.stringify(ink)} is outside the authored box ${JSON.stringify(want)}`);
+  ok(avr.texts.includes('HDTV output is disabled. Your Xbox 360 Component HD AV Cable is currently set to TV.'), `avpack0 does not paint dashCSettingsStrings[571] in labAVPackInfo`);
+  ok(avr.codeFilled.some((c) => c.startsWith('labAVPackInfo from dashCSettingsStrings.xus[571]')), `avpack0 codeFilled: ${avr.codeFilled.join(' | ')}`);
+  ok(avr.codePaths.some((c) => c.includes('row builder (0x92218cf8')), `avpack0 does not disclose the row gating it leaves out: ${avr.codePaths.slice(-2).join(' | ')}`);
+  await av.page.close();
+
+  /* --- (g) a nested scene's origin (M4f, Judge G F1(b)) --- */
+  // Judge G read the switch art as authored under the nested scene
+  // `scnCurrentFormat` and asked for the mechanism a nested scene's origin
+  // uses. The file refutes the premise - `SwitchImage` is a direct child of
+  // the DashScene root and `scnCurrentFormat` authors no children at all
+  // (tests/nxe.test.ts checks both) - but the mechanism is real and worth a
+  // gate, because 46 scenes in the 311-scene 9199 corpus DO author a nested
+  // XuiScene with children. There is no special case for it: a XuiScene is an
+  // element, its children lay out against its box like any other parent's, and
+  // the two hosted pages that carry one prove it end to end.
+  for (const [scene, want] of [
+    // page + Menu (10.022629, 15.014046) and page + ConnectBar (45.022629, 310.014046).
+    ['network/NetworkMain.xur', { Menu: [10.02, 15.01], ConnectBar: [45.02, 310.01] }],
+    // Tab1/Tab2 (137, 196) inside Scene_Tabs (-136.85762, -126.004822) = (0.14, 70).
+    ['network/2004_NetworkDetails.xur', { Tab1: [0.14, 70.0], Tab2: [0.14, 70.0] }],
+  ]) {
+    const n = await load(`${BASE}/?build=9199&mute&manual&page=${scene}`);
+    const got = await n.page.evaluate((ids) => {
+      const l = window.__dashApi.nxe().legacy;
+      const host = document.querySelector(`[data-xui-scene="${l?.scene}"]`);
+      const hr = host.getBoundingClientRect();
+      const out = {};
+      for (const id of ids) {
+        const e = host.querySelector(`[data-xui-id="${id}"]`);
+        if (!e) continue;
+        const r = e.getBoundingClientRect();
+        out[id] = [+(r.left - hr.left).toFixed(2), +(r.top - hr.top).toFixed(2)];
+      }
+      return out;
+    }, Object.keys(want));
+    for (const [id, [x, y]] of Object.entries(want)) {
+      const g = got[id];
+      console.log(`    ${scene} ${id}: nested scene origin ${JSON.stringify(g)} vs authored [${x}, ${y}]`);
+      ok(g && Math.abs(g[0] - x) <= 0.5 && Math.abs(g[1] - y) <= 0.5, `${scene}: ${id} sits at ${JSON.stringify(g)}, not the authored [${x}, ${y}] - a nested scene's origin is not composing`);
+    }
+    await n.page.close();
+  }
   console.log(`  code paths recorded: ${end.codePaths.length}; unbound commands: ${end.unbound.length}`);
   await nav.page.close();
 }

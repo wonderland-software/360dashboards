@@ -818,6 +818,152 @@ suite's own printout at this commit.
   Observation: the queue bullet is present on the signed-out frames (Kpa
   f0048, Yv5 f0042) and absent on the signed-in ones; the Marker row should
   state the rule. Fixes pending with M4f.
+
+### Closed in M4f (2026-09-03, uncommitted working tree)
+
+Gates at the end of the pass: `npm run typecheck` clean over the whole tree;
+`npm test` **120/120** (115 before M3f's five Blades additions landed in the
+same tree); `tests/smoke/smoke-nxe.mjs` **SMOKE_PASS** in full and with
+`SMOKE_NXE_ONLY=completeness`, against a dedicated vite on port 5391;
+`smoke-boot` and `smoke-gallery` **SMOKE_PASS** (the two suites that prove the
+shared-runtime edit is behaviour-preserving for 6770).
+
+- **F1 (MEDIUM), the Display page's switch art: CLOSED, in both halves, and
+  the second half's premise is REFUTED by the file.**
+  - *(a) The console hides it, and now so do we.* 9199's equivalent of the
+    Blades site Judge E read is `dashVideoSettings::UpdateCurrentSetting` at
+    `0x92219790`: it opens with `SetShow(this+0x68, 0)` - `li r4, 0` at
+    `0x922197ac`, then a SCHEDULED `stw r24, 0x50(r1)`, then `lwz r3,
+    0x68(r27)` and `bl 0x922df968` at `+8` / `+12` - and re-shows it, `li r4,
+    1` at `0x92219874`, only under the branch the resolution provider
+    `0x92219328` takes when `XGetAVPack` (thunk `0x92740924`) returns 0, the
+    same branch that writes `dashCSettingsStrings[571]` into `labAVPackInfo`
+    (`li r4, 0x23b` at `0x92219430`). `dashSysCslSetDisplayHiDef.xur` carries
+    the same art and the same rule in `dashVideoSettings_HD::OnInit`
+    (`0x92219000`; hide `0x92219058`, show `0x92219180`). `OnInit` resolves
+    the name into `this+0x68` (`addi r5, r31, 0x68` at `0x92219c00`, the wide
+    literal "SwitchImage" at `0x92018160`). The reference console is on an HD
+    pack - its Display metapane reads "1920 x 1080 / Widescreen / DVI" [FRAME
+    Kpa f0377] - so the shell takes the non-zero branch. **Gated by the ink,
+    as briefed:** the walker screenshots each page as it mounts and counts
+    pixels under luma 40 in the box the art would fill (design x 330..500, y
+    320..440; the picture's black cable is the only thing that dark in the
+    list column). **0 dark pixels on both pages**, against the 626 the same
+    detector counts under `&avpack0`. `__dash.nxe.legacy.hidden` carries
+    `SwitchImage Show=false (avPack != 0: ...)` on both, and the state is in
+    `hardwareState`.
+  - *(b) There is no missing parent offset. The art is not under
+    `scnCurrentFormat`.* `SwitchImage` is a DIRECT child of the DashScene root
+    at (35, 170), with `XuiImage1` at (99, 66) 160 x 96.58 and `XuiLabel1`
+    ("TV") at (124, 31); `scnCurrentFormat` (420x450 at 456, 15) authors
+    **zero children** [SCENE, and a unit test re-reads both files]. The judge's
+    ~(788, 366) is what the group WOULD reach with `scnCurrentFormat`'s origin
+    added; the ink box the judge measured (x 391..491, y 325..429) is instead
+    exactly what the file's own placement gives once the page's frame-solved
+    origin (198.8, 114.7) is added - the label's cap at y 325.7 and the
+    picture at 332.8..492.8 x 350.9..447.5. The code never moves it either:
+    the whole class body `0x92218c00-0x92219c50` loads `this+0x68` **twice**,
+    and both loads are the two `SetShow` calls (unit test). Under `&avpack0`
+    the art is measured three ways: its DOM box (332.797, 350.859, 160,
+    96.5625) against the authored (332.80, 350.87, 160, 96.58), <= 1 px on
+    every edge; its dark ink (334..452 x 355..424) inside that box; and
+    `dashCSettingsStrings[571]` painted in `labAVPackInfo`.
+  - *The mechanism a nested scene's origin uses, since the judge asked.* There
+    is none to fix: a `XuiScene` is an element and its children lay out
+    against its box like any other parent's. 46 of the 311 scenes author a
+    nested `XuiScene` WITH children; two are on hosted pages, and both are now
+    measured in the suite: `network/NetworkMain.xur`'s `Menu` lands at page +
+    (10.02, 15.00) against an authored (10.022629, 15.014046) and `ConnectBar`
+    at + (45.02, 310.00) against (45.022629, 310.014046);
+    `network/2004_NetworkDetails.xur`'s `Tab1` / `Tab2` land at + (0.16, 70.00)
+    against `Scene_Tabs`(-136.85762, -126.004822) + (137, 196) = (0.14, 70.00).
+  - *The sweep for the same class of misplacement on every other hosted page.*
+    A DOM detector now runs on the FIRST visit to each page in the walk: any
+    `img` / `svg` inside the hosted scene that is not the page-sized background
+    plate, is not inside any list, and overlaps a list's box by more than
+    400 px2. **0 of the 50 pages** report one. The detector is not vacuous -
+    run against `&avpack0`, where the console's own code does show the art, it
+    reports `XuiImage1` over `lstSettings` / `listOptions` by 15450 px2 on 2 of
+    2 pages. The one page it had to be taught about is
+    `consoles/dashSysLiveVision.xur`, which authors three lists 74 tall on a
+    53 pitch (575,395 / 575,448 / 575,501), so each list's OWN focus highlight
+    lands inside its neighbour's box; art belonging to any list is excluded and
+    the reason is in the check.
+- **F2 (LOW), the three `snd_buttonback` pops: CLOSED, cause isolated, and it
+  was neither `setPageState` nor a race.** A scope id is the chain of element
+  Ids from the canvas down (`pathOf`), and **a child page can root on its
+  parent's scene Id**: `dashSysCslSetClock.xur` and its `ClockFormat`,
+  `ClockTimeZone` and `ClockDaylightSavings` children are all `scClockSettings`;
+  `PControlPasscode` and `PasscodeHint` are both `scRating`;
+  `2004_NetworkDetails`, `2016_EditIPSettings` and `2033_DNSConfig` are all
+  `Scene_Main` [SCENE]. Mounted beside its parent, the child's controls got the
+  PARENT's scope ids, so they never bound (`bindTimelines` skips an id the
+  engine already has) and popping the child removed the parent's scopes - after
+  which the parent's next B found no `legend_b` to press and fell back to the
+  table cue. **Those three parents are exactly the three pops the judge saw**,
+  which is why it looked nondeterministic: it depends on which child was
+  visited first. `renderInto` now hands `renderElement` a per-mount `pathKey`
+  for the scene root only (`NodeRecord.pathKey`, consumed by `pathOf`); unset
+  everywhere else, so no id inside any scene changes. **Gated:** the walk now
+  requires the carrier's own `btn_Back` on EVERY pop of a legacy page (a pushed
+  ROOT has no carrier and plays the table cue, and is gated on that instead),
+  and it asserts that the three parents above were walked, so the case is
+  exercised. Judge E's related Blades finding is closed too on the NXE side:
+  B's carrier is now whatever binds `PressKey` 0x5841 under any Id, and failing
+  that any `XuiBackButton`, which is B's carrier by class - 62 of the build's
+  70 back buttons author the key and the eight that do not are named in
+  `pageFocus.findBackButton`.
+- **F3 (LOW), Recent Games' `labEmpty`: CLOSED by raising it, not by
+  correcting the disclosure.** The panel's refresh (`0x92271da0`) enumerates
+  the title database into at most ten rows; with none it disables `legend_y`
+  and `legend_a` (`SetEnable(this+0xcac, 0)` at `0x92271f04`, `(this+0xca8, 0)`
+  at `0x92271f10`) and raises `labEmpty` (`this+0xca0`, resolved at
+  `0x922710f0` from the wide literal at `0x9201eec0`; `SetShow` true at
+  `0x92271f48` -> `0x92271fcc-0x92271fd0`, false at `0x92271fc8` when there are
+  rows) [CODE, unit test]. No title is installed here, so that is the console's
+  own state. **Gated:** the Games Library strip paints "You don't have any
+  games in your library.", `hidden` carries `RecentGamesFilterPanel.xur:
+  labEmpty Show=true`, and the hoisted legend's live flags read
+  `AButton:false BButton:true YButton:false`. `CODE_LISTS_NOT_FILLED_9199`'s
+  line no longer claims a label it was not drawing.
+- **F4 (LOW), `2004_NetworkDetails`' `btn_IP` / `btn_DNS`: CLOSED - the code's
+  offline text IS in the XUS tables, so it is shown.** `C2004_NetworkDetails`
+  resolves the two buttons at `0x92291af8` and writes their lines from
+  `network/Strings.xus` through the `C4LineBtn` setters `0x92290be0` / `c20` /
+  `c60` / `ca0`: `li r3, 0x2d..0x30` at `0x922913a8-0x922913f4` for `btn_IP`
+  ([45] "IP Settings", [46] "IP Address", [47] "Subnet Mask", [48] "Gateway")
+  and `li r3, 0x29..0x2c` at `0x9229154c-0x92291598` for `btn_DNS` ([41] "DNS
+  Settings", [42] "Primary DNS Server", [43] "Secondary DNS Server", [44] the
+  empty string) [CODE, unit test, which also re-reads the seven strings out of
+  the table]. The right-hand values - "Automatic"/"Manual" and four
+  `%d.%d.%d.%d` addresses - are the network configuration this archive has no
+  reading of, and the table has no "no network" caption for them, so they stay
+  blank. **Gated:** the page's rows read `IP Settings|DNS Settings`, all seven
+  captions are painted, `codeFilled` names the table and the indices and
+  `codeUnfilled` names the values on both buttons.
+- **The Marker row now states the rule, as asked.** `PLACEHOLDERS.md`'s
+  `Marker2` row records that the bullet is drawn while the console is SIGNED
+  OUT and not while a profile is signed in - present on [FRAME Kpa f0048] and
+  [FRAME Yv5 f0042], absent on [FRAME Yrt f0483], [f0268], [f0484] and [FRAME
+  Kpa f05585] - that the shell is signed out and so draws it, and that which
+  profile property the code reads for it was not traced. Two more rows are
+  added for the work above (the AV pack behind the switch art; the
+  code-written captions beside the code-driven lists) and the Rome row now
+  says the empty Recent Games state is drawn rather than only described.
+- **Shared-runtime changes, and why they are safe for 6770.** Two, both
+  additive and both no-ops unless a caller opts in: `Opts.pathKey` on
+  `renderElement` and `NodeRecord.pathKey` read by `pathOf` (only
+  `NxeShell.renderInto` sets it), and `DomRenderer` passing it through.
+  `smoke-boot` and `smoke-gallery` PASS. `packages/runtime/src/ui/ListView.ts`
+  in the same working tree is M3f's Blades fix, not this pass's.
+- **Not closed, and said so.** COVERAGE B12 (a list row's Down firing
+  `btn_Focus` twice on the skin's `XuiList` template) is still reported and
+  ungated on `dashSysCslSetDisplay`; it is the shared list machinery and M3f
+  owns it. R2's shape residual and the inferred `UNFOLD_BEHIND_FRAME` are
+  unchanged. What the AV-pack-0 branch would also do - the row builder at
+  `0x92218cf8` rewriting each Display row's present / enabled field - is NOT
+  applied under `&avpack0` and says so in `__dash.nxe.codePaths`.
+
 - **2026-09-03, Judge E round 3 @ b274833: FAIL.** Reproduced (typecheck 0,
   111/111, Blades suites green); the judge's own walker drove 5 blades, 51
   pages, 447 screens, A on every row and every option row on 18 of 20 option
@@ -848,3 +994,157 @@ suite's own printout at this commit.
   without a CODE_FILLED reason. Could not verify: Time Zone's per-row writes
   (the list wraps), PControlContent's two rows, the Family Timer off row,
   the Passcode blank-page case. Fixes pending with M3f.
+
+### Closed in M3f (Blades 6770), with the measurement for each
+
+Gates at this working tree: `npm run typecheck` clean; `npm test` **120/120**
+(five new: the transition-scope keying, the list-row span rule and its two
+numbers re-read out of `dashuisk/skin.xur` and `dashSysCslSetClockTime.xur`,
+the B carrier's three names, and all 75 Time Zone rows);
+`tests/smoke/smoke-nav.mjs` **SMOKE_PASS** with a new `§9` block (`[m3f]`) and
+two new gates inside `§8`'s own A and B helpers, so EVERY pop of the walk is
+gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
+`smoke-launcher` **SMOKE_PASS** unchanged.
+
+- **(1) HIGH, the offset pages: CLOSED.** `push()` hosted the page at
+  `from.node.parentNode`, which on Games and Media is the panel scene's own
+  parent - `TabN/scBlade/scContainer` at (221,151) / (258,151) - while the
+  System blade's level 0 is `Tab5/System`, whose parent is already the canvas.
+  `pageHost()` now hosts every pushed page at `TabN` after checking it is at
+  the canvas origin, which is the shell's own `renderInto` rule (a
+  second-level scene declares the full 1120x770 canvas, so its authored
+  coordinates ARE the dashboard's). **Measured in DESIGN space** - the offset
+  chain up to the 1120x770 `.xui-canvas`, so the number is the .xur's own -
+  MediaSourceSelection's `labelHeader` **(156,96)**, the Arcade home's
+  `txt_Header` **(156,96)**, both identical to Console Settings' `labHeader`
+  **(156,96)** on the System blade (smoke-nav §9a, three gates).
+- **(2) HIGH, the blank page after a pop: CLOSED, and the cause was wider than
+  the transition.** Every scope id in this runtime is `pathOf` - the chain of
+  element Ids down to the node (`NodeIndex.scope`) - so two scenes with the
+  same root Id mounted under one host had the SAME ids for every timeline
+  under them, not just for the transition: the child's `bindTimelines`
+  replaced the parent's scopes in the engine and the child's teardown removed
+  them. `BladeShell.renderInto` now gives every mount's root its own
+  `pathKey` (root Id @ file # serial, the runtime hook M4f added for the same
+  collision on 9199), and `transitionKey` is the node path rather than the
+  scene Id. **Measured:** after A on Time Format the Clock page's
+  `scClockSettings` root is `display:""` / `opacity:""` where it was
+  `display:none` / `opacity:0`, and the engine carries **11** scopes under
+  that page (its four option buttons, its four legends, its metapane, its two
+  transitions) where it carried **5** before. Gated three ways: (a) the page
+  underneath is on screen and painted after EVERY pop of §8 and §9 (the A and
+  B helpers, ~40 pops); (b) the Clock menu's own body ink, with the same
+  detector before the push and after each of the three pops - **9.49%
+  painted, 9.09 / 9.62 / 9.66% after the three pops, and 0.00% with the
+  page's root hidden**, which is the round-3 failure state produced on
+  purpose to calibrate the detector; (c) the pass-code half - Passcode →
+  PasscodeHint, both `scRating` - **12.42% before, 12.02% after**, plus its
+  screenshots. The console's own answer to the same question with the same
+  detector, from the only capture of an option page being opened, written and
+  popped: **[FRAME 8498 f2173 → f2179 → f2181] the row column's ink goes
+  2.52% → 5.49% → 7.57%** as the parent page comes back.
+- **(3) MED, 24-hour mode and the year: CLOSED.** `dashCTime`'s init hides
+  `lstAMPM` in the 24-hour branch (0x921cc8b4-0x921cc8bc, `Show(this+0xc, 0)`)
+  and runs the hour spinner 0..23; the shell now does the same, and the
+  spinner page shows **five rows, not six** (§8f's gate updated, and a hidden
+  control is not focusable, so Right from the minutes stops there). The
+  "2..." was the LIST machinery, not the presenter: `ListView` gave every row
+  the LIST's width, and `List_VerticalSpin`'s template row is 83 wide,
+  LEFT|RIGHT, inside a 53-wide visual, so on the 75-wide `lstYear` the row has
+  to be 83 + (75 - 53) = **105**. `rowSpan()` runs the same anchor rule
+  `applyAnchor` runs for everything else, on the x axis only. **Measured:**
+  the year row is **105 px wide** and its text element's content width equals
+  its box width (**71 = 71**, no ellipsis), painting "2025"; the Console
+  Settings list is unchanged at 423 (its template is 420-in-420 on a 423-wide
+  list, which is what the old rule happened to give). The two template numbers
+  are re-read from `dashuisk/skin.xur` and the scene in a unit test.
+- **(4) MED, the switch art: CLOSED.** `arriveDisplay` applies
+  `UpdateCurrentSetting`'s own order: hide `SwitchImage` (0x921c6f30-0x921c6f40)
+  and re-show it only where the resolution provider took the `XGetAVPack == 0`
+  branch (0x921c6ffc-0x921c7004). The pack is a READING of two frames, in
+  `displaySettings.REFERENCE_AV_PACK` with its reasoning: f0053's "1080p" is
+  only formattable on the 4/6/8 branch of 0x921c6c40 and its value carries no
+  PAL line, which 0x921c6548 suppresses for exactly those packs. **Measured:**
+  `SwitchImage` is not visible on the Display page and
+  `__dash.shell.hardwareState` names the pack, the source and both addresses
+  (§9f). New PLACEHOLDERS row.
+- **(5) MED, "Please wait": CLOSED.** The scene authors the id TWICE - once
+  inside `WmcConnectingScene`, once on the page at (350,250), bound at
+  0x921a9de0 as the enumeration's wait state - and `findById` hid only the
+  first. `findAllById` hides every copy, and the disclosure now names the
+  page's own pair, where the code binds it, and the three sub-scenes the
+  metapane switches between (0x921aac44-0x921aac58). **Measured:** the page
+  carries exactly **two** `labelPleaseWaitText`, both not visible, with
+  `NoComputersScene` shown and the other two down (§9b).
+- **(6) MED, the B button: CLOSED, and the fallback with it.** `back()` now
+  resolves the control that binds `XuiBackButton`'s `PressKey` 0x5841 the way
+  `pressKey()` resolves X and Y, so `navB`, `btnB` and `legend_b` are all
+  found. It also no longer presses the page UNDERNEATH's back button when the
+  top page has none: **176 of the build's scenes carry a 0x5841 carrier and
+  ten do not** (dashmain and nine wait / progress / confirm screens -
+  `oobe/oobeProfileCreation`, `download/2407_WaitingScreen`,
+  `memory/OperationProgress`, ...), and every one of those authors its four
+  legends as `XuiLabel`s with `Enabled=false`: a page that offers no B presses
+  nothing, while B still navigates back. The new `ShellReport.backCarrier`
+  names the carrier, and the suite gates **btn_Back played === a carrier
+  exists** on every pop of §8 and §9, with the id asserted on the four pages
+  that call it something else (`navB` on MediaSourceSelection, `btnB` on the
+  Arcade home, on 2502_TwistSelectorScene and on System Info).
+- **(7) LOW, the empty PanelStrings[8]: CLOSED.** `btnDone`'s metapane is the
+  whole staged block in one label: 0x921bd0b0's btnDone branch
+  (0x921bd1c8-0x921bd298) reads the five current values (0x921bb420 game,
+  0x921bb588 video, 0x921bb718 Xbox LIVE access, 0x921bb780 memberships,
+  0x921bb860 family timer), sprintf's them into `dashCSettingsStrings[447]`
+  and writes `labDoneSummary`. That is its `CODE_FILLED_PANEL_STRINGS` reason.
+  **Measured:** with `btnDone` focused, `missingStrings` is empty and
+  `hardwareState` carries the line with its address (§9g).
+- **What the judge could not verify, now covered.** *Time Zone's per-row
+  writes:* driven by INDEX, since the list wraps - rows **0, 1, 74 and 37** of
+  75 each reached by `(target - focused) mod 75` Downs, each writing its own
+  index and labelling the Clock menu with its own string ("GMT-12 Tokelau",
+  "GMT-11 Samoa", "GMT+14 Kiribati", "GMT+03 Kuwait"), and a unit test walks
+  all **75** rows through `write` / `current` / `label` including the
+  daylight-saving bit each zone sets (§9h). *PControlContent:* two rows,
+  `btnYes` authored at y 153 and `btnNo` at y 198, arriving on `btnNo` with
+  the block unknown; `btnNo` writes **0xff** and `btnYes` **0**, and the menu's
+  Current Setting follows the 408/409 pair. *The Family Timer:* one row,
+  "Family Timer is off" (count 1 at 0x921cb5e0, string 383 at 0x921cb4b0),
+  three captioned frequency radios, and its own `btnB`. *The pass-code case:*
+  the hint page opens off `navHintQ`'s PressPath with its five questions
+  (0x92015320), A writes the row index and pops, and the Passcode page comes
+  back painted - measured above and screenshotted before, during and after
+  (`tests/smoke/out/m3f-passcode-*.png`).
+- **Runtime changes, and 9199.** Two of mine, one of M4f's, all shared:
+  `ListView`'s `rowSpan` (new), and `pathOf` reading `NodeRecord.pathKey` with
+  `DomRenderer` passing it through (M4f's, for the same Id collision on 9199,
+  used here too). `rowSpan` is the only one that can move a pixel, so every
+  `XuiList` / `XuiCommonList` in both corpora was surveyed against its
+  template - **86 lists in 6770, 14 of which the rule moves; 89 in 9199, 17**:
+  the six clock spinners (the fix), the Family Timer's `lstTime`, LiveVision's
+  three chooser lists, `music/1030_EditPlaylist`'s three icon columns, the
+  picture grid, and on 9199 three achievement grids. Every OTHER list keeps
+  the width it had, because its template is `control_ListItem` 420-in-420 and
+  the delta is the list's own. Of the fourteen, this dashboard mounts three
+  with rows offline, and all three follow from the same anchor read: the year
+  spinner **75 → 105** (the finding), the Family Timer's single row **420 →
+  373 at x 22** (its template is anchored TOP|BOTTOM only, so it keeps its
+  authored frame and the spinner's arrows sit outside it) and LiveVision's
+  three disabled chooser rows **480 → 419 at x 31** (239-in-300 stretched by
+  the 180 delta), all three measured in the browser. No footage shows the last two, and they are disclosed here
+  rather than gated. On 9199 the affected lists are all EMPTY offline (the
+  spinners, the timer durations and the camera lists are exactly the ones
+  `codeLists9199` leaves unfilled with a reason), so nothing there moves:
+  `tests/smoke/smoke-nxe.mjs` **SMOKE_PASS** after the change.
+- **Not closed, stated.** COVERAGE B12 (a list row's Down firing `btn_Focus`
+  twice on the skin's `XuiList` template) is untouched: §8a still gates one
+  `btn_Focus` per Down on Console Settings, and the double is only reported by
+  the NXE walker on `dashSysCslSetDisplay`. The metapane text's 3-6 px
+  vertical offset is unchanged and still printed by §8a. Which of AV pack 4, 6
+  or 8 the reference console runs, no frame separates.
+  **One thing this pass FOUND and did not fix**, because it is neither in the
+  seven nor caused by them: `consoles/dashSysLiveVision.xur`'s three
+  `XuiListChooser_No_Kill` lists each draw TWO rows stacked on one another
+  (the six §8h counts) where a chooser shows one value between its arrows.
+  That is the window arithmetic in `ListView.layout` against a chooser
+  template's height, it predates M3f (the row WIDTH is all that moved here),
+  and no capture of that page exists to fit it against.

@@ -300,6 +300,7 @@ import {
   TIMEZONE_LABELS_9199, TIMEZONE_TABLE_VA_9199, TIMEZONE_RECORD_SIZE_9199,
   REMOTE_ROWS_9199, REMOTE_BASE_9199, REMOTE_COUNT_9199, HINT_ROWS_9199, HINT_TABLE_VA_9199,
   DISPLAY_ROWS_9199, DISPLAY_TABLE_VA_9199, CODE_LISTS_9199,
+  AV_PACK_9199, CODE_VISIBILITY_9199, CODE_LINES_9199,
 } from '@dash/nxe/codeLists9199';
 import { EPIX_COMMANDS, ROOT_STRIPS, resolveScenePath, SIGNIN_LEGEND } from '@dash/nxe/navigation';
 import { collectPageRows, isAuthoringToken, findPressKey, PRESS_KEYS } from '@dash/nxe/pageFocus';
@@ -528,4 +529,118 @@ test('the legend frames are the edges of TransitionSubElements\' zero plateau (s
   assert.equal(at(LEGEND_SHOW_FRAME), 0, 'the BackTo plateau does not end where the legend shows');
   assert.equal(at(225), 1);
   assert.ok(!tl.keyframes.some((k) => k.keyframe > 151 && k.keyframe < LEGEND_SHOW_FRAME && k.values[0] !== 0), 'the BackTo plateau is not flat');
+});
+
+/*
+ * M4f (Judge G round 3). The addresses in codeLists9199.ts's AV_PACK_9199,
+ * CODE_VISIBILITY_9199 and CODE_LINES_9199 are TRUE (flat) VAs: file offset =
+ * VA - 0x92000000. Each test re-reads the instruction words the tables cite,
+ * so a wrong address fails here rather than in a screenshot. The PowerPC
+ * encodings: `li rD, imm` = 0x38000000 | rD<<21 | imm; `lwz rD, d(rA)` =
+ * 0x80000000 | rD<<21 | rA<<16 | d; `bl target` = 0x48000001 | (target - pc).
+ */
+const flat = (va: number) => image!.readUInt32BE(va - BASE);
+const LI = (rd: number, imm: number) => (0x38000000 | (rd << 21) | (imm & 0xffff)) >>> 0;
+const LWZ = (rd: number, ra: number, d: number) => (0x80000000 | (rd << 21) | (ra << 16) | (d & 0xffff)) >>> 0;
+const BL = (pc: number, target: number) => (0x48000001 | ((target - pc) & 0x03fffffc)) >>> 0;
+const SET_SHOW = 0x922df968;
+
+test('the Display page hides its switch art first and shows it only on the AV-pack-0 branch (skipped without extracted/9199)', { skip: !image }, () => {
+  // dashVideoSettings::UpdateCurrentSetting 0x92219790 opens with
+  // SetShow(this+0x68 = SwitchImage, 0); the branch at 0x92219874 sets it 1.
+  // The hide site is SCHEDULED: an unrelated `stw r24, 0x50(r1)` sits between
+  // the argument and the handle load, so the call is at +0, +8, +12 while the
+  // show site (below) is contiguous. Reading the three words as consecutive is
+  // what a hand-copied address gets wrong, so both shapes are spelled out.
+  assert.equal(flat(AV_PACK_9199.displayHide), LI(4, 0), 'li r4, 0');
+  assert.equal(flat(AV_PACK_9199.displayHide + 8), LWZ(3, 27, 0x68), 'lwz r3, 0x68(r27)');
+  assert.equal(flat(AV_PACK_9199.displayHide + 12), BL(AV_PACK_9199.displayHide + 12, SET_SHOW), 'bl SetShow');
+  assert.equal(flat(AV_PACK_9199.displayShow), LI(4, 1), 'li r4, 1');
+  assert.equal(flat(AV_PACK_9199.displayShow + 4), LWZ(3, 27, 0x68), 'lwz r3, 0x68(r27)');
+  assert.equal(flat(AV_PACK_9199.displayShow + 8), BL(AV_PACK_9199.displayShow + 8, SET_SHOW), 'bl SetShow');
+  // The resolution provider's AV-pack-0 branch names string 571 for labAVPackInfo.
+  assert.equal(flat(AV_PACK_9199.providerAvPackInfo), LI(4, AV_PACK_9199.avPackInfo), 'li r4, 0x23b');
+  // OnInit resolves "SwitchImage" (BE wide literal at 0x92018160) into this+0x68:
+  // `addi r5, r31, 0x68` then `lis r11 / addi r4 = 0x92018160`.
+  assert.equal(flat(0x92219c00), (0x38000000 | (5 << 21) | (31 << 16) | 0x68) >>> 0, 'addi r5, r31, 0x68');
+  assert.equal(flat(0x92219c08), (0x38000000 | (4 << 21) | (11 << 16) | ((0x8160 - 0x10000) & 0xffff)) >>> 0, 'addi r4, r11, -0x7ea0');
+  let name = '';
+  for (let p = 0x92018160 - BASE; image!.readUInt16BE(p) !== 0; p += 2) name += String.fromCharCode(image!.readUInt16BE(p));
+  assert.equal(name, 'SwitchImage');
+  // The HDTV Settings page: SetShow(0) right after resolving its own SwitchImage, SetShow(1) on its branch.
+  assert.equal(flat(AV_PACK_9199.hidefHide), LI(4, 0));
+  assert.equal(flat(AV_PACK_9199.hidefHide + 8), BL(AV_PACK_9199.hidefHide + 8, SET_SHOW));
+  assert.equal(flat(AV_PACK_9199.hidefShow), LI(4, 1));
+  assert.equal(flat(AV_PACK_9199.hidefShow + 8), BL(AV_PACK_9199.hidefShow + 8, SET_SHOW));
+  // The whole Display class (0x92218c00-0x92219c50) loads this+0x68 exactly twice: the two SetShow calls.
+  let loads = 0;
+  for (let va = 0x92218c00; va < 0x92219c50; va += 4) if (flat(va) === LWZ(3, 27, 0x68)) loads++;
+  assert.equal(loads, 2, 'no other read of the SwitchImage handle - no SetPosition on it');
+});
+
+test('the switch art is authored on the Display scene root, not under scnCurrentFormat (skipped without extracted/9199)', { skip: !existsSync('extracted/9199/xuiz/consoles/dashSysCslSetDisplay.xur') }, async () => {
+  const { XuRegistry, parseXur } = await import('@xur/index');
+  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/9199/registry.json', 'utf8')));
+  const idOfObj = (o: XuObject): string => { const p = o.properties.find((x) => x.def.name === 'Id'); return typeof p?.value === 'string' ? p.value : ''; };
+  const pos = (o: XuObject): { x: number; y: number } => { const p = o.properties.find((x) => x.def.name === 'Position')?.value as { x: number; y: number } | undefined; return { x: p?.x ?? 0, y: p?.y ?? 0 }; };
+  for (const [file, gx] of [['consoles/dashSysCslSetDisplay.xur', 35], ['consoles/dashSysCslSetDisplayHiDef.xur', 37]] as const) {
+    const doc = parseXur(new Uint8Array(readFileSync(`extracted/9199/xuiz/${file}`)), reg);
+    const scene = doc.root.children[0]!;
+    const group = scene.children.find((c) => idOfObj(c) === 'SwitchImage');
+    assert.ok(group, `${file}: SwitchImage is a direct child of the scene root`);
+    assert.deepEqual(pos(group), { x: gx, y: 170 });
+    const img = group.children.find((c) => idOfObj(c) === 'XuiImage1');
+    assert.ok(img);
+    assert.equal(Math.round(pos(img).x), 99); assert.equal(Math.round(pos(img).y), 66);
+    const pane = scene.children.find((c) => idOfObj(c) === 'scnCurrentFormat');
+    if (pane) assert.equal(pane.children.length, 0, `${file}: scnCurrentFormat authors no children`);
+    assert.equal(CODE_VISIBILITY_9199[file]?.[0]?.id, 'SwitchImage');
+  }
+});
+
+test('the Recent Games panel raises labEmpty on an empty enumeration and disables A and Y (skipped without extracted/9199)', { skip: !image }, () => {
+  // 0x92271ef8: `cmplwi cr6, r28, 0; bne` on the row count; the empty path
+  // disables legend_y (+0xcac) and legend_a (+0xca8) through 0x92270ed8 and
+  // ends in SetShow(labEmpty = this+0xca0, 1); the filled path SetShow(.., 0).
+  const SET_ENABLE = 0x92270ed8;
+  assert.equal(flat(0x92271f00), LI(4, 0)); assert.equal(flat(0x92271f04), LWZ(3, 31, 0xcac)); assert.equal(flat(0x92271f08), BL(0x92271f08, SET_ENABLE));
+  assert.equal(flat(0x92271f0c), LI(4, 0)); assert.equal(flat(0x92271f10), LWZ(3, 31, 0xca8)); assert.equal(flat(0x92271f14), BL(0x92271f14, SET_ENABLE));
+  assert.equal(flat(0x92271f48), LI(4, 1), 'li r4, 1 - the empty state shows the label');
+  assert.equal(flat(0x92271fc8), LI(4, 0), 'li r4, 0 - the filled state hides it');
+  assert.equal(flat(0x92271fcc), LWZ(3, 31, 0xca0), 'lwz r3, 0xca0(r31) - labEmpty');
+  assert.equal(flat(0x92271fd0), BL(0x92271fd0, SET_SHOW));
+  // The init resolves "labEmpty" (BE wide literal at 0x9201eec0) into +0xca0.
+  assert.equal(flat(0x922710f0), (0x38000000 | (5 << 21) | (31 << 16) | 0xca0) >>> 0, 'addi r5, r31, 0xca0');
+  let name = '';
+  for (let p = 0x9201eec0 - BASE; image!.readUInt16BE(p) !== 0; p += 2) name += String.fromCharCode(image!.readUInt16BE(p));
+  assert.equal(name, 'labEmpty');
+  const v = CODE_VISIBILITY_9199['arcade/RecentGamesFilterPanel.xur']![0]!;
+  assert.equal(v.id, 'labEmpty'); assert.equal(v.show, true); assert.equal(v.list, 'lstRecentGames');
+});
+
+test('Network Details writes its button captions from network/Strings.xus (skipped without extracted/9199)', { skip: !image }, async () => {
+  // 0x92291338: `li r3, 0x2d..0x30` for btn_IP's four lines, `li r3, 0x29..0x2c`
+  // for btn_DNS's, each followed by `bl 0x92287060` (the string fetch) and the
+  // C4LineBtn setter for that line.
+  const [ip, dns] = CODE_LINES_9199['network/2004_NetworkDetails.xur']!;
+  assert.equal(ip!.id, 'btn_IP'); assert.equal(dns!.id, 'btn_DNS');
+  const ipIdx = [ip!.text, ip!.slots[1], ip!.slots[2], ip!.slots[3]];
+  const dnsIdx = [dns!.text, dns!.slots[1], dns!.slots[2], 44];
+  const setters = [0x92290be0, 0x92290c20, 0x92290c60, 0x92290ca0];
+  for (const [k, va] of [0x922913a8, 0x922913bc, 0x922913d0, 0x922913e4].entries()) {
+    assert.equal(flat(va), LI(3, ipIdx[k]!), `btn_IP line ${k + 1}: li r3, ${ipIdx[k]}`);
+    assert.equal(flat(va + 4), BL(va + 4, 0x92287060), 'the string fetch');
+    assert.equal(flat(va + 16), BL(va + 16, setters[k]!), `the l${k + 1} setter`);
+  }
+  for (const [k, va] of [0x9229154c, 0x92291560, 0x92291574, 0x92291588].entries()) {
+    assert.equal(flat(va), LI(3, dnsIdx[k]!), `btn_DNS line ${k + 1}: li r3, ${dnsIdx[k]}`);
+    assert.equal(flat(va + 16), BL(va + 16, setters[k]!), `the l${k + 1} setter`);
+  }
+  // And the strings are what the table says they are.
+  const { parseXus } = await import('@xuiz/index');
+  const t = parseXus(new Uint8Array(readFileSync('extracted/9199/xuiz/network/Strings.xus')));
+  const s = (i: number | undefined): string => t.entries[i!]!.value;
+  assert.deepEqual(ipIdx.map(s), ['IP Settings', 'IP Address', 'Subnet Mask', 'Gateway']);
+  assert.deepEqual(dnsIdx.map(s), ['DNS Settings', 'Primary DNS Server', 'Secondary DNS Server', '']);
+  assert.equal(s(266), 'Not set', 'the only "no ..." caption on the page is the wireless block\'s');
 });

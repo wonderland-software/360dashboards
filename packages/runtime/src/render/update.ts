@@ -28,6 +28,18 @@ export interface NodeRecord {
   content: Element | null;
   children: NodeRecord[];
   parentNode?: NodeRecord;
+  /**
+   * This node's segment of `pathOf` when it is not its Id: the MOUNT key a
+   * shell hands `renderElement` for the root of a scene it mounts beside
+   * another (`Opts.pathKey`). Two scenes mounted under one host can carry the
+   * same root Id - the NXE shell hosts `dashSysCslSetClock.xur` (root
+   * `scClockSettings`) and pushes `dashSysCslSetClockFormat.xur` (root
+   * `scClockSettings`) beside it - and without a key every control of the
+   * second page had the FIRST page's scope id: it never bound, and popping it
+   * removed the parent's scopes (M4f, Judge G F2). Unset on everything a
+   * scene's own tree creates, so no id inside a scene changes.
+   */
+  pathKey?: string;
   /** Set on every element inside a control's instantiated visual. */
   hostControlId: string | null;
   /** A control's instantiated visual subtree, so an animated Visual can swap it. */
@@ -296,7 +308,7 @@ export function pathOf(node: NodeRecord): string {
   const parts: string[] = [];
   let cur: NodeRecord | undefined = node;
   while (cur) {
-    parts.unshift(idOf(cur.obj) || cur.obj.className);
+    parts.unshift(cur.pathKey ?? (idOf(cur.obj) || cur.obj.className));
     cur = cur.parentNode;
   }
   return parts.join('/');

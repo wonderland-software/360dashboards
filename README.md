@@ -257,7 +257,14 @@ npx vercel@latest deploy --prebuilt --prod
   option selects (arrival row, the write, the pop with its cue, the parent's
   line), the disabled Display row and its `btn_InactiveSelect`, the clock
   spinners, the rating lists, X/Y, and a painted-token gate on every page it
-  reaches.
+  reaches. Section 9 re-walks Judge E round 3's findings: a pushed page's
+  header measured in DESIGN pixels on three blades, the page underneath
+  measured painted after every pop (against the blank state the suite produces
+  on purpose, and against the console's own pop in [FRAME 8498
+  f2173-f2181]), the 24-hour clock's hidden AM/PM and the year spinner's
+  width, the Display page's hidden switch art, the media picker's two "Please
+  wait" labels, `btn_Back` playing exactly where the page binds `PressKey`
+  0x5841, and the Time Zone list driven by index through all its wraps.
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.

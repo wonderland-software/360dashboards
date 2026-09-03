@@ -76,14 +76,24 @@ interface Template {
   itemVisual: string;
   itemHeight: number;
   itemAnchor: number;
+  /** The template row's authored width and x, and the VISUAL's authored
+   *  width they are anchored inside (see rowSpan). */
+  itemWidth: number;
+  itemX: number;
+  visualWidth: number;
   scrollUp: XuObject | null;
   scrollDown: XuObject | null;
 }
 
 /** Read the row template out of the list's own visual. */
 export function templateOf(listVisual: XuObject | undefined): Template {
-  const t: Template = { itemVisual: 'XuiButton', itemHeight: E.LIST_ITEM_PITCH, itemAnchor: 15, scrollUp: null, scrollDown: null };
+  const t: Template = {
+    itemVisual: 'XuiButton', itemHeight: E.LIST_ITEM_PITCH, itemAnchor: 15,
+    itemWidth: E.DEFAULT_WIDTH, itemX: 0, visualWidth: E.DEFAULT_WIDTH, scrollUp: null, scrollDown: null,
+  };
   if (!listVisual) return t;
+  const vw = propByName(listVisual, 'Width')?.value;
+  if (typeof vw === 'number') t.visualWidth = vw;
   for (const c of listVisual.children) {
     const id = idOf(c);
     if (c.className === 'XuiListItem' || id === 'control_ListItem') {
@@ -93,12 +103,48 @@ export function templateOf(listVisual: XuObject | undefined): Template {
       if (typeof h === 'number') t.itemHeight = h;
       const a = propByName(c, 'Anchor')?.value;
       if (typeof a === 'number') t.itemAnchor = a;
+      const w = propByName(c, 'Width')?.value;
+      if (typeof w === 'number') t.itemWidth = w;
+      const pos = propByName(c, 'Position')?.value;
+      if (pos && typeof pos === 'object' && 'x' in pos && typeof pos.x === 'number') t.itemX = pos.x;
     } else if (c.className === 'XuiScrollEnd') {
       const dir = propByName(c, 'Direction')?.value;
       if (dir === 1) t.scrollDown = c; else t.scrollUp = c;
     }
   }
   return t;
+}
+
+/**
+ * The horizontal span a row takes, from the template's own Anchor - the same
+ * rule `applyAnchor` runs for every other element, on the x axis only (the y
+ * axis is the list's: rows are stacked at the pitch, so the template's
+ * TOP/BOTTOM bits do not stretch a row to the list's height).
+ *
+ * The template is authored INSIDE the list's visual, so the delta its anchor
+ * answers to is the visual's width against the list's: `XuiList`'s
+ * `control_ListItem` (420 wide, LEFT|RIGHT, in a 420-wide visual) on the
+ * 423-wide Console Settings list is 423 wide, which is what every list was
+ * getting by taking the list's width outright. `List_VerticalSpin`'s row is
+ * 83 wide, LEFT|RIGHT, in a 53-wide visual: on the 75-wide year spinner
+ * that is 83 + 22 = 105, not 75, and the four-digit year fits its presenter
+ * (44 wide + the same delta) instead of ellipsizing to "2..." [Judge E
+ * round 3, finding 3]. A template anchored to neither side keeps its authored
+ * width and x (`btn_horizontal_spinner_Arrows`' 373-wide row at x 21.7 in a
+ * 420-wide list); one anchored RIGHT alone slides by the delta.
+ *
+ * The width is floored at 0: three lists in each build put a 42-wide row from
+ * a 420-wide visual into a 40-wide list (`music/1030_EditPlaylist`'s three
+ * icon columns), where the delta alone would be -380. Neither build mounts
+ * them offline, and a negative frame is not a layout.
+ */
+export function rowSpan(tpl: { itemWidth: number; itemX: number; itemAnchor: number; visualWidth: number }, listWidth: number): { x: number; w: number } {
+  const dw = listWidth - tpl.visualWidth;
+  const a = tpl.itemAnchor;
+  if (a & E.Anchor.LEFT && a & E.Anchor.RIGHT) return { x: tpl.itemX, w: Math.max(0, tpl.itemWidth + dw) };
+  if (a & E.Anchor.RIGHT) return { x: tpl.itemX + dw, w: tpl.itemWidth };
+  if (a & E.Anchor.HCENTER) return { x: tpl.itemX + dw / 2, w: tpl.itemWidth };
+  return { x: tpl.itemX, w: tpl.itemWidth };
 }
 
 function def(reg: XuRegistry, className: string, name: string): XuPropertyDef | null {
@@ -128,6 +174,8 @@ export class ListView {
   private focused = -1;
   /** The first row inside the window; rows before it are not drawn. */
   private windowTop = 0;
+  /** Every row's x, from the template's anchor (rowSpan). */
+  private rowX = 0;
 
   constructor(
     readonly list: XuObject,
@@ -175,20 +223,22 @@ export class ListView {
     this.node.el.replaceChildren();
     this.node.children.length = 0;
 
+    const span = rowSpan(tpl, this.node.rect.w);
+    this.rowX = span.x;
     items.forEach((item, k) => {
       const id = `${this.id}_item${k}`;
       const obj: XuObject = {
         className: 'XuiListItem',
         properties: [
           prop(this.reg, 'XuiListItem', 'Id', id),
-          prop(this.reg, 'XuiListItem', 'Width', this.node.rect.w),
+          prop(this.reg, 'XuiListItem', 'Width', span.w),
           prop(this.reg, 'XuiListItem', 'Height', tpl.itemHeight),
           // MEASURED: the row in window SLOT s tops out at list y +
           // LIST_ITEM_TOP + pitch*s, and f0060's ten row edges land on exactly
           // that line. Authored here for the unscrolled window (slot = k);
           // `layout` rewrites it whenever the window moves, and is the only
           // thing that decides which rows are drawn at all.
-          prop(this.reg, 'XuiListItem', 'Position', { x: 0, y: E.LIST_ITEM_TOP + tpl.itemHeight * k, z: 0 }),
+          prop(this.reg, 'XuiListItem', 'Position', { x: span.x, y: E.LIST_ITEM_TOP + tpl.itemHeight * k, z: 0 }),
           prop(this.reg, 'XuiListItem', 'Anchor', tpl.itemAnchor),
           prop(this.reg, 'XuiListItem', 'Visual', itemVisual),
           prop(this.reg, 'XuiListItem', 'Text', item.text),
@@ -260,7 +310,7 @@ export class ListView {
       const node = this.rows[k]!.node;
       if (!node) continue;
       node.overrides.set('Show', k >= this.windowTop && k < bottom);
-      node.overrides.set('Position', { x: 0, y: E.LIST_ITEM_TOP + pitch * (k - this.windowTop), z: 0 });
+      node.overrides.set('Position', { x: this.rowX, y: E.LIST_ITEM_TOP + pitch * (k - this.windowTop), z: 0 });
       updateNode(node, ['Show', 'Position']);
     }
     this.updateEnds();

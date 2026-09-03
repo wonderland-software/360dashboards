@@ -1248,3 +1248,83 @@ their reason. What the work taught:
   page, and every later act read a shell that was neither at home nor on a
   page. **A shell that defers work has to DISCLOSE the deferral**, or the only
   thing gating it is how fast the machine happened to be.
+
+## Blades M3f: what a shared Id costs, and what a row is as wide as (2026-09-03)
+
+Judge E round 3's seven findings, closed. Four of them were one class of
+mistake - a rule read off ONE example - and the other three were the console's
+own code saying "hide this" where we had drawn the file as authored.
+
+- **A scope id that is a path of Ids is not unique, and everything hangs off
+  it.** `pathOf` walks the chain of element Ids up to the root, and the
+  renderer's `NodeIndex.scope` uses it as the id of every timeline scope. Four
+  of this build's clock pages carry the root Id `scClockSettings` and the two
+  pass-code pages carry `scRating`, so mounting one over the other under the
+  same host gave the SECOND page the FIRST page's ids: its `bindTimelines`
+  silently replaced the parent's scopes in the engine, and popping it removed
+  them. The symptom looked like a transition bug - the page underneath came
+  back at FadeOut's `Show=false` with no FadeIn to undo it - and keying the
+  TRANSITION by node path fixed only the last step of it. **Give every mounted
+  scene root a mount key** (`NodeRecord.pathKey`: root Id, file, serial) so an
+  id can only ever belong to one mount, then key the transition by the path.
+  The tell that the fix landed: the engine went from 5 scopes under the clock
+  page to 11 - its four legends had been the child's all along.
+- **"The pressed control's parent" is not where a page goes.** The console's
+  `NavigateToScenePath` pushes into the pressed control's parent, which on the
+  System blade IS the tab scene at the canvas origin and on Games and Media is
+  the panel scene's container at (221,151) / (258,151). Every second-level
+  scene in the build declares the full 1120x770 canvas, so a page hosted
+  beside the panel drew its whole self offset by the container - a bug that
+  the System blade, where the two hosts coincide, cannot show. **When a rule
+  is read off one example, find the example where the two candidate readings
+  differ before shipping it.**
+- **Measure a DOM layout in the AUTHORED frame, not on screen.** The offset
+  was invisible in screen pixels (everything is scaled by the view transform
+  and the header still looked plausible), and obvious the moment the element's
+  offset chain up to the 1120x770 `.xui-canvas` was printed: (156,96) is the
+  .xur's own number, and (414,247) is the container's plus it.
+- **A list row is as wide as its TEMPLATE anchors it, not as wide as the
+  list.** `XuiList`'s `control_ListItem` is 420 wide, LEFT|RIGHT, inside a
+  420-wide visual, so on a 423-wide list it is 423 - which is what taking the
+  list's width outright happens to give, on every ordinary list in the build.
+  `List_VerticalSpin`'s row is 83 wide inside a 53-wide visual: on the 75-wide
+  year spinner the row is 83 + 22 = 105, and taking 75 ellipsized "2025" to
+  "2...". The anchor rule the renderer already runs for every other element is
+  the rule; the row was the one element exempt from it. **A layout constant
+  that agrees with the data on 84 of 86 cases is not a rule, it is a
+  coincidence with two counterexamples** - so survey the whole corpus for
+  which cases a layout change moves before claiming it is inert.
+- **Bind a pad key by the property, not by the name.** B pressed a control
+  literally called `legend_b`, so the four pages that call their back button
+  `navB` or `btnB` played no press and no `btn_Back`. `XuiNavButton.PressKey`
+  is the binding (B 0x5841, X 0x5802, Y 0x5803) and the name is decoration.
+  The survey that came with the fix is the other half of it: **176 scenes carry
+  a B carrier and ten do not** - dashmain and nine wait / progress screens
+  whose four legends are `XuiLabel`s with `Enabled=false` - so "every pop plays
+  `btn_Back`" is the WRONG gate, and "plays it exactly when the page binds
+  0x5841" is the right one. A page that offers no B still navigates back,
+  because that is the scene manager's job, not the button's.
+- **Hiding is code, and it is usually the FIRST thing the handler does.**
+  Three findings were one shape: `dashCTime`'s init hides `lstAMPM` in the
+  24-hour branch, `UpdateCurrentSetting` hides `SwitchImage` before it decides
+  anything, and `MediaSourceSelection` rests with its "Please wait" pair down.
+  Each scene authors the thing SHOWN, because the authoring tool wants it
+  visible, and the class hides it on entry. **Read the init's first ten
+  instructions of every page: a `SetShow(x, 0)` there is a fact about the
+  screen, and drawing the file as authored is drawing a state the console
+  never presents.**
+- **`findById` hides ONE of them.** The same scene authored `labelPleaseWaitText`
+  twice - once inside a sub-scene that was already hidden, once on the page -
+  and the first-match helper hid the invisible one. Where a hide is a
+  correction, hide every copy under the level (`findAllById`) or address it by
+  path.
+- **Calibrate a "is it blank" detector against the failure state, produced on
+  purpose.** Gating the pop needed one number that separates a painted page
+  from a blank one on both a console capture (light text on a dark plate) and
+  ours (dark text on a light one). Band counting failed: it measured whichever
+  polarity the plate had. The share of pixels standing off their own row's
+  median is polarity-free and blind to which row is highlighted, and the gate
+  can state its own floor because the suite HIDES the page's root for one
+  screenshot and measures 0.00 there. An NCC against the pre-push frame was
+  the tempting version and is wrong: in a window the size of a row block, the
+  focus highlight moving one row down drops it to 0.3.

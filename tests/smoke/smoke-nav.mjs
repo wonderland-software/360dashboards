@@ -15,14 +15,18 @@
 // Deterministic: &manual stops the wall clock, &mute builds no AudioContext, so
 // a cue is logged rather than heard and stepFrames() is the only clock.
 import puppeteer from 'puppeteer-core';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readPng, compare, rowProfile, colProfile, grad, profileFit } from './pixlab.mjs';
+import { readPng, compare, luma, rowProfile, colProfile, grad, profileFit } from './pixlab.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(HERE, 'out');
 const FRAMES = resolve(HERE, '../../reference/frames/6717');
+/** The 8498 capture: the only footage of an option page being opened, written
+ *  and popped (its host is NXE, so it is read for WHAT the console does on a
+ *  pop, never for our pixels; §9c). */
+const FRAMES_8498 = resolve(HERE, '../../reference/frames/nxe-8498-ucJoSC29UL8');
 const CHROME = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
 
@@ -388,11 +392,18 @@ try {
   // 6717 stills f0053-f0066, so every Console Settings row is gated against its
   // own frame here, and every page the shell reaches is gated on painted DOM.
   await m3e(browser);
+
+  /* --------- 9. M3f: Judge E round 3's seven findings, each with its measure */
+
+  await m3f(browser);
 } catch (err) {
   fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
   if (browser) await browser.close();
 }
+
+if (fails.length) { for (const f of fails) console.error('  FAIL ' + f); console.log('SMOKE_FAIL'); process.exit(1); }
+console.log('SMOKE_PASS');
 
 async function m3e(browser) {
   const page = await browser.newPage();
@@ -406,8 +417,57 @@ async function m3e(browser) {
   const shell = () => ev(() => JSON.parse(JSON.stringify(window.__dash.shell)));
   const at = () => ev(() => window.__dash.shell.stack.at(-1));
   const cues = () => ev(() => window.__dashApi.audio.log.map((c) => `${c.cue}@${c.tick}`));
-  const A = async () => { await ev(() => window.__dashApi.shell.press()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(60)); };
-  const B = async () => { await ev(() => window.__dashApi.shell.back()); await ev(() => window.__dashApi.stepFrames(60)); await ev(() => window.__dashApi.shell.idle()); };
+  // What the top scene's own root is doing: on screen at all, and how much of
+  // it is painted. Four clock pages share the scene Id `scClockSettings` and
+  // the two pass-code pages share `scRating`, and every scope id in this
+  // runtime is `pathOf` - a chain of element Ids - so a second copy mounted
+  // under the same TabN used to take the first page's ids outright and pop
+  // them with itself, leaving the page underneath at FadeOut's Show=false
+  // [Judge E round 3, finding 2]. Every pop below is gated on this.
+  const topRoot = () => ev(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const id = window.__dash.shell.stack.at(-1);
+    // Level 0 of the System blade is `dashmain/dashmain.xur#System`: a DashScene
+    // inside dashmain, not a mounted scene, so it is found by its fragment Id.
+    const frag = id.includes('#') ? id.split('#')[1] : null;
+    const host = frag
+      ? document.querySelector(`[data-xui-id="${frag}"]`)
+      : [...document.querySelectorAll(`[data-xui-scene="${id}"]`)].at(-1);
+    if (!host) return { id, host: false, shown: false, painted: 0 };
+    const root = frag ? host : host.firstElementChild;
+    return { id, host: true, shown: root ? vis(root) : false,
+      painted: [...host.querySelectorAll('[data-xui-paint="text"]')].filter(vis).filter((e) => (e.textContent ?? '').trim()).length };
+  });
+  const depth = () => ev(() => window.__dash.shell.stack.length);
+  const afterPop = async (what, was) => {
+    if (await depth() >= was) return;
+    const st = await topRoot();
+    check(st.shown && st.painted > 0,
+      `${tag}after ${what} the page underneath must be on screen and painted: ${JSON.stringify(st)}`);
+  };
+  const A = async () => {
+    const was = await depth();
+    await ev(() => window.__dashApi.shell.press()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(60));
+    await afterPop('an option page writes and pops (XuiSceneNavigateBack)', was);
+  };
+  const B = async () => {
+    // The B carrier is whatever control binds XuiBackButton's PressKey 0x5841 -
+    // `legend_b` on the settings pages, `navB` on the media source picker,
+    // `btnB` on the Arcade pages, System Info and the Family Timer - and its
+    // Press range carries btn_Back.xma on frame 2. 176 scenes in the build
+    // carry one; the ten that do not (dashmain and nine wait / progress
+    // screens) author their legends Enabled=false and press nothing [Judge E
+    // round 3, finding 6].
+    const was = await depth(); const c0 = (await cues()).length;
+    const left = await at(); const carrier = (await shell()).backCarrier;
+    await ev(() => window.__dashApi.shell.back()); await ev(() => window.__dashApi.stepFrames(60)); await ev(() => window.__dashApi.shell.idle());
+    if (await depth() < was) {
+      const played = (await cues()).slice(c0).some((c) => c.startsWith('btn_Back@'));
+      check(played === !!carrier,
+        `${tag}B plays btn_Back exactly when the page binds PressKey 0x5841: ${left} carrier ${JSON.stringify(carrier)}, btn_Back ${played}`);
+    }
+    await afterPop('B', was);
+  };
   const Down = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Down')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
   const Up = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Up')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
   const Right = async () => { await ev(() => window.__dashApi.shell.navRight()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(21)); };
@@ -562,9 +622,19 @@ async function m3e(browser) {
   check(/\d\d\/\d\d\/\d{4} +\d\d:\d\d/.test(d.labS ?? ''), `${tag}Clock's label is the date and time, got ${JSON.stringify(d.labS)}`);
   await A();
   d = await noTokens('Date and Time');
-  check(d.items.length === 6, `${tag}the five spinners and AM/PM each show one row: ${JSON.stringify(d.items)}`);
+  // FIVE rows, not six: the console runs 24-hour time here and dashCTime's init
+  // hides lstAMPM in that branch (0x921cc8b4-0x921cc8bc), so the AM/PM list
+  // shows nothing at all [Judge E round 3, finding 3; gated in §9d].
+  const spun = await ev(() => Object.fromEntries(['lstDay', 'lstMonth', 'lstYear', 'lstHour', 'lstMin', 'lstAMPM'].map((id) => {
+    const list = document.querySelector(`[data-xui-id="${id}"]`);
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const rows = list ? [...list.querySelectorAll('[data-xui-class="XuiListItem"]')].filter(vis).map((e) => e.textContent.trim()) : [];
+    return [id, rows];
+  })));
+  check(d.items.length === 5, `${tag}the five spinners each show one row and lstAMPM is hidden in 24-hour mode: ${JSON.stringify(d.items)}`);
+  check(spun.lstAMPM.length === 0, `${tag}lstAMPM paints nothing: ${JSON.stringify(spun.lstAMPM)}`);
   const now = new Date();
-  check(d.items[3]?.t === String(now.getDate()).padStart(2, '0') && d.items[4]?.t === String(now.getMonth() + 1).padStart(2, '0'), `${tag}day and month are parked on the clock: ${JSON.stringify(d.items)}`);
+  check(spun.lstDay[0] === String(now.getDate()).padStart(2, '0') && spun.lstMonth[0] === String(now.getMonth() + 1).padStart(2, '0'), `${tag}day and month are parked on the clock: ${JSON.stringify(spun)}`);
   check((await shell()).focusId === `lstDay_item${now.getDate() - 1}`, `${tag}focus arrives on the day spinner's parked row, got ${(await shell()).focusId}`);
   await Right(); await Right();
   check((await shell()).focusId?.startsWith('lstYear_item'), `${tag}Right walks lstDay -> lstMonth -> lstYear`);
@@ -648,8 +718,402 @@ async function m3e(browser) {
   await page.close();
 }
 
-if (fails.length) { for (const f of fails) console.error('  FAIL ' + f); console.log('SMOKE_FAIL'); process.exit(1); }
-console.log('SMOKE_PASS');
+/**
+ * §9. M3f: the seven findings of Judge E round 3, each closed with the
+ * measurement that would have caught it.
+ *
+ *  1 (HIGH) a page pushed from the Games or Media blade was drawn offset by the
+ *    blade container it was hosted in; every pushed page now lands on the
+ *    canvas origin, so its header authored at (156,96) is AT (156,96).
+ *  2 (HIGH) four clock pages share the scene Id `scClockSettings` and the two
+ *    pass-code pages share `scRating`; scope ids are `pathOf`, so the second
+ *    copy took the first page's ids and popped them with itself, leaving the
+ *    page underneath blank. Every pop in §8 and §9 is now gated on the page
+ *    underneath being on screen and painted (the A/B helpers), and the three
+ *    clock option pages and the pass-code pair are walked here.
+ *  3 (MED) 24-hour mode hides lstAMPM (0x921cc8b4-0x921cc8bc) and the year
+ *    spinner has to fit four digits.
+ *  4 (MED) the Display page's SwitchImage is hidden except on an AV pack 0.
+ *  5 (MED) MediaSourceSelection authors TWO labelPleaseWaitText; both are down.
+ *  6 (MED) B presses whatever control binds PressKey 0x5841, not the name
+ *    `legend_b`: gated on every pop by the B helper, and here on the four
+ *    pages that call it something else.
+ *  7 (LOW) dashSysCslSetPControl's empty PanelStrings[8] (btnDone) carries its
+ *    CODE_FILLED reason instead of counting as a missing string.
+ *
+ * Plus the four things the judge could not verify: the Time Zone list's
+ * per-row writes (it wraps, so it is driven by index), PControlContent's two
+ * rows, the Family Timer's single off row, and the pass-code blank page.
+ */
+async function m3f(browser) {
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+  await page.goto(`${BASE}/?blade=5&zoom=1.5&mute&manual`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+  const tag = '[m3f] ';
+  const ev = (f, ...a) => page.evaluate(f, ...a);
+  const shell = () => ev(() => JSON.parse(JSON.stringify(window.__dash.shell)));
+  const at = () => ev(() => window.__dash.shell.stack.at(-1));
+  const cues = () => ev(() => window.__dashApi.audio.log.map((c) => `${c.cue}@${c.tick}`));
+  const depth = () => ev(() => window.__dash.shell.stack.length);
+  const stage = await page.$('.xui-stage');
+  const topRoot = () => ev(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const id = window.__dash.shell.stack.at(-1);
+    // Level 0 of the System blade is `dashmain/dashmain.xur#System`: a DashScene
+    // inside dashmain, not a mounted scene, so it is found by its fragment Id.
+    const frag = id.includes('#') ? id.split('#')[1] : null;
+    const host = frag
+      ? document.querySelector(`[data-xui-id="${frag}"]`)
+      : [...document.querySelectorAll(`[data-xui-scene="${id}"]`)].at(-1);
+    if (!host) return { id, host: false, shown: false, painted: 0 };
+    const root = frag ? host : host.firstElementChild;
+    return { id, host: true, shown: root ? vis(root) : false,
+      painted: [...host.querySelectorAll('[data-xui-paint="text"]')].filter(vis).filter((e) => (e.textContent ?? '').trim()).length };
+  });
+  const afterPop = async (what, was) => {
+    if (await depth() >= was) return null;
+    const st = await topRoot();
+    check(st.host && st.shown && st.painted > 0,
+      `${tag}after ${what} the page underneath must be on screen and painted: ${JSON.stringify(st)}`);
+    return st;
+  };
+  const A = async () => {
+    const was = await depth();
+    await ev(() => window.__dashApi.shell.press()); await ev(() => window.__dashApi.shell.idle()); await ev(() => window.__dashApi.stepFrames(60));
+    return afterPop('a write-and-pop (XuiSceneNavigateBack)', was);
+  };
+  const B = async () => {
+    const was = await depth(); const c0 = (await cues()).length;
+    const left = await at(); const carrier = (await shell()).backCarrier;
+    await ev(() => window.__dashApi.shell.back()); await ev(() => window.__dashApi.stepFrames(60)); await ev(() => window.__dashApi.shell.idle());
+    const popped = await depth() < was;
+    const played = (await cues()).slice(c0);
+    if (popped) {
+      check(played.some((c) => c.startsWith('btn_Back@')) === !!carrier,
+        `${tag}B plays btn_Back exactly when the page binds PressKey 0x5841: ${left} carrier ${JSON.stringify(carrier)}, cues ${JSON.stringify(played)}`);
+    }
+    await afterPop('B', was);
+    return { played, carrier };
+  };
+  const Down = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Down')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
+  const Up = async (n = 1) => { for (let i = 0; i < n; i++) { await ev(() => window.__dashApi.shell.move('Up')); await ev(() => window.__dashApi.stepFrames(21)); } await ev(() => window.__dashApi.shell.idle()); };
+  const blade = async (t) => { while ((await shell()).level > 0) await B(); await ev((t) => window.__dashApi.shell.seekRest(t), t); await ev(() => window.__dashApi.stepFrames(5)); await ev(() => window.__dashApi.shell.idle()); await Up(8); };
+  // A control's rect in DESIGN pixels: its offset chain up to the 1120x770
+  // `.xui-canvas`, which is where the .xur's own numbers live. The view
+  // transform is on the canvas element, so this is the authored frame, not a
+  // screen measurement scaled back.
+  const design = (id) => ev((id) => {
+    const canvas = document.querySelector('.xui-canvas');
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    return [...document.querySelectorAll(`[data-xui-id="${id}"]`)].map((e) => {
+      let x = 0, y = 0, n = e;
+      while (n && n !== canvas) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      return { x, y, w: e.offsetWidth, h: e.offsetHeight, vis: vis(e),
+        scene: e.closest('[data-xui-scene]')?.dataset.xuiScene ?? null, text: (e.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 30) };
+    });
+  }, id);
+  const shownDesign = async (id) => (await design(id)).filter((r) => r.vis);
+  const shot = async (name) => { const p = `${OUT}/m3f-${name}.png`; await stage.screenshot({ path: p }); return p; };
+
+  /* ---- 9a. Finding 1: a pushed page is hosted at the CANVAS ORIGIN. */
+
+  // The console's NavigateToScenePath pushes into the pressed control's parent
+  // and copies the SOURCE SCENE's x/y; every second-level target in this build
+  // declares the full 1120x770 canvas, so its own (156,96) header is the
+  // dashboard's (156,96). Hosting the page beside the panel scene inside
+  // `TabN/scBlade/scContainer` (221,151 on Games, 258,151 on Media) offset
+  // every Arcade and media page by the container [Judge E round 3, finding 1].
+  await A();
+  check(await at() === 'consoles/dashSysCslSet.xur', `${tag}A opens Console Settings, got ${await at()}`);
+  const csHeader = await shownDesign('labHeader');
+  check(csHeader.length === 1 && csHeader[0].x === 156 && csHeader[0].y === 96,
+    `${tag}the System blade's page header is the reference: (156,96); got ${JSON.stringify(csHeader)}`);
+  await B();
+
+  await blade(4);
+  await Down(); await A();
+  check(await at() === 'dashcomm/MediaSourceSelection.xur', `${tag}Music opens the source picker, got ${await at()}`);
+  const mssHeader = await shownDesign('labelHeader');
+  check(mssHeader.length === 1 && mssHeader[0].x === 156 && mssHeader[0].y === 96,
+    `${tag}MediaSourceSelection's labelHeader is authored at (156,96) and must paint there, not at the Media container's (258,151) + (156,96) = (414,247); got ${JSON.stringify(mssHeader)}`);
+
+  /* ---- 9b. Finding 5: ONE "Please wait", and it is down. */
+
+  // The page binds three metapane sub-scenes at 0x921a9e7c-0x921a9e94 and shows
+  // exactly one (0x921aac44-0x921aac58); it ALSO authors its own "Please wait"
+  // pair at (350,250)/(508,342), the enumeration's wait state, bound at
+  // 0x921a9de0. `findById` hid only the first labelPleaseWaitText - the copy
+  // inside the already-hidden WmcConnectingScene - and left the page's own on
+  // screen beside "No computers found." [Judge E round 3, finding 5].
+  const wait = await design('labelPleaseWaitText');
+  check(wait.length === 2, `${tag}the scene authors TWO labelPleaseWaitText (one in WmcConnectingScene, one on the page); found ${wait.length}`);
+  check(wait.every((w) => !w.vis), `${tag}both copies must be down: ${JSON.stringify(wait)}`);
+  check((await design('labelPleaseWaitAnimation')).every((w) => !w.vis), `${tag}and so must the animation beside it`);
+  const mssShown = await ev(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const q = (id) => { const e = document.querySelector(`[data-xui-id="${id}"]`); return e ? vis(e) : null; };
+    return { no: q('NoComputersScene'), info: q('MediaSourceInfoScene'), wait: q('WmcConnectingScene') };
+  });
+  check(mssShown.no === true && mssShown.info === false && mssShown.wait === false,
+    `${tag}the metapane rests on NoComputersScene alone: ${JSON.stringify(mssShown)}`);
+  let sh = await shell();
+  check(sh.codeUnfilled.some((x) => x.includes('MediaSourceSelection.xur: no media source') && x.includes('0x921a9de0')),
+    `${tag}and the disclosure names the pair and where the code binds it: ${JSON.stringify(sh.codeUnfilled.filter((x) => x.includes('MediaSource')))}`);
+
+  /* ---- 9c. Finding 6: B on the pages that do not call it legend_b. */
+
+  // MediaSourceSelection's back button is `navB`, the Arcade pages' and System
+  // Info's is `btnB`; all three wear the skin's legend_B, whose Press range
+  // carries btn_Back.xma on frame 2. The B helper gates the cue on every pop.
+  const mssBack = await B();
+  check(mssBack.carrier === 'navB' && mssBack.played.some((c) => c.startsWith('btn_Back@')),
+    `${tag}navB is the B carrier on MediaSourceSelection and its Press is what plays: ${JSON.stringify(mssBack)}`);
+
+  await blade(3);
+  await Down(2); await A();
+  check(await at() === 'arcade/2500_LiveArcadeHome.xur', `${tag}Games Library opens the Arcade home, got ${await at()}`);
+  const arcHeader = (await shownDesign('txt_Header')).filter((r) => r.scene);
+  check(arcHeader.length === 1 && arcHeader[0].x === 156 && arcHeader[0].y === 96,
+    `${tag}the Arcade home's txt_Header must paint at (156,96), not at the Games container's (221,151) + (156,96); got ${JSON.stringify(arcHeader)}`);
+  await A();
+  check(await at() === 'arcade/2502_TwistSelectorScene.xur', `${tag}A opens the twist selector, got ${await at()}`);
+  const twistBack = await B();
+  check(twistBack.carrier === 'btnB' && twistBack.played.some((c) => c.startsWith('btn_Back@')),
+    `${tag}btnB is the B carrier on 2502_TwistSelectorScene: ${JSON.stringify(twistBack)}`);
+  const homeBack = await B();
+  check(homeBack.carrier === 'btnB' && homeBack.played.some((c) => c.startsWith('btn_Back@')),
+    `${tag}and on the Arcade home itself: ${JSON.stringify(homeBack)}`);
+
+  // System Info is the fourth page that calls its back button something else.
+  await blade(5); await A(); await Down(10);
+  check((await shell()).focusId === 'lstSettings_item10', `${tag}the System Info row, got ${(await shell()).focusId}`);
+  await A();
+  check(await at() === 'consoles/dashSysCslSetPolicyInfo_System.xur', `${tag}System Info opens, got ${await at()}`);
+  const infoBack = await B();
+  check(infoBack.carrier === 'btnB' && infoBack.played.some((c) => c.startsWith('btn_Back@')),
+    `${tag}btnB is the B carrier on System Info: ${JSON.stringify(infoBack)}`);
+  await B();
+
+  /* ---- 9d. Finding 3: 24-hour mode, and the year spinner. */
+
+  await blade(5); await A(); await Down(4); await A();
+  check(await at() === 'consoles/dashSysCslSetClock.xur', `${tag}the Clock menu opens, got ${await at()}`);
+  await A();
+  check(await at() === 'consoles/dashSysCslSetClockTime.xur', `${tag}Date and Time opens, got ${await at()}`);
+  sh = await shell();
+  check(sh.settings.clock24h === true, `${tag}the reference console is in 24-hour mode (f0058)`);
+  const ampm = await design('lstAMPM');
+  check(ampm.length === 1 && ampm[0].vis === false,
+    `${tag}dashCTime's init hides lstAMPM in 24-hour mode (0x921cc8b4-0x921cc8bc: Show(this+0xc, 0)); got ${JSON.stringify(ampm)}`);
+  const hours = await ev(() => [...document.querySelectorAll('[data-xui-id^="lstHour_item"]')].map((e) => e.textContent.trim()));
+  check(hours.length === 24 && hours[0] === '00' && hours[23] === '23',
+    `${tag}and the hour spinner runs 00..23, not 1..12: ${JSON.stringify(hours.slice(0, 3))}..${JSON.stringify(hours.slice(-1))} (${hours.length})`);
+  const year = await ev(() => [...document.querySelectorAll('[data-xui-id^="lstYear_item"]')]
+    .filter((e) => e.style.display !== 'none')
+    .map((e) => { const t = e.querySelector('[data-xui-paint="text"]'); return { row: e.dataset.xuiId, rowW: e.offsetWidth, text: t?.textContent ?? '', tw: t?.offsetWidth ?? 0, scroll: t?.scrollWidth ?? 0 }; }));
+  check(year.length === 1 && /^\d{4}$/.test(year[0].text),
+    `${tag}the year spinner parks one four-digit row: ${JSON.stringify(year)}`);
+  // List_VerticalSpin's row is 83 wide, LEFT|RIGHT, in a 53-wide visual; on the
+  // 75-wide lstYear that is 83 + 22 = 105. Taking the LIST's width gave 75 and
+  // the presenter ellipsized "2025" to "2..." [Judge E round 3, finding 3].
+  check(year[0].rowW === 105, `${tag}the year row spans its template's 83 + (75 - 53) = 105 px, got ${year[0].rowW}`);
+  check(year[0].scroll <= year[0].tw + 0.5, `${tag}and the four digits are not clipped: ${JSON.stringify(year[0])}`);
+  console.log(`  ${tag}year row ${year[0].text} in ${year[0].rowW}px (text ${year[0].tw}px, content ${year[0].scroll}px), lstAMPM hidden, hours ${hours.length}`);
+  await B();
+
+  /* ---- 9e. Finding 2: the four scClockSettings pages, and the pop. */
+
+  // The Clock menu's own body (design 146..1010 x 150..640 through the view
+  // transform), measured with `ink` before the push and after the pop. The
+  // detector is calibrated here against the failure state itself: with the
+  // page's root hidden - which is exactly what the popped sibling's teardown
+  // left behind, FadeOut's Show=false with no FadeIn to undo it - the window
+  // reads 0.00.
+  const BODY = { x: 250, y: 150, w: 1480, h: 700 };
+  const beforeInk = ink(readPng(await shot('clock-before')), BODY);
+  const blanked = await ev(() => {
+    const e = [...document.querySelectorAll('[data-xui-scene="consoles/dashSysCslSetClock.xur"]')].at(-1).firstElementChild;
+    e.dataset.m3f = e.style.display; e.style.display = 'none'; return true;
+  });
+  const floor = ink(readPng(await shot('clock-blank')), BODY);
+  await ev(() => { const e = [...document.querySelectorAll('[data-xui-scene="consoles/dashSysCslSetClock.xur"]')].at(-1).firstElementChild; e.style.display = e.dataset.m3f ?? ''; delete e.dataset.m3f; });
+  const restored = ink(readPng(await shot('clock-restored')), BODY);
+  check(blanked && floor < 1 && restored === beforeInk,
+    `${tag}the detector's floor: the page's own body reads ${floor}% ink with the root hidden and ${restored}% with it back (was ${beforeInk}%)`);
+  console.log(`  ${tag}Clock menu body ink ${beforeInk}% painted, ${floor}% with the root hidden (the round-3 failure state)`);
+  const CLOCK_PAGES = [[1, 'Time Format', 'consoles/dashSysCslSetClockFormat.xur'],
+    [2, 'Time Zone', 'consoles/dashSysCslSetClockTimeZone.xur'],
+    [3, 'Daylight Saving', 'consoles/dashSysCslSetClockDaylightSavings.xur']];
+  for (const [row, name, scene] of CLOCK_PAGES) {
+    await Down(row); await A();
+    check(await at() === scene, `${tag}${name} opens ${scene}, got ${await at()}`);
+    check((await topRoot()).painted > 0, `${tag}${name} itself must paint`);
+    const st = await A();                                  // select: writes and pops
+    check(await at() === 'consoles/dashSysCslSetClock.xur', `${tag}${name} pops back to the Clock menu, got ${await at()}`);
+    const after = ink(readPng(await shot(`clock-after-${row}`)), BODY);
+    check(after >= 0.9 * beforeInk,
+      `${tag}the Clock menu comes back painted after ${name}: ${after}% body ink against ${beforeInk}% before the push and ${floor}% blank - both pages carry the scene Id scClockSettings [${JSON.stringify(st)}]`);
+    console.log(`  ${tag}${name}: pop leaves ${after}% body ink (before ${beforeInk}%, blank ${floor}%), root painted ${st?.painted}`);
+    await Up(row);
+  }
+  // The console's own answer to the same question with the same detector, from
+  // the only capture that has an option page opened, written and popped: while
+  // the option page is up its two rows carry 2.5% of the row column, and after
+  // the press the PARENT page's four rows bring it to 5.5% and then 7.6%.
+  if (existsSync(`${FRAMES_8498}/f2181.png`)) {
+    const W8498 = { x: 206, y: 130, w: 430, h: 300 };
+    const on = ink(readPng(`${FRAMES_8498}/f2173.png`), W8498);
+    const mid = ink(readPng(`${FRAMES_8498}/f2179.png`), W8498);
+    const back = ink(readPng(`${FRAMES_8498}/f2181.png`), W8498);
+    check(back > on * 2 && mid > on,
+      `${tag}[FRAME 8498 f2173 -> f2179 -> f2181] the console's parent page comes BACK after the pop: row-column ink ${on}% -> ${mid}% -> ${back}%`);
+    console.log(`  ${tag}console pop [8498 f2173 -> f2179 -> f2181]: row-column ink ${on}% -> ${mid}% -> ${back}%`);
+  } else {
+    console.log(`  ${tag}(no reference/frames/nxe-8498-ucJoSC29UL8: the console side of the pop is not measured here)`);
+  }
+  await B();
+
+  /* ---- 9f. Finding 4: the Display page's switch art. */
+
+  await Up(4); await A();
+  check(await at() === 'consoles/dashSysCslSetDisplay.xur', `${tag}the Display page opens, got ${await at()}`);
+  const sw = await design('SwitchImage');
+  check(sw.length === 1 && sw[0].vis === false,
+    `${tag}UpdateCurrentSetting hides SwitchImage (0x921c6f30-0x921c6f40) and only the AV-pack-0 branch (0x921c6ffc-0x921c7004) re-shows it; the reference console is an HD pack: ${JSON.stringify(sw)}`);
+  sh = await shell();
+  check(sh.hardwareState.some((x) => x.includes('SwitchImage hidden') && x.includes('0x921c6f30')),
+    `${tag}and the state says which AV pack that is: ${JSON.stringify(sh.hardwareState.filter((x) => x.includes('SwitchImage')))}`);
+  await B(); await B();
+
+  /* ---- 9g. Finding 7, and the Family Settings pages the judge could not reach. */
+
+  await blade(5); await Down(); await A(); await A();
+  check(await at() === 'consoles/dashSysCslSetPControl.xur', `${tag}Console Controls opens, got ${await at()}`);
+  await Down(8);
+  sh = await shell();
+  check(sh.focusId === 'btnDone', `${tag}the ninth row is btnDone, got ${sh.focusId}`);
+  check(sh.missingStrings.length === 0,
+    `${tag}PanelStrings[8] is empty because the CODE writes labDoneSummary, so it is not a missing string: ${JSON.stringify(sh.missingStrings)}`);
+  check(sh.hardwareState.some((x) => x.includes('btnDone PanelStrings[8]') && x.includes('0x921bd0b0')),
+    `${tag}and it says so with the address: ${JSON.stringify(sh.hardwareState.filter((x) => x.includes('btnDone')))}`);
+
+  // PControlContent: two rows, btnYes ABOVE btnNo, each writing its own value.
+  await Up(4); await A();
+  check(await at() === 'consoles/dashSysCslSetPControlContent.xur', `${tag}the Content page opens, got ${await at()}`);
+  const rowsC = await ev(() => ['btnYes', 'btnNo'].map((id) => { const e = document.querySelector(`[data-xui-id="${id}"]`); return { id, y: e?.offsetTop ?? null, text: (e?.textContent ?? '').trim() }; }));
+  check(rowsC[0].y === 153 && rowsC[1].y === 198 && rowsC[0].text && rowsC[1].text,
+    `${tag}the page authors btnYes at y 153 and btnNo at y 198: ${JSON.stringify(rowsC)}`);
+  check((await shell()).focusId === 'btnNo', `${tag}with the block unknown it keeps DefaultFocus btnNo`);
+  await A();
+  sh = await shell();
+  check(sh.settings.parental.content === 0xff && sh.selections.at(-1) === 'consoles/dashSysCslSetPControlContent.xur:btnNo -> 255',
+    `${tag}btnNo stores 0xff [0x921bd710]: ${JSON.stringify(sh.selections.at(-1))}`);
+  const labNo = await ev(() => document.querySelector('[data-xui-id="labCurrentSetting"]')?.textContent.trim() ?? null);
+  await A(); await Up(); await A();
+  sh = await shell();
+  const labYes = await ev(() => document.querySelector('[data-xui-id="labCurrentSetting"]')?.textContent.trim() ?? null);
+  check(sh.settings.parental.content === 0 && sh.selections.at(-1) === 'consoles/dashSysCslSetPControlContent.xur:btnYes -> 0',
+    `${tag}btnYes stores 0: ${JSON.stringify(sh.selections.at(-1))}`);
+  check(labNo && labYes && labNo !== labYes,
+    `${tag}and the menu's Current Setting follows the pair at 0x92013adc (408/409): ${JSON.stringify([labNo, labYes])}`);
+  console.log(`  ${tag}Content rows: ${JSON.stringify(rowsC.map((r) => r.text))} -> ${JSON.stringify([labNo, labYes])}`);
+
+  // The Family Timer: one "off" row (string 383), three frequency radios, and
+  // its own btnB.
+  await Down(); await A();
+  check(await at() === 'consoles/dashSysCslSetPControlFamilyTimer.xur', `${tag}the Family Timer opens, got ${await at()}`);
+  const timer = await ev(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const host = [...document.querySelectorAll('[data-xui-scene="consoles/dashSysCslSetPControlFamilyTimer.xur"]')].at(-1);
+    return { rows: [...host.querySelectorAll('[data-xui-class="XuiListItem"]')].filter(vis).map((e) => e.textContent.trim()),
+      radios: ['radbtnDaily', 'radbtnWeekly', 'radbtnDisabled'].map((id) => (host.querySelector(`[data-xui-id="${id}"]`)?.textContent ?? '').trim()) };
+  });
+  check(timer.rows.length === 1 && timer.rows[0] === 'Family Timer is off',
+    `${tag}lstTime is the single off row the code computes (count 1 at 0x921cb5e0, string 383 at 0x921cb4b0): ${JSON.stringify(timer.rows)}`);
+  check(timer.radios.every((t) => t.length > 0), `${tag}and the three frequency radios carry their captions: ${JSON.stringify(timer.radios)}`);
+  check((await shell()).codeFilled.some((x) => x.startsWith('lstTime x1 from computed')), `${tag}and the list says which code filled it`);
+  await B();
+
+  // The pass code pair: both scenes are `scRating`, which is the other half of
+  // finding 2. Pushing the hint page used to take the pass-code page's scopes
+  // with it and leave it blank on the way back.
+  await Down(); await A();
+  check(await at() === 'consoles/dashSysCslSetPControlPasscode.xur', `${tag}Set Pass Code opens, got ${await at()}`);
+  const passBefore = ink(readPng(await shot('passcode-before')), BODY);
+  await Down();                                            // btnPasscode -> navHintQ
+  check((await shell()).focusId === 'navHintQ', `${tag}the chain is btnPasscode -> navHintQ, got ${(await shell()).focusId}`);
+  await A();
+  check(await at() === 'consoles/dashSysCslSetPControlPasscodeHint.xur', `${tag}navHintQ's PressPath opens the hint page, got ${await at()}`);
+  const hints = await ev(() => document.querySelectorAll('[data-xui-id^="lstHintQ_item"]').length);
+  check(hints === 5, `${tag}the hint list is the five questions from 0x92015320, got ${hints}`);
+  await shot('passcode-hint');
+  const popped = await A();
+  check(await at() === 'consoles/dashSysCslSetPControlPasscode.xur', `${tag}A on a hint writes and pops, got ${await at()}`);
+  sh = await shell();
+  check(sh.settings.parental.passcodeHint === 0 && sh.selections.at(-1)?.includes('lstHintQ_item0 -> 0'),
+    `${tag}the row index is the value: ${JSON.stringify(sh.selections.at(-1))}`);
+  const passAfter = ink(readPng(await shot('passcode-after')), BODY);
+  check(passAfter >= 0.9 * passBefore,
+    `${tag}the pass-code page comes back painted after the hint page pops - both scenes are scRating: ${passAfter}% body ink against ${passBefore}% before the push, root ${JSON.stringify(popped)}`);
+  console.log(`  ${tag}passcode pop: ${passAfter}% body ink (before ${passBefore}%), hint rows ${hints}`);
+  await B();
+
+  /* ---- 9h. The Time Zone list, driven by INDEX (it wraps). */
+
+  await blade(5); await A(); await Down(4); await A(); await Down(2); await A();
+  check(await at() === 'consoles/dashSysCslSetClockTimeZone.xur', `${tag}Time Zone opens, got ${await at()}`);
+  const tz = await ev(() => [...document.querySelectorAll('[data-xui-id^="lstTimezone_item"]')].map((e) => e.textContent.trim()));
+  check(tz.length === 75, `${tag}the list is the 75 records at 0x927bf680, got ${tz.length}`);
+  const ixOf = (f) => Number(String(f).replace('lstTimezone_item', ''));
+  check(ixOf((await shell()).focusId) === 24 && tz[24] === 'GMT+00 London',
+    `${tag}it arrives on the console's own zone (f0059): ${(await shell()).focusId} = ${tz[ixOf((await shell()).focusId)]}`);
+  await B();
+  const wrote = [];
+  for (const target of [0, 1, 74, 37]) {
+    await A();
+    const from = ixOf((await shell()).focusId);
+    await Down((target - from + tz.length) % tz.length);    // the list wraps: drive it by index
+    check(ixOf((await shell()).focusId) === target, `${tag}Down lands on row ${target}, got ${(await shell()).focusId}`);
+    await A();
+    sh = await shell();
+    const lab = await ev(() => document.querySelector('[data-xui-id="labCurrentSettings"]')?.textContent.trim() ?? null);
+    check(sh.settings.timeZone === target && sh.selections.at(-1) === `consoles/dashSysCslSetClockTimeZone.xur:lstTimezone_item${target} -> ${target}`,
+      `${tag}row ${target} writes ${target}: ${JSON.stringify(sh.selections.at(-1))}`);
+    check(lab === tz[target], `${tag}and the Clock menu's line is that row's own string: ${JSON.stringify(lab)} against ${JSON.stringify(tz[target])}`);
+    wrote.push(`${target}=${lab}`);
+  }
+  console.log(`  ${tag}Time Zone by index: ${wrote.join(', ')} (of ${tz.length} rows)`);
+
+  sh = await shell();
+  const errs2 = await ev(() => window.__dash.errors);
+  check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);
+  check(errs.length === 0, `${tag}page errors: ${errs.join(' | ')}`);
+  check(sh.missingStrings.length === 0, `${tag}missing strings: ${JSON.stringify(sh.missingStrings)}`);
+  check(sh.unresolvedPresses.length === 0, `${tag}unresolved presses: ${JSON.stringify(sh.unresolvedPresses)}`);
+  await page.close();
+}
+
+/**
+ * How much INK a window carries: the share of pixels (%) that stand more than
+ * `t` luma off their own row's median. Polarity-free, so the same question can
+ * be asked of the console's light text on a dark plate and of Blades' dark text
+ * on a light one, and blind to which row is highlighted. Calibrated in §9e
+ * against the failure state itself: with the page's root hidden - which is what
+ * a popped sibling's teardown used to leave behind - this reads 0.00.
+ */
+function ink(im, w, t = 20) {
+  let hit = 0, n = 0;
+  for (let y = w.y; y < w.y + w.h; y++) {
+    const row = [];
+    for (let x = w.x; x < w.x + w.w; x++) row.push(luma(im, x, y));
+    const med = [...row].sort((a, b) => a - b)[row.length >> 1];
+    for (const v of row) { if (Math.abs(v - med) > t) hit++; n++; }
+  }
+  return Number((hit / n * 100).toFixed(2));
+}
 
 /**
  * The f0060 still: Console Settings with Locale focused. Three landmarks, each

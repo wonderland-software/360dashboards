@@ -276,5 +276,129 @@ export const CODE_LISTS_NOT_FILLED_9199: Readonly<Record<string, string>> = {
     + 'the capture shows [FRAME Yrt f0396]); which rows a console lists depends on its installed titles, so the '
     + 'list is left empty and the strings are named here rather than painted from a frame.',
   'arcade/RecentGamesFilterPanel.xur#lstRecentGames':
-    'the recently played titles - profile and storage state; the panel\'s own labEmpty says so.',
+    'the recently played titles - the panel\'s refresh (0x92271da0) enumerates the title database into at most '
+    + 'ten rows, and with none it raises the panel\'s own labEmpty ("You don\'t have any games in your library.", '
+    + 'SetShow at 0x92271f48 / 0x92271fcc-0x92271fd0) and disables legend_a and legend_y (0x92271f04 / '
+    + '0x92271f10); that empty state is what the shell shows (CODE_VISIBILITY_9199).',
+};
+
+// ---------------------------------------------------------------------------
+// 7. Show / Enabled the CODE writes on a page's own controls at arrival.
+//
+// Every address is a true (flat) VA out of extracted/9199/basefile.exe; the
+// same instruction is printed 0x200 higher by tools/ppc-dis.ts (LEARNINGS,
+// "The extracted basefile.exe is flat-mapped"). tests/nxe.test.ts re-reads the
+// instruction words at each address.
+// ---------------------------------------------------------------------------
+
+/**
+ * The AV pack, as XGetAVPack (import thunk 0x92740924) returns it. The
+ * reference console runs an HD pack - its Display metapane reads "1920 x 1080
+ * / Widescreen / DVI" [FRAME Kpa f0377] - so the Display and HDTV Settings
+ * pages take their non-zero branch. `&avpack0` takes the other one.
+ */
+export const AV_PACK_9199 = {
+  /** dashVideoSettings::UpdateCurrentSetting, 0x92219790. */
+  displayUpdate: 0x92219790,
+  /** `li r4, 0; lwz r3, 0x68(r27); bl 0x922df968` - SetShow(SwitchImage, false), unconditional, first thing it does. */
+  displayHide: 0x922197ac,
+  /** `li r4, 1; lwz r3, 0x68(r27); bl 0x922df968` - SetShow(SwitchImage, true), reached only on the AV-pack-0 branch. */
+  displayShow: 0x92219874,
+  /** The resolution provider 0x92219328: XGetAVPack == 0 -> string[376] "TV" into the join, the flag the
+   *  caller tests, and string[571] for labAVPackInfo (`li r4, 0x23b` at 0x92219430). */
+  provider: 0x92219328,
+  providerAvPackInfo: 0x92219430,
+  /** dashVideoSettings_HD::OnInit 0x92219000: SetShow(SwitchImage, false) at 0x92219058-0x92219060, the
+   *  AV-pack-0 branch at 0x9221914c writes string[571] and SetShow(true) at 0x92219180-0x92219188. */
+  hidefInit: 0x92219000,
+  hidefHide: 0x92219058,
+  hidefShow: 0x92219180,
+  /** dashCSettingsStrings.xus positions the branch writes. */
+  tvLabel: 376,
+  avPackInfo: 571,
+} as const;
+
+/**
+ * A control the page authors SHOWN that the console's code hides before the
+ * page is seen (or authors HIDDEN and the code raises), with the state that
+ * decides it. Applied by the shell on every mount of the scene - a legacy page
+ * or a Rome strip panel - and reported in `__dash.nxe.legacy.hidden`.
+ */
+export interface CodeVisibility {
+  /** The control's Id in the scene. */
+  id: string;
+  /** What the code writes in the shell's state. */
+  show: boolean;
+  /** The state predicate, for the report. */
+  when: 'avPack != 0' | 'avPack == 0' | 'the list is empty';
+  /** For `the list is empty`: which list. */
+  list?: string;
+  why: string;
+}
+export const CODE_VISIBILITY_9199: Readonly<Record<string, readonly CodeVisibility[]>> = {
+  'consoles/dashSysCslSetDisplay.xur': [{
+    id: 'SwitchImage', show: false, when: 'avPack != 0',
+    why: 'the TV/HDTV switch art (HDTV2TVSwitch.png + "TV") is authored SHOWN at (35,170) on the scene root - not '
+      + 'under scnCurrentFormat, which has no children [SCENE] - and UpdateCurrentSetting (0x92219790) hides it first '
+      + '(SetShow false at 0x922197ac) and re-shows it only when XGetAVPack returns 0 (0x92219874), with '
+      + 'dashCSettingsStrings[571] in labAVPackInfo. The reference console is on an HD pack [FRAME Kpa f0377 "DVI"]. '
+      + 'The code never moves it: its two loads of this+0x68 are the two SetShow calls.',
+  }],
+  'consoles/dashSysCslSetDisplayHiDef.xur': [{
+    id: 'SwitchImage', show: false, when: 'avPack != 0',
+    why: 'the same art authored at (37,170) on the HDTV Settings scene; dashVideoSettings_HD::OnInit (0x92219000) '
+      + 'hides it at 0x92219058 and re-shows it only on its AV-pack-0 branch (0x92219180).',
+  }],
+  'arcade/RecentGamesFilterPanel.xur': [{
+    id: 'labEmpty', show: true, when: 'the list is empty', list: 'lstRecentGames',
+    why: 'authored Show=false; the panel\'s refresh (0x92271da0) raises it when the title enumeration yields no row '
+      + '(SetShow true at 0x92271f48 -> 0x92271fcc-0x92271fd0) and lowers it with rows (0x92271fc8). No title is '
+      + 'installed here, so the console\'s own empty state is what shows.',
+  }],
+};
+
+/**
+ * Captions the code writes into a page's multi-line buttons from the string
+ * tables, and the values it fills from console state. `network/2004_
+ * NetworkDetails.xur`'s `btn_IP` (btn_4Line) and `btn_DNS` (btn_3Line) author
+ * no Text at all: C2004_NetworkDetails resolves them at 0x92291af8 (btn_IP ->
+ * this+8, btn_DNS -> this+0xc, btn_Wireless -> this+0x10) and its update
+ * (0x92291338) writes eight string slots per button through the C4LineBtn
+ * setters 0x92290be0 / c20 / c60 / ca0 (l1..l4 = Text and DataAssociation 1,
+ * 2, 3) and 0x92290ce0 / d20 / d60 / da0 (r1..r4 = DataAssociation 4..7), which
+ * the skin's `btn_4Line` paints through `text_button_l1..l4` / `r1..r4`
+ * [SCENE dashuisk/skin.xur]. The LABELS are the table's; the VALUES are the
+ * network configuration.
+ */
+export interface CodeLines {
+  id: string;
+  pack: string;
+  table: string;
+  /** The control's Text: string index. */
+  text: number;
+  /** DataAssociation slot -> string index. */
+  slots: Readonly<Record<number, number>>;
+  /** The slots the code fills from console state, and why they stay empty. */
+  values: string;
+  va: string;
+}
+export const CODE_LINES_9199: Readonly<Record<string, readonly CodeLines[]>> = {
+  'network/2004_NetworkDetails.xur': [
+    {
+      id: 'btn_IP', pack: 'network', table: 'Strings.xus',
+      text: 45, slots: { 1: 46, 2: 47, 3: 48 },
+      values: 'r1 = [129] "Automatic" or [130] "Manual" by the stored IP mode; r2, r3, r4 = the IP address, subnet '
+        + 'mask and gateway printed "%d.%d.%d.%d" (0x9229de38) - the console\'s network configuration, which this '
+        + 'archive has no reading of. The update bails with E_FAIL before any write when the network manager '
+        + '(0x92286a50) is absent; there is no "no network" caption for these rows in network/Strings.xus.',
+      va: '0x922913a8-0x922913f4 (li r3, 0x2d..0x30 -> 0x92287060 -> the l1..l4 setters)',
+    },
+    {
+      id: 'btn_DNS', pack: 'network', table: 'Strings.xus',
+      text: 41, slots: { 1: 42, 2: 43 },
+      values: 'r1 = [93] "Automatic" or [94] "Manual" by the stored DNS mode; r2, r3 = the primary and secondary '
+        + 'DNS servers "%d.%d.%d.%d" - network configuration. [44] is an empty string and is what l4 gets.',
+      va: '0x9229154c-0x92291598 (li r3, 0x29..0x2c)',
+    },
+  ],
 };

@@ -131,6 +131,25 @@ export function findPressKey(sceneRoot: XuObject, key: number): XuObject | null 
 }
 
 /**
+ * A `XuiBackButton` that authors no `PressKey`: the class is bound to B on
+ * the console, so it is B's carrier when nothing on the page names 0x5841.
+ * 62 of the build's 70 back buttons author the key; the eight that do not are
+ * network/2008_ActivateConfiguration, 2030_ConfirmAction, 2032_connecNow,
+ * 2040_Ad-HocWirelessSecurity and download/2407_WaitingScreen,
+ * 2410_AttemptingOldSoftware, AcquiringNetworkSettings [SCENE] (M4f).
+ */
+export function findBackButton(sceneRoot: XuObject): XuObject | null {
+  let found: XuObject | null = null;
+  const walk = (o: XuObject): void => {
+    if (found) return;
+    if (o.className === 'XuiBackButton') { found = o; return; }
+    o.children.forEach(walk);
+  };
+  walk(sceneRoot);
+  return found;
+}
+
+/**
  * An authoring token the console overwrote before the control was shown:
  * "<setting>", "<servicename>", "<#> of <Total #>", "<current settings>\n2\n3".
  * The Blades regex (consoleSettings.ts AUTHORING_PLACEHOLDER) takes a Text

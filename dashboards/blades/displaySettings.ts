@@ -395,6 +395,25 @@ export const HIDEF_LIST_SOURCE = {
 } as const;
 
 /**
+ * The AV pack the reference console runs on: not read from any frame
+ * directly, but pinned by two of them. f0053's "1080p" is a line only the
+ * avPack 4/6/8 branch of the resolution provider can format (0x921c6c40:
+ * every other pack emits string 354 "TV"), and the same three-line value has
+ * no PAL-50/60 line, which 0x921c6548 suppresses for exactly those packs. So
+ * the pack is HD (one of 4, 6, 8; which of the three no frame separates) and
+ * NOT 0: UpdateCurrentSetting hides `SwitchImage` first (0x921c6f30-
+ * 0x921c6f40, Show(this+0x70, 0)) and only the avPack-0 branch re-shows it
+ * (0x921c6ffc-0x921c7004, with string 553 into labAVPackInfo). The shell
+ * draws the Display page from this.
+ */
+export const REFERENCE_AV_PACK: { readonly value: number; readonly source: string } = {
+  /** 4, 6 or 8; 4 is written because the code never separates them and
+   *  neither does a frame. Nothing on screen depends on which. */
+  value: 4,
+  source: 'HD pack: f0053 "1080p" is the 4/6/8 branch of 0x921c6c40 and its value carries no PAL line (0x921c6548 suppresses it for 4/6/8)',
+};
+
+/**
  * The AV-pack values the Display code literally compares against, with the
  * table each one selects. The numbers are fact; no cable names are claimed.
  */

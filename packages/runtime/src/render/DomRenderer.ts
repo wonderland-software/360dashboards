@@ -103,6 +103,10 @@ interface Opts {
   frame?: number;
   /** M2: the record this element hangs under, so relayout can cascade. */
   parentNode?: NodeRecord;
+  /** The `pathOf` segment for THIS element (the root of a mounted scene) in
+   *  place of its Id, so two scenes with the same root Id mounted under one
+   *  host get distinct scope ids. Not inherited by children. */
+  pathKey?: string;
   /** M2: the control whose visual this subtree is, if any. */
   hostControlId?: string | null;
   /** Id of the nearest ancestor with opacity < 1, if any. */
@@ -286,6 +290,7 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
     delta: opts.delta, parent: opts.parent, size: opts.size,
     owner, content, children: [], parentNode: opts.parentNode,
     hostControlId: opts.hostControlId ?? null,
+    ...(opts.pathKey ? { pathKey: opts.pathKey } : {}),
   });
 
   // A control instantiates its skin visual as its first child subtree.
