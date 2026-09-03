@@ -1570,3 +1570,155 @@ Recorded per scene in `window.__dash`, never faked:
   it renders, and the positional code tables are read from the locale's own copy.
   `__dash.shell.localePatches` counts them (62 for `de-de` on the walk the smoke
   suite drives) and is 0 for `en`, which is the literal already in the files.
+
+## NXE 9199, M4d: the fold from the file, the channel change from the frames
+
+Judge G round 1 (JUDGE.md) found the strip BEHAVING wrong in twelve ways. What
+closed them, with the number.
+
+### `controlp/Variables.xur` choreographs the fold
+
+The scene's `SceneTransitions` group carries the four `Transition*` variables,
+a `TransitionSound`, nine named frames and five timelines [SCENE]:
+
+| range | frames | TransitionScene | TransitionChannel | TransitionPanel | SubElements | sound |
+|---|---|---|---|---|---|---|
+| `To` | 1..75 | 0, then 0→1 over 24..34 | −1 (ease) → 0 over 29..59 | −1 (ease) → 0 over 49..69 | 0 → 1 over 54..74 | `snd_transitioninto` @29 |
+| `From` | 76..150 | 1, then 1→0 over 44..54 | 0 → 1 over 9..39 | 0 → 1 over 29..49 | 1 → 0 over 0..19 | `snd_transitionfrom` @9 |
+| `BackTo` | 151..225 | 0, then 0→1 over 24..34 | 1 (ease) → 0 over 39..69 | 1 (ease) → 0 over 29..49 | 0 → 1 over 54..74 | `snd_transitioninto` @39 |
+| `BackFrom` | 226..300 | 1, then 1→0 over 44..54 | 0 → −1 over 24..49 | 0 → −1 over 19..34 | 1 → 0 over 0..24 | `snd_transitionfrom` @24 |
+
+(frames relative to the range start). The code reads the values every frame
+[CODE 0x9248e854 scene → the strip layer's opacity; 0x9248ca28-0x9248ca40
+channel → the queue fold routine 0x9248b7a8; 0x9248d95c-0x9248d97c panel →
+`TransitionPanel × π/2` on the front slot]. The shell mounts the scene hidden,
+plays `From` on A and `BackTo` on B, and reads the four values back off the
+nodes (`dashboards/nxe/transitions.ts`); the two transition cues fire from
+the range as timeline cues (`__dash.nxe.cues` tags them `timeline`).
+
+The routines the values feed, decoded:
+
+- **queue rows** (0x9248b7a8): `θ_i = clamp(1.3π p − 0.1π i, 0, π/2)` for
+  `p ≥ 0` (Next6 = 0 … Prev1 = 7), the negative branch offset by −π/2; then
+  the markers' opacity × (1 − |p|) and `Description`'s = 1 − |p|. So a fold is
+  top-down and an unfold bottom-up, and the COUNTER fades with the fold, not
+  with the channel progress (M4c had that wrong; Judge G finding 12).
+- **the hinge** (0x92488480): opacity × (1 − min(|θ|·2/π, 1)),
+  `SetRotation(quat(θ about Y))`, `position += v − R(θ)v` with
+  `v = (−128, 0, 0)` for θ ≥ 0 and `(0, 0, 128)` for θ < 0 [0x9248852c-
+  0x92488558]. A positive angle is a rotation about a vertical axis 128 units
+  LEFT of the element, which is what the footage shows the front slot doing
+  [FRAME Kpa f05590-05595: the sliver at ~75° sits at design x 32..117; a left
+  hinge puts it at 13..122, a hinge behind the panel at 216..283].
+- **the strip cascade** (0x9248d6dc-0x9248d988): progress `q` per panel
+  (1 = open), forced to 1 at and in front of the cursor; folding back to front
+  gated on the NEXT panel < `FoldNextRange` at `FoldSpeed × (visible+1) / 7`
+  (the IntegerVariable is the divisor); unfolding front to back gated on the
+  PREVIOUS panel > `UnfoldNextRange` at `UnfoldSpeed − (q − E)/(1 − E) ×
+  (UnfoldSpeed − UnfoldMinSpeed)` with `E = UnfoldEaseRange` (unset = 0, so
+  `dq/dt = 10 − 9.9q` and the floor binds); offset from the panel in front
+  `q × spacing`; opacity `min(1, 4q)`; a panel past the cursor faded by
+  `1 + z/spacing` (finding 8). `dashboards/nxe/physics.ts`.
+
+### The channel change is measured, and it is not the cascade
+
+Frame by frame on both captures the OLD strip fades together, in place - the
+second panel's ghost is still at its rest position two frames in [FRAME Yrt
+f07275] - so `q × spacing` is not what happens. `CHANNEL_SWAP`: out over 6
+ticks, a 4-tick beat, each new panel in over 12 ticks front to back on the
+file's `UnfoldNextRange` gate.
+
+Both sides are read with ONE statistic: the mean absolute luma difference of a
+strip region against three frames of its own shot - the REST frame before the
+press, the BARE-FLOOR frame in the middle, and the SETTLED frame at the end.
+It needs no sign and no threshold on brightness, and it is linear in a fade's
+alpha, so half-way is half the distance. Time is counted from the last REST
+frame on both sides (the captures are pixel-identical up to it and the next
+frame is already 15-30 % into the fade, so the press lands about a quarter of
+a frame after it). Seconds after the press, 30 fps frames on the footage,
+screenshots every other tick on ours:
+
+| event | Yrt | Kpa | ours |
+|---|---|---|---|
+| old strip gone | 0.100 s [f07272→07275] | 0.100 s [f00735→00738] | 0.100 s |
+| the strip is bare | f07276-07277 | f00739-00741 | ticks 6-10 |
+| new front half-way in | 0.244 s | 0.292 s | 0.267 s |
+| new front settled | 0.367 s [f07283] | 0.400 s [f00747] | 0.367 s |
+| second panel off the floor | 0.367 s [f07283] | - (that channel's slot is empty) | 0.333 s (the file's 0.7 gate on a 12-tick fade) |
+| audio onsets | one, `snd_channelup` at 0.97 | | one |
+
+Every row is inside one 30 fps frame. The half-way crossing is interpolated
+between samples on both sides, because a linear fade lands exactly on the
+threshold and a whole-sample answer would turn on the last pixel. The gate
+traces a DOWN, not an Up: the archive's embedded homepage gives Game
+Marketplace - the channel an Up lands on, and the one the capture shows - one
+slot where the capture's console has two ("Explore Game Content" and a "Game
+Library" that needs games on the console), so an Up here has no second panel
+to time; the Welcome channel below has four.
+
+### A and B against the frames
+
+Measured with the same region traces Judge G used, one sample per 30 fps frame
+on both sides (seconds after the press):
+
+| A on "8 of 8" [Kpa f05576-05622] | footage | ours |
+|---|---|---|
+| legend leaves | 0.33 | 0.07 (its `Hide` range on the press) |
+| current channel row fades | 0.40 | 0.50 |
+| front slot starts to rotate | 0.47 | 0.53 |
+| front slot gone (the page over it) | 0.93 | 1.03 |
+| page begins to show | 0.97 | 1.07 |
+
+| B to home [Yrt f07168-07232] | footage | ours |
+|---|---|---|
+| front slot starts to rotate in | 0.73 | 0.60 |
+| current channel row returns | 0.73 | 0.80 |
+
+| System → Console Settings [Kpa f05630-05652] | footage | ours |
+|---|---|---|
+| the swap lasts | 0.27 | 0.30 |
+| the outgoing page at its faintest | 0.13 | 0.13 |
+
+| a passing panel [Kpa f05539-05550] | footage | ours |
+|---|---|---|
+| the exit band is clear again | 0.33 | 0.23 |
+
+The ORDER holds on both sides and is gated; the front slot's rotation is
+gated to 0.1 s, the page to 0.15 s, B's front slot to 0.25 s; the legend
+leads the footage on A by 0.27 s and the queue trails it by 0.1 s, and both
+are printed, not gated, because nothing in the file says the `From` range
+starts anywhere but on the press. (The same detector on both sides: an onset
+is the first 30 fps frame whose region mean has moved a tenth of its whole
+excursion.) `tests/smoke/smoke-nxe.mjs`
+runs the comparison when `reference/frames/<capture>-30fps/` is present.
+
+### Legacy over legacy
+
+System → Console Settings [FRAME Kpa f05630-05639] is ten 30 fps frames with
+the page region's luma 64→75→85→93→98→99→96→88→77→67: `LegacyFrom`'s
+fifteen ticks and `LegacyTo`'s five-tick hold plus fifteen-tick ramp started
+together, crossing at half strength. The `…Ex` pair would take sixty ticks.
+The M4b-M4c window at Kpa 190.06-191.22 s was the list being walked, not a
+swap. `curvesFor()` returns the plain pair everywhere.
+
+### Rigs by distance, the queue's sign, the metapane, the tokens
+
+- Rigs are mounted and unmounted every frame as `(k − cursor) × spacing`
+  crosses `MobyVisiblePanelDistance`; every slot scene is preloaded, so a
+  mount is synchronous. "8 of 8" shows System Settings in front
+  [FRAME Kpa f05580]; `__dash.nxe.rigs` counts the mounts.
+- The queue routine's caller hands it `−frac(cursor)` while the cursor climbs
+  [CODE 0x9248c9cc-0x9248ca18], so an Up lerps every row toward the slot BELOW
+  it and the names scroll down. At most N − 1 rows above the current are
+  filled (`queueRowChannel`; [FRAME Yv5 f0042]).
+- The metapane is driven as `BladeShell.syncMeta` drives it: the code table's
+  description index on DataAssociation 0, the six hardware-state values on 4
+  (PLACEHOLDERS), `metaScene_1line`'s `NToM` range for the move. System
+  Settings' descriptions are its `PanelStrings`.
+- `navIPTVSettings` is HIDDEN (`Show=false`) with no IPTV provider, so its
+  `<servicename>` token is never painted; the smoke gates on painted text.
+- Media Center's `<description2>` (`homepage/strings.xus[13]`) goes to
+  `mobyslot`'s `XuiTextPresenter2` on DataAssociation 1 and is painted.
+- A refused press is silent; a channel change plays its channel cue only; A
+  plays select + fold and the range's `snd_transitionfrom` at +9 ticks; B
+  plays back, the range's `snd_transitioninto` at +39 and unfold at +49.

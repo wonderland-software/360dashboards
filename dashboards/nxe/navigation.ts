@@ -48,25 +48,20 @@
 // The code writes the scene's own `TransTo`/`TransFrom`/`TransBackTo`/
 // `TransBackFrom` with one of these eight names; the four property names and
 // the eight visual names sit in one block at `.text`
-// 0x9249229c-0x924923c4 [CODE]. WHICH of the two forms is chosen is
-// NXE_GLUE_SPEC §2.4's [INFER] and stays one: the plain curve when the strip's
-// FOLD covers the swap (home -> a page), the `…Ex` curve when a legacy page
-// replaces another legacy page and there is no fold to hide it. The `…Ex` pair
-// is exactly long enough to cross-fade under its own steam - its incoming curve
-// holds transparent for 45 frames, i.e. until 750 ms in, which is 250 ms past
-// the end of the outgoing one - and the plain pair is not, which is what the
-// inference rests on.
+// 0x9249229c-0x924923c4 [CODE].
 //
-// ---------------------------------------------------------------------------
-// 3. THE TRANSITION CUES
-//
-// `controlp` holds TEN `.xma` files. Eight are the `Sound*` entries of the
-// config table at .rdata 0x927f7194 and are played by the glue on every
-// navigation [SPEC §2.3]. The other two - `snd_transitioninto.xma` and
-// `snd_transitionfrom.xma` - are named nowhere in that table; the spec calls
-// them "the page transitions". Firing them with the push and the pop is
-// therefore an INFERENCE from their names and is tagged as one in
-// `__dash.nxe.cues`, unlike the eight, which are tagged `table`.
+// WHICH pair covers a legacy page replacing another is MEASURED now, and it is
+// the PLAIN pair [Judge G finding 6]. System Settings -> Console Settings on
+// the 29.97 fps cut of the primary capture [FRAME Kpa f05630-05639, 187.67 s]:
+// the page region's luma runs 64 -> 75 -> 85 -> 93 -> 98 -> 99 (the outgoing
+// page gone in five frames) then 99 -> 96 -> 88 -> 77 -> 67 (the incoming one
+// up in five), ten frames = twenty 60 Hz ticks in all, which is LegacyFrom's
+// fifteen ticks and LegacyTo's five-tick hold plus fifteen-tick ramp started
+// together. The `...Ex` pair would take sixty. M4b-M4c's "the 1.0 s window at
+// Kpa 190.06-191.22 rules the plain pair out" measured LIST MOVES on the
+// Console Settings page, not a swap, and is withdrawn (PLACEHOLDERS). Where
+// the console uses the `...Ex` pair is not observed in the four captures; the
+// pair is kept below as the skin's data and is not chosen anywhere.
 import type { AssetIndex } from '@runtime/index';
 
 /** `<cmd>` -> the scene it opens. One row, because one row is evidenced. */
@@ -114,20 +109,36 @@ export const LEGACY_CURVES = {
   plain: {
     from: 'LegacyFrom', to: 'LegacyTo', backFrom: 'LegacyBackFrom', backTo: 'LegacyBackTo',
     form: 'plain' as const,
-    why: 'the strip folds over this swap, so the short pair is enough [INFER, SPEC §2.4]',
+    why: 'MEASURED: a legacy page over a legacy page is LegacyFrom + LegacyTo started together, twenty ticks in all [FRAME Kpa f05630-05639]',
   },
   ex: {
     from: 'LegacyFromEx', to: 'LegacyToEx', backFrom: 'LegacyBackFromEx', backTo: 'LegacyBackToEx',
     form: 'ex' as const,
-    why: 'a legacy page replaces another legacy page and no fold covers it, so the long pair carries the cross-fade [INFER, SPEC §2.4]',
+    why: 'in the skin, written by the same code block; not chosen here because no capture shows a sixty-tick swap',
   },
 } satisfies Record<string, LegacyCurves>;
 
-/** Which pair covers a push. `overLegacy` = there is already a page on screen. */
-export function curvesFor(overLegacy: boolean): LegacyCurves {
-  return overLegacy ? LEGACY_CURVES.ex : LEGACY_CURVES.plain;
+/** Which pair covers a push. The plain pair, over the strip and over a page
+ *  alike: the argument is kept so the report can say what it was asked. */
+export function curvesFor(_overLegacy: boolean): LegacyCurves {
+  return LEGACY_CURVES.plain;
 }
 
+// ---------------------------------------------------------------------------
+// 3. THE TRANSITION CUES
+//
+// `controlp` holds TEN `.xma` files. Eight are the `Sound*` entries of the
+// config table at .rdata 0x927f7194. The other two - `snd_transitioninto.xma`
+// and `snd_transitionfrom.xma` - are named nowhere in that table, and M4b fired
+// them on a push and a pop as an INFERENCE. They are not inferred any more:
+// `controlp/Variables.xur`'s transition group carries a `TransitionSound`
+// element whose `File` track writes `snd_transitioninto.xma` on frame 29 of
+// `To` and 39 of `BackTo`, and `snd_transitionfrom.xma` on frame 9 of `From`
+// and 24 of `BackFrom` [SCENE] - timeline cues, fired by the range
+// (dashboards/nxe/transitions.ts) and logged `timeline` in `__dash.nxe.cues`.
+// The names below are kept for the report only.
+
+/** `<cmd>` -> the scene it opens. One row, because one row is evidenced. */
 /** The two `controlp` cues that are NOT in the eight-name table. */
 export const TRANSITION_CUES = {
   into: 'snd_transitioninto',

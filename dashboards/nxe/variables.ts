@@ -19,9 +19,10 @@ export const VARIABLES_SCENE = 'controlp/Variables.xur';
 
 /** The 43 names, in the order they sit in .rdata 0x927f7108..0x927f71b0. */
 export const VARIABLE_NAMES: readonly string[] = [
-  // 0x927f7108: the four SceneTransitions entries. No object called
-  // SceneTransitions exists in any scene in the build, so these resolve
-  // somewhere this spec has not found (NXE_GLUE_SPEC §10.4). Listed, unused.
+  // 0x927f7108: the four SceneTransitions entries. `SceneTransitions` IS an
+  // object: the XuiGroup in this same scene that holds the four variables, a
+  // TransitionSound and the To/From/BackTo/BackFrom ranges that animate them
+  // (dashboards/nxe/transitions.ts; M4d).
   'SceneTransitions/TransitionScene',
   'SceneTransitions/TransitionSubElements',
   'SceneTransitions/TransitionChannel',
@@ -57,8 +58,17 @@ export interface StripConstants {
   /** Depth between one panel and the next, in z units. */
   defaultSpacing: number;
   foldSpeed: number;
+  /** `FoldSpeed` carries an IntegerVariable beside its float (7 Moby, 4 Rome):
+   *  the panel count the float is quoted for. The strip's frame function
+   *  divides by it [CODE 0x9248d5c4-0x9248d61c], so it is not decoration. */
+  foldSpeedInt: number;
   foldNextRange: number;
   unfoldSpeed: number;
+  /** `UnfoldSpeed`'s IntegerVariable (7 / 4), read the same way. */
+  unfoldSpeedInt: number;
+  /** UNSET in the file on both strips; the code reads an unset float as 0, so
+   *  the unfold ease covers the whole move (physics.ts). Null = unset. */
+  unfoldEaseRange: number | null;
   unfoldNextRange: number;
   unfoldMinSpeed: number;
   /** The front panel's anchor, in screen units at z = 0. */
@@ -142,8 +152,11 @@ export class Variables {
     return {
       defaultSpacing: f('DefaultSpacing'),
       foldSpeed: f('FoldSpeed'),
+      foldSpeedInt: this.ints.get(`${prefix}FoldSpeed`) ?? 1,
       foldNextRange: f('FoldNextRange'),
       unfoldSpeed: f('UnfoldSpeed'),
+      unfoldSpeedInt: this.ints.get(`${prefix}UnfoldSpeed`) ?? 1,
+      unfoldEaseRange: this.floats.get(`${prefix}UnfoldEaseRange`) ?? null,
       unfoldNextRange: f('UnfoldNextRange'),
       unfoldMinSpeed: f('UnfoldMinSpeed'),
       frontPosition: v3('FrontPosition'),
@@ -158,25 +171,31 @@ export class Variables {
   /**
    * The four `SceneTransitions/*` entries of the code's name table.
    *
-   * NXE_GLUE_SPEC §10.4 lists these as unresolved - "no scene in the build
-   * declares an object called SceneTransitions", so "either a fifth lookup
-   * namespace, or they are optional and absent". They are neither: all four
-   * are ORDINARY XuiVariables in `controlp/Variables.xur`, alongside the thirty
-   * strip constants, named by the TAIL of the table entry [SCENE, re-read from
-   * the file]. The scene has exactly 35 XuiVariables: 30 strip + 4 transition +
-   * `RomeUnfoldEaseRange` and `MobyUnfoldEaseRange` unset.
+   * **M4d: these are ANIMATED, not switches.** M4b read the two set values (1)
+   * as "run a curve on a scene change, none on a cursor move". The file says
+   * more: the group that holds them carries five timelines and four named
+   * ranges - `To` 1..75, `From` 76..150, `BackTo` 151..225, `BackFrom` 226..300
+   * - and the code's strip and queue read the variables' FloatVariable every
+   * frame through the same block the thirty constants are fetched into
+   * (`[block+0x08]` TransitionScene -> the strip layer's opacity at 0x9248e854,
+   * `+0x0c` SubElements -> 0x9248ad48, `+0x10` TransitionChannel -> the queue's
+   * fold at 0x9248ca28-0x9248ca40, `+0x14` TransitionPanel -> the front panel's
+   * rotation at 0x9248d95c-0x9248d97c, then `+0x18` DefaultSpacing ... `+0x58`
+   * PanelInputMaxVelocity in the table's order). dashboards/nxe/transitions.ts
+   * plays the ranges and reads the values back. NXE_GLUE_SPEC §10.4 listed
+   * these as unresolved - "no scene in the build declares an object called
+   * SceneTransitions" - and that was wrong: the group is called exactly that,
+   * and the four entries are `SceneTransitions\TransitionScene` etc., child
+   * paths like the queue's `Queue\Prev1`. The two authored values, both 1,
+   * are the rest state the timelines return to:
    *
-   *   TransitionScene       1  (float)
+   *   TransitionScene       1  (float)   the strip layer's opacity at rest
    *   TransitionSubElements 1  (float)
-   *   TransitionChannel     unset
-   *   TransitionPanel       unset
+   *   TransitionChannel     unset         reads 0: the queue open
+   *   TransitionPanel       unset         reads 0: the front slot square-on
    *
-   * Read as switches, that says the console runs a Trans* curve when the SCENE
-   * changes and when its sub-elements do, and NO curve when only the channel or
-   * the panel cursor moves - which is exactly the behaviour the strip physics
-   * needs (a cursor move is motion, not a cross-fade) and exactly what the
-   * footage shows. That last sentence is the INFERENCE; the four values are the
-   * file's.
+   * This method reports those authored values; the live ones are in
+   * `__dash.nxe.transitions.values`.
    */
   sceneTransitions(): { name: string; value: number | null }[] {
     return SCENE_TRANSITION_NAMES.map((n) => ({

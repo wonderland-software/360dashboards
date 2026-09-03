@@ -4,8 +4,9 @@
 // supposed to reproduce rather than against a screenshot.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Axis, stepDuration, FoldCascade, type AxisConstants } from '@dash/nxe/physics';
-import { QUEUE_SLOTS, QUEUE_WALK } from '@dash/nxe/NxeShell';
+import { Axis, stepDuration, FoldCascade, ChannelSwap, CHANNEL_SWAP, passingOpacity, type AxisConstants } from '@dash/nxe/physics';
+import { QUEUE_SLOTS, QUEUE_WALK, queueTargetSlot, queueRowChannel } from '@dash/nxe/NxeShell';
+import { queueRowTheta, foldHinge, foldOpacity } from '@dash/nxe/transitions';
 
 const HZ = 60;
 const DT = 1 / HZ;
@@ -124,20 +125,168 @@ test('the size ramp the table predicts is the one the frame shows', () => {
   });
 });
 
-test('the fold cascade staggers and does not collapse into two frames', () => {
-  const c = { foldSpeed: 30, foldNextRange: 0.3, unfoldSpeed: 10, unfoldNextRange: 0.7, unfoldMinSpeed: 0.1 };
-  const f = new FoldCascade(c);
-  f.reset(7, false);
-  f.fold(7);
-  let frames = 0;
-  while (f.step(DT)) if (++frames > 600) throw new Error('the cascade never finished');
+
+
+/* ------------------------------------------------- the fold, as the code has it */
+
+const MOBY_FOLD = {
+  foldSpeed: 30, foldSpeedInt: 7, foldNextRange: 0.3, unfoldSpeed: 10, unfoldSpeedInt: 7,
+  unfoldEaseRange: null, unfoldNextRange: 0.7, unfoldMinSpeed: 0.1, visiblePanels: 3225 / 505,
+};
+
+test('the fold cascade runs back to front and the unfold front to back, gated as the code gates them', () => {
+  // .text 0x9248d6dc-0x9248d988: a panel behind the cursor starts folding once
+  // the one BEHIND it is under FoldNextRange (the deepest at once), and starts
+  // unfolding once the one in FRONT of it is past UnfoldNextRange.
+  const f = new FoldCascade(MOBY_FOLD);
+  f.reset(7, false, 0);
+  f.fold(0);
+  const firstMove: number[] = new Array(7).fill(-1);
+  for (let frame = 1; frame <= 60 && f.step(DT); frame++) {
+    f.q.forEach((q, k) => { if (q < 1 && firstMove[k] === -1) firstMove[k] = frame; });
+  }
   assert.equal(f.phase, 'folded');
-  // 1/FoldSpeed is 33 ms a panel plus 0.3/30 of stagger each: about 6 frames
-  // for the whole strip, and never the 2 the shared-array bug produced.
-  assert.ok(frames >= 4 && frames <= 12, `a seven-panel fold took ${frames} frames`);
-  f.unfold(7);
-  let un = 0;
-  while (f.step(DT)) if (++un > 600) throw new Error('the cascade never finished');
+  assert.equal(f.q[0], 1, 'the front panel never folds by q');
+  for (let k = 6; k > 1; k--) assert.ok(firstMove[k]! <= firstMove[k - 1]!, `panel ${k} folded before panel ${k - 1}: ${firstMove.join(',')}`);
+  // The rate is the float times (visible + 1) over the integer: 30 x 8 / 7 per
+  // second, so a panel is gone in 0.029 s and the seven-panel strip in under
+  // a fifth of a second.
+  assert.ok(Math.abs(f.foldRate - (30 * 8) / 7) < 1e-9, `fold rate ${f.foldRate}`);
+  f.unfold(0);
+  const firstOpen: number[] = new Array(7).fill(-1);
+  let frames = 0;
+  for (; frames < 600 && f.step(DT); frames++) {
+    f.q.forEach((q, k) => { if (q > 0 && firstOpen[k] === -1) firstOpen[k] = frames; });
+  }
   assert.equal(f.phase, 'open');
-  assert.ok(un > frames, `the unfold (${un} frames) is not slower than the fold (${frames})`);
+  for (let k = 2; k < 7; k++) assert.ok(firstOpen[k]! >= firstOpen[k - 1]!, `panel ${k} opened before panel ${k - 1}`);
+  // UnfoldEaseRange unset reads as 0, so the rate eases over the WHOLE move:
+  // 10 - 9.9 q, which is 10 at rest and the 0.1 floor at the end.
+  assert.ok(Math.abs(f.unfoldRate(0) - 10) < 1e-9);
+  assert.ok(Math.abs(f.unfoldRate(1) - 0.1) < 1e-9);
+  assert.ok(Math.abs(f.unfoldRate(0.5) - 5.05) < 1e-9);
+  // The floor binds: an exponential approach with a 0.1 floor takes about half
+  // a second per panel, not the tenth M4b's linear reading gave.
+  assert.ok(frames > 40, `the seven-panel unfold took only ${frames} frames`);
+});
+
+test('a folded panel stacks on the one in front of it and fades under q = 0.25', () => {
+  const f = new FoldCascade(MOBY_FOLD);
+  f.reset(3, false, 0);
+  f.q = [1, 0.5, 0];
+  // depth in index units: the front at 0, panel 1 half its spacing behind,
+  // panel 2 fully collapsed onto panel 1 [CODE 0x9248d808-0x9248d848].
+  assert.equal(f.depth(0, 0), 0);
+  assert.equal(f.depth(1, 0), 0.5);
+  assert.equal(f.depth(2, 0), 0.5);
+  assert.equal(f.opacity(1), 1);
+  f.q[1] = 0.1;
+  assert.ok(Math.abs(f.opacity(1) - 0.4) < 1e-9, 'q x 4 under a quarter');
+  assert.equal(f.opacity(0), 1);
+});
+
+test('a panel in front of the cursor fades to nothing by one spacing [CODE 0x9248d8dc]', () => {
+  assert.equal(passingOpacity(0), 1);
+  assert.equal(passingOpacity(0.5), 1);
+  assert.ok(Math.abs(passingOpacity(-0.5) - 0.5) < 1e-9);
+  assert.equal(passingOpacity(-1), 0);
+  assert.equal(passingOpacity(-2), 0);
+});
+
+/* ------------------------------------------------------- the channel change */
+
+test('a channel change is a measured fade: out, a beat, in front to back', () => {
+  const s = new ChannelSwap();
+  s.start();
+  let rebuildAt = -1;
+  const outTrace: number[] = [];
+  for (let t = 1; t <= 40; t++) {
+    const ev = s.step();
+    if (ev === 'rebuild') { rebuildAt = t; s.arm(3); }
+    if (t <= CHANNEL_SWAP.outTicks) outTrace.push(s.out);
+    if (!s.active) break;
+  }
+  assert.equal(rebuildAt, CHANNEL_SWAP.outTicks, 'the strip is rebuilt on the tick the old one is gone');
+  assert.equal(outTrace[outTrace.length - 1], 0);
+  // Fresh: front first, then the second panel once the first is past NextRange.
+  const s2 = new ChannelSwap();
+  s2.start();
+  let t = 0, firstIn = -1, secondIn = -1, done = -1;
+  while (s2.active && t < 200) {
+    t++;
+    const ev = s2.step();
+    if (ev === 'rebuild') s2.arm(3);
+    if (s2.phase === 'in') {
+      if (firstIn < 0 && s2.inq[0]! > 0) firstIn = t;
+      if (secondIn < 0 && s2.inq[1]! > 0) secondIn = t;
+    }
+    if (!s2.active) done = t;
+  }
+  assert.equal(firstIn, CHANNEL_SWAP.outTicks + CHANNEL_SWAP.holdTicks + 1, 'the new front starts after the beat');
+  // 0.7 of a twelve-tick fade is 8.4 ticks, so the second panel starts on the
+  // ninth tick after the first: the file's gate, the measured rate.
+  assert.equal(secondIn - firstIn, Math.ceil(CHANNEL_SWAP.nextRange * CHANNEL_SWAP.inTicks));
+  assert.ok(done > 0 && done < 60, `the three-panel swap took ${done} ticks`);
+});
+
+/* ------------------------------------------------------------- the queue */
+
+test('an Up scrolls the names DOWN: every row lerps toward the slot below it [CODE 0x9248c9cc, 0x9248b6b4]', () => {
+  const i = QUEUE_WALK.indexOf('Next1');
+  assert.equal(queueTargetSlot(i, +0.5), i + 2, 'Next1 heads for the current slot on an Up');
+  assert.equal(QUEUE_SLOTS[queueTargetSlot(i, +0.5)]!.dy, 0);
+  const c = QUEUE_WALK.indexOf('Current');
+  assert.equal(QUEUE_SLOTS[queueTargetSlot(c, +0.5)]!.dy, 40, 'the current name drops below and fades');
+  assert.equal(QUEUE_SLOTS[queueTargetSlot(c, +0.5)]!.opacity, 0);
+  assert.equal(queueTargetSlot(c, -0.5), c, 'a Down lifts it toward Next1\'s slot');
+  assert.equal(QUEUE_SLOTS[queueTargetSlot(QUEUE_WALK.indexOf('Prev1'), -0.5)]!.dy, 0, 'Prev1 rises into the current slot on a Down');
+});
+
+test('the queue fills at most N - 1 rows above the current one and never a ghost', () => {
+  // Seven passing channels: six names above, all different, Next6 wrapping to
+  // the channel before the current one.
+  assert.equal(queueRowChannel('Next1', 6, 7), 0);
+  assert.equal(queueRowChannel('Next6', 6, 7), 5);
+  assert.equal(queueRowChannel('Prev1', 6, 7), 5);
+  // Two channels [FRAME Yv5 f0042]: one name above, nothing else.
+  assert.equal(queueRowChannel('Next1', 1, 2), 0);
+  assert.equal(queueRowChannel('Next2', 1, 2), null);
+  assert.equal(queueRowChannel('Next6', 1, 2), null);
+  assert.equal(queueRowChannel('Prev1', 1, 2), 0);
+  // One channel: only the current row.
+  assert.equal(queueRowChannel('Next1', 0, 1), null);
+  assert.equal(queueRowChannel('Prev1', 0, 1), null);
+  assert.equal(queueRowChannel('Current', 0, 1), 0);
+});
+
+/* ------------------------------------------------- the fold's own routines */
+
+test('the queue fold folds the top row first and unfolds the bottom row first [CODE 0x9248b7a8]', () => {
+  // p from 0 to 1 (From): row i = 0 (Next6) reaches a quarter turn at
+  // p = 0.5/1.3, Current (i = 6) at 1.1/1.3, Prev1 last.
+  const q = Math.PI / 2;
+  assert.ok(Math.abs(queueRowTheta(0.5 / 1.3, 0) - q) < 1e-9);
+  assert.ok(queueRowTheta(0.5 / 1.3, 6) === 0, 'Current has not started when Next6 is done');
+  assert.ok(Math.abs(queueRowTheta(1.1 / 1.3, 6) - q) < 1e-9);
+  assert.equal(queueRowTheta(0, 3), 0, 'p = 0 is the rest state outright');
+  // p from 1 to 0 (BackTo): Prev1 and Current open first.
+  assert.ok(queueRowTheta(0.9, 7) < q && Math.abs(queueRowTheta(0.9, 0) - q) < 1e-9, 'at p = 0.9 the bottom rows are opening and the top is still folded');
+  // Negative p is the other branch: angles run -pi/2 .. 0 about the hinge behind.
+  assert.ok(Math.abs(queueRowTheta(-1, 0) + q) < 1e-9);
+  assert.equal(queueRowTheta(-0.0001 + 1 - 1, 0), 0);
+  assert.equal(foldHinge(0.5).x, -128, 'a positive angle hinges 128 to the LEFT');
+  assert.equal(foldHinge(-0.5).z, 128, 'a negative angle hinges 128 BEHIND');
+  assert.ok(Math.abs(foldOpacity(q) - 0) < 1e-9 && Math.abs(foldOpacity(q / 2) - 0.5) < 1e-9);
+});
+
+test('a distance cull mounts a rig when a slot comes inside VisiblePanelDistance and unmounts it when it leaves', () => {
+  // The rule place() applies, as a pure predicate over the live depth: the
+  // eighth My Xbox slot sits at 7 x 505 = 3535 > 3225 at rest and inside it
+  // once the cursor has moved one panel [FRAME Kpa f05580 "8 of 8"].
+  const inRange = (k: number, cursor: number) => { const z = (k - cursor) * 505; return z <= 3225 && z > -505; };
+  assert.equal(inRange(7, 0), false);
+  assert.equal(inRange(6, 0), true);
+  assert.equal(inRange(7, 1), true);
+  assert.equal(inRange(0, 0.5), true, 'the passing panel is still drawn while it fades');
+  assert.equal(inRange(0, 1), false, 'and dropped once a whole spacing in front, where its fade reaches zero');
 });

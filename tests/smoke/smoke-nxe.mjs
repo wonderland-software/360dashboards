@@ -29,6 +29,19 @@ const CHROME = process.env.CHROME_PATH ?? '/Applications/Google Chrome.app/Conte
 const BASE = process.env.SMOKE_URL ?? 'http://localhost:5173';
 
 mkdirSync(OUT, { recursive: true });
+
+const FOOTAGE = {
+  kpa: `${FRAMES}/nxe-9199-Kparblu6r14-30fps`,
+  yrt: `${FRAMES}/nxe-9199-YrtwSj1f6aY-30fps`,
+};
+const REGIONS = {
+  front: [110, 262, 390, 300], panel2: [530, 290, 290, 225], qCur: [96, 202, 350, 34], qNext2: [96, 132, 350, 30],
+  counter: [96, 574, 160, 26], legend: [96, 632, 220, 32], page: [220, 130, 840, 450], exit: [0, 262, 96, 300],
+};
+
+const sec = (frames) => frames === null ? null : frames / 30;
+const fmt = (v) => v === null ? '  -  ' : `${v.toFixed(3)}s`;
+
 const fails = [];
 const ok = (cond, msg) => { if (!cond) fails.push(msg); };
 
@@ -372,112 +385,262 @@ try {
 
   // One page, one scripted path, driven a 60 Hz frame at a time so every number
   // below is countable: boot, Right/Left through the My Xbox panels, Up/Down
-  // through the channels, A into System Settings, A into Console Settings, B
-  // back twice. `&manual` hands the clock to stepFrames(), so the strip's
-  // position at tick N is the same in the browser, under ?frame= and here.
+  // through the channels, seven Rights to the Settings slot, A into System
+  // Settings, A into Console Settings, B back twice. `&manual` hands the clock
+  // to stepFrames(), so the strip's position at tick N is the same in the
+  // browser, under ?frame= and here. Every scene the strip can need is
+  // preloaded by the shell, so nothing below waits on a fetch and the tick
+  // numbers are exact (Judge G finding 11).
   const nav = await load(`${BASE}/?build=9199&mute&manual`);
   ok(nav.pageErrors.length === 0, `nav js errors: ${nav.pageErrors.join(' | ')}`);
   const path = await nav.page.evaluate(async () => {
     const api = window.__dashApi, s = api.nxeShell;
     const steps = [];
+    const snap = () => {
+      const r = api.nxe();
+      return {
+        t: r.motion.frames, p: +r.motion.panel.cursor.toFixed(4), c: +r.motion.channel.cursor.toFixed(4),
+        z: +(r.panels[0]?.z ?? 0).toFixed(1), counter: r.counter, counterOpacity: r.counterOpacity,
+        swap: r.motion.swap.phase, fold: r.motion.fold.phase, trans: r.transitions?.playing ?? null, frame: r.transitions?.frame ?? null,
+        queue: r.queue.map((q) => ({ row: q.row, y: q.y, dim: q.dim, theta: q.theta, text: q.text })),
+        front: r.panels.find((p) => Math.abs(p.z) < 1) ?? null,
+        panels: r.panels.map((p) => ({ name: p.name, z: p.z, mounted: p.mounted, visible: p.visible, opacity: p.opacity, theta: p.theta })),
+        legend: r.legend?.buttons.map((b) => `${b.group}="${b.text}"@${Math.round(b.x)}`).join(' ') ?? '',
+        page: r.legacy?.scene ?? null, meta: r.legacy?.meta ?? null, hidden: r.legacy?.hidden ?? [],
+        rigs: r.rigs,
+        values: r.transitions?.values ?? null,
+      };
+    };
+    const settle = async () => {
+      // Run whatever the last act started to its rest, frame by frame: the
+      // swap, the transition ranges and the cascade are all frame-counted.
+      for (let i = 0; i < 400; i++) {
+        const r = api.nxe();
+        const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving;
+        if (!busy) break;
+        await new Promise((res) => setTimeout(res, 0));
+        api.stepFrames(1);
+      }
+      await s.idle();
+    };
     const run = async (label, act, frames) => {
       const before = api.nxe();
       const cues0 = before.cues.length;
+      const t0 = before.motion.frames;
       await act();
-      const positions = [];
+      const ticks = [snap()];
       for (let i = 0; i < frames; i++) {
-        // YIELD between frames. The shell's channel change folds, then FETCHES
-        // the new channel's scenes, then unfolds; a synchronous frame loop
-        // never lets that fetch land, so the unfold cue piled up at the end of
-        // the block and the fold-to-unfold gap read 42 ticks instead of the
-        // cascade's own. The tick numbers are the engine's and do not move.
         await new Promise((r) => setTimeout(r, 0));
         api.stepFrames(1);
-        const r = api.nxe();
-        positions.push({ t: r.motion.frames, p: +r.motion.panel.cursor.toFixed(4), c: +r.motion.channel.cursor.toFixed(4), z: +(r.panels[0]?.z ?? 0).toFixed(1) });
+        ticks.push(snap());
       }
-      await s.idle();
-      for (let i = 0; i < 20; i++) api.stepFrames(1);
-      await s.idle();
+      await settle();
       const r = api.nxe();
+      // PAINTED means on screen: a text node inside a Show=false control has
+      // no client rect and is not what a frame can see.
+      const painted = [...document.querySelectorAll('[data-xui-paint="text"]')].filter((e) => e.getClientRects().length > 0).map((e) => e.textContent.trim());
+      // The TOP page's metapane: the page underneath keeps its own, faded out.
+      const topPage = [...document.querySelectorAll('.nxe-legacy')].pop() ?? null;
+      const metaEl = topPage ? topPage.querySelector('[data-xui-id="metaPanelScene"]') : null;
+      const metaPainted = metaEl ? [...metaEl.querySelectorAll('[data-xui-paint="text"]')].filter((e) => e.getClientRects().length > 0).map((e) => e.textContent.replace(/\s+/g, ' ').trim()).join(' | ') : null;
       steps.push({
-        label, positions,
-        cues: r.cues.slice(cues0).map((c) => ({ name: c.name, tick: c.tick, evidence: c.evidence })),
+        label, t0, ticks,
+        cues: r.cues.slice(cues0).map((c) => ({ name: c.name, tick: c.tick - t0, evidence: c.evidence })),
         panel: +r.motion.panel.cursor.toFixed(3), channel: +r.motion.channel.cursor.toFixed(3),
         fold: r.motion.fold.phase, page: r.legacy?.scene ?? null,
         pages: r.pages.map((q) => `${q.scene} (${q.form}/${q.curve})`),
         legend: r.legend?.buttons.map((b) => `${b.group}="${b.text}"@${Math.round(b.x)}`).join(' ') ?? '',
-        rows: r.legacy?.rows ?? [],
-        focus: r.legacy?.focusId ?? null,
+        rows: r.legacy?.rows ?? [], focus: r.legacy?.focusId ?? null, meta: r.legacy?.meta ?? null, hidden: r.legacy?.hidden ?? [],
+        rigs: r.rigs, counter: r.counter, counterOpacity: r.counterOpacity, values: r.transitions?.values ?? null,
+        tokensPainted: painted.filter((t) => /^<[a-z ]+>$/i.test(t)),
+        metaPainted,
+        unbound: r.unboundCommands.slice(),
       });
     };
     await run('Right', () => s.right(), 30);
     await run('Left', () => s.left(), 30);
-    await run('Up (channel)', () => s.up(), 60);
-    await run('Down (channel)', () => s.down(), 60);
-    for (let i = 0; i < 7; i++) { s.right(); for (let j = 0; j < 30; j++) api.stepFrames(1); await s.idle(); }
-    await run('A -> System Settings', () => s.press(), 60);
-    await run('A -> Console Settings', () => s.press(), 60);
-    await run('B', () => s.back(), 60);
-    await run('B (home)', () => s.back(), 90);
+    await run('Up (channel)', () => s.up(), 40);
+    await run('Down (channel)', () => s.down(), 40);
+    for (let i = 0; i < 6; i++) { await run(`Right ${i + 2}`, () => s.right(), 24); }
+    await run('Right to 8 of 8', () => s.right(), 24);
+    await run('Right refused', () => s.right(), 4);
+    await run('A -> System Settings', () => s.press(), 70);
+    await run('System down', () => s.down(), 4);
+    await run('System up', () => s.up(), 4);
+    await run('A -> Console Settings', () => s.press(), 24);
+    await run('Console down', () => s.down(), 4);
+    await run('Console down 2', () => s.down(), 4);
+    await run('Console up', () => s.up(), 4);
+    await run('Console up 2', () => s.up(), 4);
+    await run('B', () => s.back(), 24);
+    await run('B (home)', () => s.back(), 80);
+    await run('Left (home again)', () => s.left(), 30);
     const r = api.nxe();
-    return { steps, unbound: r.unboundCommands, errors: r.errors, cues: r.cues };
+    return { steps, unbound: r.unboundCommands, errors: r.errors, cues: r.cues, hardware: r.hardwareState };
   });
   ok(path.errors.length === 0, `nav shell errors: ${path.errors.join(' | ')}`);
   for (const st of path.steps) {
-    const moved = st.positions.filter((p, i) => i === 0 || p.p !== st.positions[i - 1].p || p.c !== st.positions[i - 1].c).length;
-    console.log(`  ${st.label.padEnd(22)} panel ${String(st.panel).padStart(5)}  channel ${String(st.channel).padStart(5)}  fold ${st.fold.padEnd(9)} ${st.page ?? '(home)'}`);
-    console.log(`      cues: ${st.cues.map((c) => `${c.name}@${c.tick}${c.evidence === 'inferred' ? '*' : ''}`).join(' ') || '(none)'}`);
-    console.log(`      panel0 z per tick: ${st.positions.slice(0, 24).map((p) => p.z.toFixed(0)).join(' ')}${st.positions.length > 24 ? ' ...' : ''}  (${moved} ticks moved)`);
+    console.log(`  ${st.label.padEnd(22)} panel ${String(st.panel).padStart(5)}  channel ${String(st.channel).padStart(5)}  fold ${st.fold.padEnd(9)} ${st.page ?? '(home)'}  counter "${st.counter}"/${st.counterOpacity}  rigs ${st.rigs.mounted}`);
+    console.log(`      cues: ${st.cues.map((c) => `${c.name}@+${c.tick}${c.evidence === 'timeline' ? '*' : ''}`).join(' ') || '(none)'}`);
   }
   const step = (label) => path.steps.find((x) => x.label === label);
+
+  // 3a. The panel axis, the cues, the integrator.
   ok(step('Right').panel === 1, 'Right did not move the panel cursor one place');
   ok(step('Left').panel === 0, 'Left did not move it back');
   ok(step('Right').cues.some((c) => c.name === 'SoundPanelRight'), 'Right played no SoundPanelRight');
   ok(step('Left').cues.some((c) => c.name === 'SoundPanelLeft'), 'Left played no SoundPanelLeft');
-  ok(step('Up (channel)').cues.some((c) => c.name === 'SoundChannelUp'), 'Up played no SoundChannelUp');
-  ok(step('Up (channel)').cues.some((c) => c.name === 'SoundPanelFold'), 'a channel change did not fold the strip');
-  // Judge F round 2, N3: the footage's channel change is MOVE, then FOLD, then
-  // UNFOLD, not a fold on the key press. On the 9199 capture the cue onsets sit
-  // at +0.03 s (channel), +0.47 and +0.57 (the two clicks) and the unfold burst
-  // at +0.83 [FRAME Yrt, motion onset t = 238.48 s]. So the fold cue must land
-  // one channel move after the channel cue - 60 x stepDuration(50/40) = exactly
-  // 18 ticks - and the unfold after it, never on the same tick.
+  ok(step('Right refused').cues.length === 0 && step('Right refused').panel === 7, 'a refused Right was not silent');
+  // Judge G finding 8: a panel in front of the cursor fades to nothing by one
+  // spacing [CODE 0x9248d8dc]. Read off the Right step: panel 0's opacity
+  // tracks 1 + z/spacing while its z is negative.
+  {
+    const mid = step('Right').ticks.filter((t) => t.panels[0].z < -100 && t.panels[0].z > -400);
+    const bad = mid.filter((t) => Math.abs(t.panels[0].opacity - (1 + t.panels[0].z / 505)) > 0.02);
+    console.log(`  passing panel: ${mid.slice(0, 6).map((t) => `z${t.panels[0].z.toFixed(0)}:o${t.panels[0].opacity}`).join(' ')} ...`);
+    ok(mid.length > 3 && bad.length === 0, `the passing panel does not fade by 1 + z/spacing: ${bad.slice(0, 3).map((t) => `z${t.panels[0].z} o${t.panels[0].opacity}`).join(' ')}`);
+    const gone = step('Right').ticks.find((t) => t.panels[0].z <= -505);
+    ok(!gone || !gone.panels[0].visible, 'a panel a whole spacing in front of the cursor is still drawn');
+  }
+
+  // 3b. The Settings slot gets its rig by distance (Judge G finding 1): at
+  // "8 of 8" the front panel is mounted and visible [FRAME Kpa f05580].
+  const eight = step('Right to 8 of 8');
+  ok(eight.counter === '8 of 8', `the seventh Right did not reach "8 of 8" (${eight.counter})`);
+  const frontAt8 = eight.ticks[eight.ticks.length - 1].panels[7];
+  ok(frontAt8 && frontAt8.mounted && frontAt8.visible && Math.abs(frontAt8.z) < 1, `the Settings slot is not a mounted front panel at 8 of 8: ${JSON.stringify(frontAt8)}`);
+  ok(eight.rigs.mounts >= 8 && eight.rigs.unmounts >= 6, `rigs were not mounted and unmounted by distance: ${JSON.stringify(eight.rigs)}`);
+  const home0 = path.steps[0].ticks[0];
+  ok(home0.panels.filter((p) => p.mounted).length === 7 && !home0.panels[7].mounted, 'at rest the strip carries seven rigs and the eighth slot none');
+
+  // 3c. The channel change (Judge G finding 2): ONE cue, the names scroll DOWN
+  // on an Up, the old strip fades in place, the new front fades in, the
+  // counter changes only when the new strip shows (finding 12).
   for (const label of ['Up (channel)', 'Down (channel)']) {
-    const cues = step(label).cues;
-    const ch = cues.find((c) => c.name.startsWith('SoundChannel'));
-    const fold = cues.find((c) => c.name === 'SoundPanelFold');
-    const unfold = cues.find((c) => c.name === 'SoundPanelUnfold');
-    ok(ch && fold && unfold, `${label}: expected a channel cue, a fold and an unfold, got ${cues.map((c) => c.name).join(',')}`);
-    if (!ch || !fold || !unfold) continue;
-    console.log(`      ${label}: channel@${ch.tick} fold@${fold.tick} (+${fold.tick - ch.tick}) unfold@${unfold.tick} (+${unfold.tick - fold.tick})`);
-    ok(fold.tick - ch.tick === 18, `${label}: the fold cue is ${fold.tick - ch.tick} ticks after the channel cue, not the move's 18`);
-    // 1/FoldSpeed is 0.10 s = 6 ticks, and the footage's two clicks are 0.10 s
-    // apart. Ours also waits for the new channel's scenes to be FETCHED, which
-    // the console did not have to do, so the gate allows the cascade plus a
-    // couple of ticks of that and refuses anything that skips the fold.
-    const gap = unfold.tick - fold.tick;
-    ok(gap >= 5 && gap <= 14, `${label}: the unfold cue is ${gap} ticks after the fold, not the cascade's 6`);
+    const st = step(label);
+    const names = st.cues.map((c) => c.name);
+    ok(names.length === 1 && names[0] === (label.startsWith('Up') ? 'SoundChannelUp' : 'SoundChannelDown'), `${label}: expected exactly one channel cue, got ${names.join(',')}`);
+    const t = st.ticks;
+    const next1 = (k) => t[k].queue.find((q) => q.row === 'Next1');
+    const cur = (k) => t[k].queue.find((q) => q.row === 'Current');
+    if (label.startsWith('Up')) {
+      ok(next1(8).y > next1(0).y && cur(8).y > cur(0).y && cur(8).dim < cur(0).dim, `${label}: the names did not scroll DOWN (Next1 y ${next1(0).y} -> ${next1(8).y}, Current y ${cur(0).y} -> ${cur(8).y}, dim ${cur(8).dim})`);
+    } else {
+      ok(next1(8).y < next1(0).y, `${label}: the names did not scroll UP on a Down`);
+    }
+    // The old strip: every mounted panel's opacity falls together and is gone
+    // by the sixth tick [FRAME Yrt f07273-07276]; nothing collapses (z fixed).
+    const out = t.slice(1, 7);
+    ok(out.every((x) => x.swap === 'out' || x.swap === 'hold'), `${label}: the swap did not fade the strip out over the first six ticks: ${out.map((x) => x.swap).join(',')}`);
+    ok(out.every((x, i) => i === 0 || x.panels[0].z === out[0].panels[0].z), `${label}: the old strip moved while fading`);
+    ok(t[6].panels.every((p) => !p.visible), `${label}: the old strip is still drawn on tick 6`);
+    ok(t[6].counter === t[0].counter, `${label}: the counter changed while the old strip faded (${t[0].counter} -> ${t[6].counter})`);
+    // Six ticks out, a four-tick beat, then the new front fades in from the
+    // eleventh tick over twelve [FRAME Yrt f07276-07277 bare, f07277-07283 in].
+    const inTicks = t.slice(11, 23).map((x) => x.panels[0]?.opacity ?? 0);
+    ok(inTicks[0] > 0 && inTicks[0] < 0.2 && inTicks[inTicks.length - 1] >= 0.99, `${label}: the new front does not fade in over ticks 11..22: ${inTicks.map((v) => v.toFixed(2)).join(' ')}`);
+    ok(t[11].counter !== t[0].counter || t[11].counter === t[t.length - 1].counter, `${label}: the counter did not follow the new strip`);
+    console.log(`      ${label}: old strip out by +6, new front ${inTicks[0].toFixed(2)} -> ${inTicks[inTicks.length - 1].toFixed(2)} over +11..+22, counter ${t[0].counter} -> ${t[11].counter}`);
   }
   ok(step('Down (channel)').channel === 6, `Down did not return to My Xbox (channel ${step('Down (channel)').channel})`);
+
+  // 3d. A: the select cue, the fold cue, the timeline's own transition cue,
+  // the From range, the page at PAGE_PUSH_FRAME, the queue and counter hidden
+  // (findings 3, 7, 11).
   const sys = step('A -> System Settings');
   ok(sys.page === 'consoles/SystemScene.xur', `A on the Settings slot opened ${sys.page}`);
-  ok(sys.rows.length === 7, `System Settings has ${sys.rows.length} rows, expected 7 (navIPTVSettings hidden)`);
-  ok(sys.rows[0] === 'Console Settings' && sys.rows[6] === 'Initial Setup', `System Settings rows: ${sys.rows.join(' | ')}`);
-  ok(sys.pages[0]?.includes('plain'), `the first page should take the PLAIN curve (the fold covers it): ${sys.pages.join(', ')}`);
-  ok(sys.cues.some((c) => c.name === 'SoundButtonSelect'), 'A played no SoundButtonSelect');
-  ok(sys.fold === 'folded', 'the strip did not fold away behind the page');
+  ok(sys.rows.length === 7 && sys.rows[0] === 'Console Settings' && sys.rows[6] === 'Initial Setup', `System Settings rows: ${sys.rows.join(' | ')}`);
+  ok(sys.hidden.length === 1 && sys.hidden[0].startsWith('navIPTVSettings'), `navIPTVSettings was not hidden: ${sys.hidden.join(' | ')}`);
+  ok(sys.tokensPainted.length === 0, `authoring tokens are PAINTED on System Settings: ${sys.tokensPainted.join(', ')}`);
+  ok(sys.pages[0]?.includes('plain'), `the first page should take the PLAIN curve: ${sys.pages.join(', ')}`);
+  {
+    const names = sys.cues.map((c) => c.name);
+    ok(names[0] === 'SoundButtonSelect' && names.includes('SoundPanelFold') && names.includes('TransitionFrom'), `A cues: ${sys.cues.map((c) => `${c.name}@+${c.tick}`).join(' ')}`);
+    const tf = sys.cues.find((c) => c.name === 'TransitionFrom');
+    ok(tf && tf.evidence === 'timeline' && tf.tick >= 8 && tf.tick <= 10, `snd_transitionfrom did not fire from the From range's frame 85 (+9): ${JSON.stringify(tf)}`);
+    // The range: TransitionChannel rises 0 -> 1 over frames 85..115 (+9..+39),
+    // TransitionPanel over 105..125 (+29..+49), TransitionScene 1 -> 0 over
+    // 120..130 (+44..+54) [SCENE controlp/Variables.xur].
+    const at = (k) => sys.ticks[k]?.values ?? {};
+    ok(at(9).TransitionChannel === 0 && at(24).TransitionChannel > 0.4 && at(24).TransitionChannel < 0.6 && at(40).TransitionChannel === 1, `TransitionChannel is not the From ramp: +9 ${at(9).TransitionChannel} +24 ${at(24).TransitionChannel} +40 ${at(40).TransitionChannel}`);
+    ok(at(29).TransitionPanel === 0 && at(39).TransitionPanel >= 0.5 && at(50).TransitionPanel === 1, `TransitionPanel is not the From ramp: +29 ${at(29).TransitionPanel} +39 ${at(39).TransitionPanel} +50 ${at(50).TransitionPanel}`);
+    ok(at(44).TransitionScene === 1 && at(55).TransitionScene === 0, `TransitionScene is not the From ramp: +44 ${at(44).TransitionScene} +55 ${at(55).TransitionScene}`);
+    // The queue folds top-down: Next6 is at a quarter turn before Current
+    // starts [CODE 0x9248b7a8]; the counter fades with 1 - |p|.
+    const n6 = sys.ticks.findIndex((x) => x.queue.find((r) => r.row === 'Next6').theta >= Math.PI / 2 - 1e-3);
+    const c6 = sys.ticks.findIndex((x) => x.queue.find((r) => r.row === 'Current').theta > 0);
+    ok(n6 > 0 && c6 > n6, `the queue does not fold top-down (Next6 folded at +${n6}, Current starts at +${c6})`);
+    ok(sys.ticks[20].counterOpacity < 0.8 && sys.ticks[40].counterOpacity === 0, `the counter does not fade with the fold: +20 ${sys.ticks[20].counterOpacity} +40 ${sys.ticks[40].counterOpacity}`);
+    ok(sys.counterOpacity === 0 && sys.ticks[sys.ticks.length - 1].queue.every((r) => r.dim === 0), 'the queue and the counter are still on screen behind the page');
+    // The front slot rotates about the hinge over +29..+49 and is gone before
+    // the page starts at +44 (PAGE_PUSH_FRAME); nothing behind it is drawn in
+    // front of it (finding 7).
+    const th = (k) => sys.ticks[k]?.panels[7]?.theta ?? 0;
+    ok(th(28) === 0 && th(40) > 0.8 && Math.abs(th(50) - Math.PI / 2) < 1e-3, `the front slot's hinge angle is not the TransitionPanel ramp: +28 ${th(28)} +40 ${th(40)} +50 ${th(50)}`);
+    const pageAt = sys.ticks.findIndex((x) => x.page !== null);
+    ok(pageAt >= 44 && pageAt <= 46, `the page was pushed on +${pageAt}, expected the frame TransitionScene starts to drop (+44)`);
+    ok(sys.ticks.slice(0, 60).every((x) => x.panels.every((p) => p.z >= -1 || !p.visible)), 'a panel was drawn in front of the cursor during the fold');
+    ok(sys.fold === 'folded', 'the strip did not fold away behind the page');
+    ok(sys.legend.includes('AButton="Select"') && sys.legend.includes('BButton="Back"'), `System Settings legend: ${sys.legend}`);
+    console.log(`      A: transitionfrom@+${tf?.tick} channel ramp +9..+39 panel +29..+49 page@+${pageAt} scene 1->0 +44..+54; queue Next6 folded +${n6}, Current starts +${c6}`);
+  }
+  // The metapane on a nav-button page: PanelStrings [FRAME Kpa f0391].
+  ok(sys.meta && sys.meta.text.includes('Change your Xbox 360 console settings'), `System Settings metapane: ${JSON.stringify(sys.meta)}`);
+  ok(step('System down').meta?.text.includes('younger family members'), `System Settings metapane after Down: ${JSON.stringify(step('System down').meta)}`);
+
+  // 3e. Console Settings: the code table's descriptions on DataAssociation 0,
+  // the Current Setting on 4, the plain pair over a page (findings 5, 6).
   const cs = step('A -> Console Settings');
   ok(cs.page === 'consoles/dashSysCslSet.xur', `A on Console Settings opened ${cs.page}`);
   ok(cs.rows.length === 8 && cs.rows[0] === 'Display' && cs.rows[7] === 'System Info', `Console Settings rows: ${cs.rows.join(' | ')}`);
-  ok(cs.pages[1]?.includes('ex'), `a legacy page over a legacy page should take the ...Ex curve: ${cs.pages.join(', ')}`);
+  ok(cs.pages[1]?.includes('plain/LegacyTo'), `a legacy page over a legacy page takes the plain pair: ${cs.pages.join(', ')}`);
+  ok(cs.cues.length === 1 && cs.cues[0].name === 'SoundButtonSelect', `Console Settings press cues: ${cs.cues.map((c) => c.name).join(',')}`);
+  ok(cs.meta && cs.meta.text.includes('Change your display output settings') && cs.meta.current.startsWith('1920 x 1080'), `Console Settings metapane on Display: ${JSON.stringify(cs.meta)}`);
+  ok(step('Console down').meta?.text.includes('audio output and sound effect') && step('Console down').meta?.current.startsWith('Dolby Digital'), `metapane after Down: ${JSON.stringify(step('Console down').meta)}`);
+  ok(step('Console down 2').meta?.current === 'English\r\nCanada', `metapane after two Downs: ${JSON.stringify(step('Console down 2').meta)}`);
   ok(cs.legend.includes('AButton="Select"') && cs.legend.includes('BButton="Back"'), `Console Settings legend: ${cs.legend}`);
-  const back1 = path.steps.filter((x) => x.label === 'B')[0];
+  const metaPainted = cs.metaPainted;
+  console.log(`  metapane (DOM): ${metaPainted}`);
+  ok(metaPainted && metaPainted.includes('Change your display output settings'), 'the metapane description is not PAINTED');
+  ok(metaPainted && metaPainted.includes('1920 x 1080'), 'the Current Setting value is not PAINTED');
+
+  // 3f. B: LegacyBackFrom on the page, then BackTo on the home page, the
+  // panels behind emerge once the front slot is back, the legend returns.
+  const back1 = step('B');
   ok(back1.page === 'consoles/SystemScene.xur', `B did not pop back to System Settings (${back1.page})`);
-  ok(back1.cues.some((c) => c.name === 'SoundButtonBack'), 'B played no SoundButtonBack');
+  ok(back1.cues.length === 1 && back1.cues[0].name === 'SoundButtonBack', 'B played more or less than SoundButtonBack');
   const back2 = step('B (home)');
   ok(back2.page === null, 'the second B did not return to the home strip');
-  ok(back2.cues.some((c) => c.name === 'SoundPanelUnfold'), 'returning home did not unfold the strip');
+  {
+    const names = back2.cues.map((c) => `${c.name}@+${c.tick}`);
+    const ti = back2.cues.find((c) => c.name === 'TransitionInto');
+    const un = back2.cues.find((c) => c.name === 'SoundPanelUnfold');
+    ok(ti && ti.evidence === 'timeline' && ti.tick >= 38 && ti.tick <= 40, `snd_transitioninto did not fire from BackTo's frame 190 (+39): ${names.join(' ')}`);
+    ok(un && un.tick >= 48 && un.tick <= 50, `the unfold behind the front slot did not start at BackTo's frame 200 (+49): ${names.join(' ')}`);
+    const at = (k) => back2.ticks[k]?.values ?? {};
+    ok(at(24).TransitionScene === 0 && at(34).TransitionScene === 1, `TransitionScene is not the BackTo ramp: +24 ${at(24).TransitionScene} +34 ${at(34).TransitionScene}`);
+    ok(at(29).TransitionPanel === 1 && at(50).TransitionPanel === 0, `TransitionPanel is not the BackTo ramp: +29 ${at(29).TransitionPanel} +50 ${at(50).TransitionPanel}`);
+    const cur = (k) => back2.ticks[k].queue.find((x) => x.row === 'Current');
+    const n6 = (k) => back2.ticks[k].queue.find((x) => x.row === 'Next6');
+    ok(cur(39).dim === 0 && cur(55).dim > 0.5 && cur(70).dim === 1, `the current row does not unfold with BackTo: +39 ${cur(39).dim} +55 ${cur(55).dim} +70 ${cur(70).dim}`);
+    ok(n6(55).theta > cur(55).theta, 'the queue does not unfold bottom-up on B');
+    ok(back2.fold === 'open' && back2.counterOpacity === 1, 'the strip and the counter did not come back');
+    ok(back2.legend === 'AButton="Select"@0', `the home legend did not come back: ${back2.legend}`);
+    console.log(`      B: ${names.join(' ')}; scene 0->1 +24..+34, panel 1->0 +29..+49, Current row dim +39 ${cur(39).dim} +55 ${cur(55).dim} +70 ${cur(70).dim}`);
+  }
+  ok(step('Left (home again)').panel === 6 && step('Left (home again)').cues.some((c) => c.name === 'SoundPanelLeft'), 'the strip does not move again after B');
+
+  // 3g. The Media Center slot's second line [FRAME Kpa f05545] (finding 10).
+  const line2 = await nav.page.evaluate(() => {
+    const r = window.__dashApi.nxe();
+    const art = r.slotArt.find((a) => a.scene === 'slots/MediaCenterSlotScene.xur');
+    const painted = [...document.querySelectorAll('[data-xui-scene="slots/MediaCenterSlotScene.xur"] [data-xui-paint="text"]')].map((e) => e.textContent.trim());
+    return { art, painted };
+  });
+  console.log(`  Media Center: line2 "${line2.art?.line2}" painted ${JSON.stringify(line2.painted)}`);
+  ok(line2.art?.line2 === 'TV and media from your PC', `Media Center's <description2> did not resolve: ${JSON.stringify(line2.art)}`);
+  ok(line2.painted.includes('TV and media from your PC'), 'the second line is not PAINTED on DataAssociation 1');
+
   // The integrator against its own closed form, on the shell's live axes.
   const moved = await nav.page.evaluate(() => {
     const r = window.__dashApi.nxe();
@@ -487,8 +650,41 @@ try {
   ok(Math.abs(moved.panel - moved.step.panel) * 60 <= 0.5, `the panel axis integrated ${(moved.panel * 60).toFixed(3)} frames against a closed form of ${(moved.step.panel * 60).toFixed(3)}`);
   ok(Math.abs(moved.channel - moved.step.channel) * 60 <= 0.5, `the channel axis integrated ${(moved.channel * 60).toFixed(3)} frames against a closed form of ${(moved.step.channel * 60).toFixed(3)}`);
   console.log(`  unbound commands: ${path.unbound.length ? path.unbound.join(' | ') : '(none)'}`);
+  console.log(`  hardware state: ${path.hardware.join(' | ')}`);
   await nav.page.screenshot({ path: `${OUT}/nxe-nav-home.png` });
   await nav.page.close();
+
+  /* ----------------------------------- 3h. a refused press is silent */
+
+  const welcome = await load(`${BASE}/?build=9199&mute&manual&channel=WELCOME`);
+  const refused = await welcome.page.evaluate(async () => {
+    const api = window.__dashApi, s = api.nxeShell;
+    const before = api.nxe().cues.length;
+    const ok = await s.press();
+    for (let i = 0; i < 5; i++) api.stepFrames(1);
+    const r = api.nxe();
+    return { ok, cues: r.cues.slice(before).map((c) => c.name), unbound: r.unboundCommands, page: r.legacy?.scene ?? null };
+  });
+  console.log(`  A on the Welcome slot: ${refused.ok} cues ${JSON.stringify(refused.cues)} unbound ${refused.unbound.join(' | ')}`);
+  ok(refused.ok === false && refused.cues.length === 0 && refused.page === null, 'a refused press played a cue or opened a page');
+  await welcome.page.close();
+
+  /* ------------------------------------- 3i. ?page= agrees with A */
+
+  const paged = await load(`${BASE}/?build=9199&mute&page=consoles/SystemScene.xur`);
+  const pr = paged.dash.nxe;
+  ok(pr && pr.transitions && pr.transitions.values.TransitionChannel === 1 && pr.transitions.values.TransitionPanel === 1 && pr.transitions.values.TransitionScene === 0,
+    `the ?page= route is not parked on the end of From: ${JSON.stringify(pr?.transitions?.values)}`);
+  ok(pr && pr.queue.every((q) => q.dim === 0) && pr.counterOpacity === 0, 'the ?page= route still shows the queue or the counter');
+  ok(pr && pr.legacy?.hidden.length === 1, `?page= did not hide navIPTVSettings: ${JSON.stringify(pr?.legacy?.hidden)}`);
+  const pagedTokens = await paged.page.evaluate(() => [...document.querySelectorAll('[data-xui-paint="text"]')].filter((e) => e.getClientRects().length > 0).map((e) => e.textContent.trim()).filter((t) => /^<[a-z ]+>$/i.test(t)));
+  ok(pagedTokens.length === 0, `tokens painted on the ?page= route: ${pagedTokens.join(', ')}`);
+  ok(pr && pr.panels.length === 8 && pr.queue.length === 8, 'the ?page= route did not build the strip and the queue underneath');
+  await paged.page.close();
+
+  /* ------------------- 3j. the footage, measured the way Judge G measured it */
+
+  await measuredAgainstFootage();
 
   /* --------------------------------------------- 4. the mount is disposable */
 
@@ -758,4 +954,231 @@ function measure(label, ourPath, framePath, landmarks, tolerance) {
     if (Math.abs(d) > tol) fails.push(`${label} ${m.name}: ${d.toFixed(2)} px off the frame (tolerance ${tol})`);
   }
   console.log(`    worst |d| = ${worst.toFixed(2)} px`);
+}
+
+/* ------------------------------------------------- the footage comparison */
+
+/**
+ * Judge G measured the console with region traces over the 30 fps cuts of the
+ * two 9199 captures; this measures the shell the same way, on the same regions,
+ * and prints both side by side. The cuts are `ffmpeg -ss <t> -t <d> -i <video>
+ * -vf fps=30` windows of the source videos, numbered the way Judge G numbered
+ * them (Kparblu6r14: f = 5490 + (t - 183) x 30 and f = 660 + (t - 22) x 30;
+ * YrtwSj1f6aY: f = 6660 + (t - 222) x 30) under reference/frames/<capture>-30fps.
+ * Without them the comparison is skipped and says so; nothing below is a
+ * comparison against our own output alone.
+ *
+ * Every event is the same statistic on both sides: the mean luma of a design
+ * region (1280x720 units) per frame, and an ONSET is the first frame whose mean
+ * has moved more than a tenth of the region's whole excursion from its rest
+ * value, a SETTLE the last frame more than a tenth from its final value.
+ */
+function regionMeans(im) {
+  const k = im.w / 1280;
+  const out = {};
+  for (const [name, [x, y, w, h]] of Object.entries(REGIONS)) {
+    out[name] = mean(im, { x: Math.round(x * k), y: Math.round(y * k), w: Math.round(w * k), h: Math.round(h * k) });
+    // A coarse patch (one sample per 8 design px) so a frame can be compared
+    // with another frame by mean absolute difference, which is sign-free: a
+    // panel brighter than the floor and one darker both read as "present".
+    const patch = [];
+    for (let yy = y; yy < y + h; yy += 8) for (let xx = x; xx < x + w; xx += 8) patch.push(luma(im, Math.round(xx * k), Math.round(yy * k)));
+    out[`${name}$`] = patch;
+  }
+  return out;
+}
+
+/** Mean absolute difference of one region between two samples. */
+function mad(a, b, region) {
+  const p = a[`${region}$`], q = b[`${region}$`];
+  let s = 0;
+  for (let i = 0; i < p.length; i++) s += Math.abs(p[i] - q[i]);
+  return s / p.length;
+}
+
+function footageTrace(dir, first, count) {
+  const rows = [];
+  for (let f = first; f < first + count; f++) {
+    const p = `${dir}/f${String(f).padStart(5, '0')}.png`;
+    if (!existsSync(p)) break;
+    rows.push(regionMeans(readPng(p)));
+  }
+  return rows;
+}
+
+/** Onset and settle of one region's series, in samples from index 0. */
+function events(series, from = 0) {
+  const s = series.slice(from);
+  const rest = s[0], fin = s[s.length - 1];
+  const span = Math.max(...s) - Math.min(...s);
+  if (span < 3) return { onset: null, settle: null, span };
+  let onset = null, settle = null;
+  for (let i = 0; i < s.length; i++) if (Math.abs(s[i] - rest) > span * 0.1) { onset = i; break; }
+  for (let i = s.length - 1; i >= 0; i--) if (Math.abs(s[i] - fin) > span * 0.1) { settle = i + 1; break; }
+  return { onset, settle, span };
+}
+
+async function traceOurs(url, act, ticks, label) {
+  const p = await load(url);
+  await p.page.evaluate(async (a) => { const s = window.__dashApi.nxeShell; for (const step of a) { await s[step](); for (let i = 0; i < 40; i++) window.__dashApi.stepFrames(1); await s.idle(); } }, act.prelude ?? []);
+  // settle whatever the prelude started
+  await p.page.evaluate(async () => {
+    const api = window.__dashApi;
+    for (let i = 0; i < 400; i++) {
+      const r = api.nxe();
+      const busy = r.motion.swap.phase !== 'idle' || r.transitions?.playing || r.motion.fold.phase === 'folding' || r.motion.fold.phase === 'unfolding' || r.motion.channel.moving || r.motion.panel.moving;
+      if (!busy) break;
+      await new Promise((res) => setTimeout(res, 0));
+      api.stepFrames(1);
+    }
+    await api.nxeShell.idle();
+  });
+  const rows = [];
+  const shot = async (i) => { const path = `${OUT}/trace-${label}-${String(i).padStart(3, '0')}.png`; await p.page.screenshot({ path }); rows.push(regionMeans(readPng(path))); };
+  await shot(0);
+  await p.page.evaluate((n) => window.__dashApi.nxeShell[n](), act.act);
+  for (let i = 1; i <= ticks; i++) {
+    await p.page.evaluate(() => new Promise((r) => setTimeout(r, 0)));
+    await p.page.evaluate(() => window.__dashApi.stepFrames(1));
+    if (i % 2 === 0) await shot(i / 2);   // one sample per 30 fps frame, like the footage
+  }
+  await p.page.evaluate(async () => { await window.__dashApi.nxeShell.idle(); });
+  await p.page.close();
+  return rows;
+}
+
+async function measuredAgainstFootage() {
+  if (!existsSync(FOOTAGE.kpa) || !existsSync(FOOTAGE.yrt)) {
+    console.log('  (no 30 fps cuts under reference/frames/*-30fps; the footage comparison is not run)');
+    return;
+  }
+  const line = (name, ours, foot, tol, gate = true) => {
+    const d = ours !== null && foot !== null ? ours - foot : null;
+    console.log(`    ${name.padEnd(34)} footage ${fmt(foot)}   ours ${fmt(ours)}   d ${d === null ? '  -  ' : (d >= 0 ? '+' : '') + d.toFixed(3) + 's'}${gate ? '' : '  (reported, not gated)'}`);
+    if (gate) ok(d !== null && Math.abs(d) <= tol, `${name}: ours ${fmt(ours)} against the footage's ${fmt(foot)} (tolerance ${tol}s)`);
+    return d;
+  };
+
+  /* --- a channel change: Yrt f07266.., the last REST frame f07272 (i = 6) ---
+     f07266-07272 are pixel-identical, f07273 is the first frame that moves, and
+     the fade is 15-30 % through on it, so the press falls a quarter of a frame
+     after f07272. Row 0 is that rest frame on BOTH sides: ours screenshots the
+     rest state, presses, and samples every second 60 Hz tick. The window ends at
+     f07303 because the capture moves again at f07306. */
+  {
+    const foot = footageTrace(FOOTAGE.yrt, 7266, 38).slice(6);
+    // Ours goes DOWN, not up. The fade is the same either way (ChannelSwap is
+    // not told the direction) but the strip it lands on is not: the archive's
+    // embedded homepage gives Game Marketplace - the channel an Up lands on,
+    // and the one the capture shows - ONE slot where the capture's console has
+    // two ("Explore Game Content" and a "Game Library" that needs games on the
+    // console), so an Up here can never grow a second panel. The Welcome
+    // channel below has four.
+    const ours = await traceOurs(`${BASE}/?build=9199&mute&manual`, { act: 'down' }, 50, 'down');
+    // Three states, three references, one statistic (mean absolute difference of
+    // a region against another sample), so the same code reads both sides and
+    // neither the sign nor the brightness of the art matters:
+    //  * the old strip's departure is the distance from ROW 0. It climbs while
+    //    the old art fades and then STOPS on the bare floor, so the old strip is
+    //    GONE on the first sample of that plateau [Yrt f07275, Kpa f00738].
+    //  * the bare floor is the sample FURTHEST from the settled end state, taken
+    //    at or after that [Yrt f07276, Kpa f00739].
+    //  * a fade in is linear in this statistic (blending a over a fixed floor
+    //    puts the sample (1-a) of the way from the new art), so the new front is
+    //    HALF-WAY where its distance from the settled sample has halved, and the
+    //    second panel STARTS where its distance from the bare floor has reached
+    //    a tenth of its final value.
+    const swap = (rows) => {
+      const N = rows.length - 1;
+      const dR = rows.map((r) => mad(r, rows[0], 'front'));
+      let gone = null;
+      for (let i = 1; i < N; i++) if (dR[i] >= 0.5 * dR[N] && dR[i + 1] <= 1.05 * dR[i]) { gone = i; break; }
+      if (gone === null) return { gone: null, half: null, starts: null };
+      const dF = rows.map((r) => mad(r, rows[N], 'front'));
+      let e = gone;
+      for (let i = gone; i <= N; i++) if (dF[i] > dF[e]) e = i;
+      // Interpolated, because a linear fade lands EXACTLY on this threshold and
+      // a whole-sample answer would then be a coin toss on the last pixel.
+      let half = null;
+      for (let i = e + 1; i <= N; i++) if (dF[i] <= 0.5 * dF[e]) { half = i - (0.5 * dF[e] - dF[i]) / ((dF[i - 1] - dF[i]) || 1); break; }
+      const p2 = rows.map((r) => mad(r, rows[e], 'panel2'));
+      let starts = null;
+      for (let i = e + 1; i <= N; i++) if (p2[i] >= 0.1 * p2[N]) { starts = i; break; }
+      return { gone, half, starts };
+    };
+    const f = swap(foot), o = swap(ours);
+    console.log('  channel change [Yrt f07272-07303] against ours (seconds after the press):');
+    line('old strip gone', sec(o.gone), sec(f.gone), 0.07);
+    line('new front half-way in', sec(o.half), sec(f.half), 0.07);
+    line('second panel starts', sec(o.starts), sec(f.starts), 0.1);
+    const fCounter = events(foot.map((x) => x.counter), 0), oCounter = events(ours.map((x) => x.counter), 0);
+    line('counter region starts to change', sec(oCounter.onset), sec(fCounter.onset), 0.1, false);
+  }
+
+  /* --- A on the Settings slot: Kpa f05574.., the press at f05576 (i = 2) --- */
+  {
+    const foot = footageTrace(FOOTAGE.kpa, 5574, 49);
+    const ours = await traceOurs(`${BASE}/?build=9199&mute&manual`, { prelude: ['right', 'right', 'right', 'right', 'right', 'right', 'right'], act: 'press' }, 90, 'A');
+    const F = (r) => foot.map((x) => x[r]).slice(2), O = (r) => ours.map((x) => x[r]);
+    const ev = (r, S) => events(S(r), 0);
+    console.log('  A on "8 of 8" [Kpa f05576-05622] against ours (seconds after the press):');
+    const dLegend = line('legend leaves', sec(ev('legend', O).onset), sec(ev('legend', F).onset), 0.35, false);
+    const dQueue = line('current channel row fades', sec(ev('qCur', O).onset), sec(ev('qCur', F).onset), 0.2, false);
+    line('front slot starts to rotate', sec(ev('front', O).onset), sec(ev('front', F).onset), 0.1);
+    line('front slot gone', sec(ev('front', O).settle), sec(ev('front', F).settle), 0.15);
+    // the page region: its own move is the drop to the dark plate, after the
+    // strip is gone, so measure from the front's settle on both sides.
+    const pageOn = (S, after) => { const e = events(S('page'), after); return e.onset === null ? null : e.onset + after; };
+    const fPage = pageOn(F, ev('front', F).settle ?? 0), oPage = pageOn(O, ev('front', O).settle ?? 0);
+    line('page begins to show', sec(oPage), sec(fPage), 0.15);
+    const fOrder = ev('legend', F).onset <= ev('qCur', F).onset && ev('qCur', F).onset < ev('front', F).onset && (ev('front', F).settle ?? 0) <= fPage;
+    const oOrder = ev('legend', O).onset <= ev('qCur', O).onset && ev('qCur', O).onset < ev('front', O).onset && (ev('front', O).settle ?? 0) <= oPage;
+    ok(fOrder && oOrder, `the order legend -> queue -> front slot -> page does not hold on both (footage ${fOrder}, ours ${oOrder})`);
+    console.log(`    residual, not tuned: legend ${dLegend === null ? '-' : dLegend.toFixed(3)}s and queue ${dQueue === null ? '-' : dQueue.toFixed(3)}s ahead of the footage`);
+  }
+
+  /* --- B off a page: Yrt f07167.., the press at f07168 (i = 1) --- */
+  {
+    const foot = footageTrace(FOOTAGE.yrt, 7167, 66);
+    const ours = await traceOurs(`${BASE}/?build=9199&mute&manual&page=consoles/SystemScene.xur`, { act: 'back' }, 110, 'B');
+    const F = (r) => foot.map((x) => x[r]).slice(1), O = (r) => ours.map((x) => x[r]);
+    // The Yrt page is a Rome profile page whose own panels fold first; the
+    // events that are the HOME page's are the front slot rotating in and the
+    // current channel row returning, measured from the page's last move.
+    const pageGone = (S) => events(S('page'), 0).settle ?? 0;
+    const after = (S, r) => { const g = pageGone(S); const e = events(S(r), g); return e.onset === null ? null : e.onset + g; };
+    console.log('  B back to the home page [Yrt f07168-07232] against ours (seconds after the press):');
+    line('front slot starts to rotate in', sec(after(O, 'front')), sec(after(F, 'front')), 0.25);
+    line('current channel row returns', sec(after(O, 'qCur')), sec(after(F, 'qCur')), 0.25);
+    const fOrder = (after(F, 'front') ?? 0) <= (after(F, 'qCur') ?? 0), oOrder = (after(O, 'front') ?? 0) <= (after(O, 'qCur') ?? 0);
+    ok(fOrder && oOrder, `the front slot should be back before the queue rows on both (footage ${fOrder}, ours ${oOrder})`);
+  }
+
+  /* --- a legacy page over a legacy page: Kpa f05622.., the swap at f05630 --- */
+  {
+    const foot = footageTrace(FOOTAGE.kpa, 5622, 31);
+    const ours = await traceOurs(`${BASE}/?build=9199&mute&manual&page=consoles/SystemScene.xur`, { act: 'press' }, 40, 'swap');
+    const F = foot.map((x) => x.page), O = ours.map((x) => x.page);
+    const hump = (s) => { const e = events(s, 0); const peak = s.indexOf(Math.max(...s)); const bg = 99; return { onset: e.onset, settle: e.settle, peak, peakValue: s[peak], rest: s[0] }; };
+    const fh = hump(F.slice(8)), oh = hump(O);
+    console.log('  System -> Console Settings [Kpa f05630-05652] against ours:');
+    line('the swap lasts', sec(oh.settle - oh.onset), sec(fh.settle - fh.onset), 0.1);
+    line('the outgoing page is at its faintest', sec(oh.peak - oh.onset), sec(fh.peak - fh.onset), 0.1);
+    // the plain pair overlaps: at the crossover neither page is fully up, so
+    // the region is nowhere near the bare backdrop (~147 on Kpa, ~156 ours).
+    ok(oh.peakValue - oh.rest < 60, `the pages do not cross-fade: the region cleared to ${oh.peakValue.toFixed(1)} from ${oh.rest.toFixed(1)}`);
+  }
+
+  /* --- a passing panel: Kpa f05538.., four Rights --- */
+  {
+    const foot = footageTrace(FOOTAGE.kpa, 5538, 37);
+    const ours = await traceOurs(`${BASE}/?build=9199&mute&manual`, { act: 'right' }, 30, 'pass');
+    const F = foot.map((x) => x.exit), O = ours.map((x) => x.exit);
+    // On the footage a move recurs every ~0.3 s; measure one hump of the exit
+    // band on each: the passing panel crosses it and is gone again.
+    const fe = events(F.slice(1, 12), 0), oe = events(O, 0);
+    console.log('  a passing panel [Kpa f05539-05550] against ours:');
+    line('the exit band is clear again', sec(oe.settle), sec(fe.settle), 0.12);
+    ok(oe.span > 3 && oe.settle !== null && oe.settle <= 12, `the passing panel did not cross and clear the left edge within the move (settle ${oe.settle}, span ${oe.span.toFixed(1)})`);
+  }
 }

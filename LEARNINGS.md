@@ -188,6 +188,39 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
 - **Rendered screenshots are Microsoft artwork too:** tests/smoke/out is
   gitignored like the assets.
 
+### Compositor layers are the budget, not raster speed (2026-09-03)
+
+Tag saw the Blades page flicker with black rectangles in a 2000x1196 Retina
+window - whole menu rows and the legend vanishing and returning - while
+headless Chrome, at the same size and on the same Apple GPU, rendered every
+frame clean. A screenshot waits for the raster; a live window does not. The
+DevTools `LayerTree` domain explained it: 99 compositor layers, 522 MB of
+tiles at 2x, which is Chrome's tile budget, so tiles were being evicted and
+painted as the page's black background until they came back.
+
+- **`rotate3d` is a 3D transform even about Z.** Every one of the corpus's
+  403 rotations was emitted as `rotate3d`; Chrome promotes each to its own GPU
+  layer (`Trivial3DTransform`, 55 of them) and then promotes everything that
+  overlaps one (`Overlap`, 27 more). 390 of those rotations are about Z alone:
+  they are now `rotate()`, the same matrix, no layer.
+- **The 13 real tilts are affine outside a perspective.** With no perspective
+  ancestor a 3D rotate projects orthographically, so its screen mapping is
+  exactly `matrix(R00, R10, R01, R11)` from the quaternion's rotation matrix
+  (checked against `DOMMatrix` to 1e-6). Blades has no perspective anywhere,
+  so `BuildProfile.flatten3d` emits that matrix there; NXE keeps `rotate3d`
+  because its home is a XuiPerspectiveScene under a CSS perspective.
+- **`position: fixed` on the app shell** was one more full-window layer
+  (`FixedPosition` + `UndoOverscroll`); absolute is the same box.
+- Result 99 → 13 layers, 522 → 159 MB, pixels unchanged (boot, gallery,
+  blades and nav suites green). `smoke-boot` now reads the layer tree at
+  2000x1196@2x and holds the page under 24 layers / 260 MB.
+- Related, found on the way: the skin's ambient swirl figures (`thing1..3`)
+  animate their gradient `StopPos` every frame, and `updateNode` rebuilt the
+  whole SVG each tick. `updateGradientStops` now rewrites the `<stop>`s in
+  place (falling back to a rebuild when the resampled stop count changes).
+  The repaint itself is real - the console repainted them too - but the DOM
+  churn was ours.
+
 ## Screen mapping
 
 - **The 1120x770 canvas maps anisotropically onto 1280x720** (2026-09-02,
@@ -926,3 +959,109 @@ output).
 - **No Metro footage in reference/ yet**; candidates with ids and formats
   are in the spec (§15). `tools/scb-decode.py` (6770 grammar) fails on all
   seven 17559 `videos/*.scb`.
+
+## NXE 9199 shell, M4d: the fold is in the file, the channel change is not (2026-09-03)
+
+Judge G's twelve findings closed (JUDGE.md). What the work taught:
+
+- **A "variable" scene can be a choreography.** `controlp/Variables.xur` was
+  read for its thirty constants and the four `SceneTransitions/*` names were
+  filed as switches. The group that holds them is CALLED `SceneTransitions`
+  (the spec's "no object of that name" was wrong), it carries nine named
+  frames - `To` 1-75, `From` 76-150, `BackTo` 151-225, `BackFrom` 226-300,
+  XuiScene's own four transition slots - and five timelines that animate the
+  variables' `FloatVariable`. The strip's frame function reads them back
+  through the same block it fetches the constants into (`[block+0x08]`
+  TransitionScene -> the layer's opacity, `+0x10` TransitionChannel -> the
+  queue's fold routine 0x9248b7a8, `+0x14` TransitionPanel -> the front
+  panel's rotation, `+0x18` DefaultSpacing, ... `+0x58` PanelInputMaxVelocity,
+  in the table's order). **When a code table names `A/B` and no `A` exists,
+  look for a GROUP called `A` before calling it a fifth namespace.**
+- **The fold geometry was inferred for three milestones and was one
+  disassembly away the whole time.** The per-panel record's progress at
+  +2016, the back-to-front gate on the NEXT record (+4036), the front-to-back
+  gate on the PREVIOUS (-4), the `q x spacing` offset and the `min(1, 4q)`
+  opacity are all in 0x9248d6dc-0x9248d988, and the rotate-about-a-hinge
+  routine both the queue rows and the front panel go through is 0x92488480
+  (`opacity x (1 - |theta| 2/pi)`, `SetRotation(quat(theta))`, `position + v -
+  R v` with `v = (-128, 0, 0)` for `theta >= 0`). The two things that stopped
+  the earlier reads were VMX opcodes the little disassembler printed as `op4`/
+  `op6` (they are the quaternion and matrix helpers, and their MEANING is
+  recoverable from what is stored around the call) and a float compare whose
+  branch sense I first read backwards: `bc !lt` after `fcmpu theta, 0` goes to
+  the `theta >= 0` case, which is the LEFT hinge - and the footage's sliver at
+  design x 32..117 is where a left hinge puts it (13..122), not where a hinge
+  behind the panel would (216..283). **Project the candidate geometry onto the
+  frame before deciding which branch is which.**
+- **`FoldSpeed`'s IntegerVariable is a divisor, not decoration.** The float is
+  quoted for the integer's panel count: the rate is
+  `FoldSpeed x (visible + 1) / 7` (0x9248d5c4-0x9248d61c reads the integer
+  through the same getter family as the float, at +24 of the variable's
+  data). `UnfoldEaseRange` unset reads as 0, so the unfold ease runs over the
+  whole move (`dq/dt = 10 - 9.9 q`) and `UnfoldMinSpeed` DOES bind - M4b said
+  it could not.
+- **The channel change is the one motion the file does not choreograph, and
+  the frames refuse the cascade.** Two frames into a change the second panel's
+  ghost is still at its rest position [FRAME Yrt f07275], so nothing
+  collapses; the whole strip fades together in three 30 fps frames, the new
+  front fades in over five to six, the second panel starts as the front
+  finishes. `FoldSpeed 30` would fade in two ticks and `min(1, 4q)` would show
+  a panel in two; both are measured at two to three times that. So the swap is
+  a MEASURED tween in ticks (`CHANNEL_SWAP`) and says so, beside the decoded
+  cascade that A and B use. **When the file's mechanism and the frames
+  disagree by 3x, keep both and label which is which; do not tune one into
+  the other.**
+- **A three-state fade needs three reference FRAMES, not a threshold on one
+  number.** The first cut of this gate scored the strip by a region's mean or
+  its standard deviation and had to guess which way "gone" pointed: the bare
+  NXE floor is textured and its mean sits between the old art and the new, so
+  both statistics turn back on themselves mid-change and the detector fired on
+  frame 1. What works, on the capture and on our screenshots alike, is one
+  statistic - the mean absolute luma difference of a region against another
+  SAMPLE of the same shot - read against the rest frame, the bare-floor frame
+  and the settled frame: distance from rest climbs and then plateaus (the old
+  strip is gone at the start of that plateau), the bare floor is the sample
+  furthest from the settled one, and distance from the floor is LINEAR in the
+  fade's alpha, so half-way is half the distance. **And fix the origin before
+  comparing: count from the last frame that has not moved yet, on both sides.**
+  Ours starts from a rest screenshot, so a gate that started the footage on its
+  first MOVED frame handed our animation a free frame - which is a third of the
+  tolerance.
+- **The queue's sign was settled by the caller, not the frames.** M4c read the
+  layout routine's `b = SLOT[i]` for `progress >= 0` and assumed an Up was
+  positive. The caller (0x9248c9cc-0x9248ca18) hands it `-frac(cursor)` while
+  the cursor climbs and `1 - frac` while it falls, so a move to a higher index
+  is NEGATIVE and every row lerps toward the slot BELOW it: the names scroll
+  down. The frames agree [Yrt f07273-07282], but the code says why.
+- **One audio onset per channel change, and the cue's length identifies it.**
+  A pure-Python RMS envelope and a 24-band log spectrum are enough: the click
+  matches `snd_channelup/down` at 0.97; the tail after the select on A is
+  0.45 s long, which is `snd_panelfold`'s 0.54 s and not
+  `snd_transitioninto`'s 2.6 s, even though the spectra are within 0.06 of
+  each other. **Duration separates cues that spectra do not.** The Yrt change
+  also carries a second onset 26 dB down at +0.34 s matching
+  panelfold/unfold at 0.99 - a mix level the archive has no record of, so it
+  is recorded and not played.
+- **`[FRAME Kpa f05604]` and friends are the judge's 30 fps cut numbers**, not
+  the 2 fps stills: `f = 5490 + (t - 183) x 30` for Kparblu6r14 (and
+  `660 + (t - 22) x 30` for its second window), `f = 6660 + (t - 222) x 30`
+  for YrtwSj1f6aY. The cuts are regenerated with `ffmpeg -ss <t> -t <d> -vf
+  fps=30` into `reference/frames/<capture>-30fps/f%05d.png` under the same
+  numbering, so a citation in JUDGE.md, PLACEHOLDERS.md and the smoke suite is
+  one file. **A frame citation is only worth something if the frame can be
+  opened.**
+- **A build-time cull is a cull on frame zero.** Slot 7 of My Xbox sits at
+  7 x 505 = 3535 > 3225 at rest and was never given a rig, so "8 of 8" was an
+  empty front slot. The reach is measured from the cursor on EVERY frame now
+  and rigs mount and unmount as slots cross it; every slot scene is preloaded
+  so a mount is synchronous and lands on the tick the rule asks for it.
+- **A metapane is two owner slots and a range.** `MetaPanelScene` draws
+  DataAssociation 0 (the description) and 4 (the Current Setting) and plays
+  `metaScene_1line`'s `NToM` range for the move; 9199's Console Settings table
+  carries the description index beside the label (325 for Display, 327 for
+  Auto-Play [FRAME Kpa f0381]), and a nav-button page's descriptions are its
+  DashScene `PanelStrings` - the Blades mechanism, unchanged.
+- **Hidden means Show=false, not "left out of a list".** `navIPTVSettings` was
+  dropped from `legacy.rows` and still painted its `<servicename>` token;
+  the gate is now on PAINTED text in the DOM, which is the only thing a frame
+  can see.

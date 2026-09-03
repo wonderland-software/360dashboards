@@ -359,3 +359,91 @@ here is self-certified.
   TeletypeCount normalisation is class-blind (harmless, would surface as a
   diff). Could not verify: which of type 2's three bytes feed p1/p2; the
   runtime meaning of the `.xhe`-ignored properties.
+- **Closed in M4d (this commit), with the number:**
+  **(1)** rigs are mounted and unmounted by `(k − cursor) × spacing` against
+  `MobyVisiblePanelDistance` on every frame, with every slot scene preloaded
+  so a mount is synchronous; the smoke drives seven Rights and asserts the
+  Settings slot is a mounted, visible front panel at "8 of 8" (7 rigs at
+  rest, 8 mounts / 6 unmounts on the way) [FRAME Kpa f05580].
+  **(2)** the queue's sign is the CALLER's (0x9248c9cc-0x9248ca18: `−frac`
+  while the cursor climbs), so an Up lerps every row toward `SLOT[i+2]` and
+  the names scroll down (`queueTargetSlot`, unit-tested; the smoke asserts
+  Next1's and Current's y increase on an Up). The change is a measured fade
+  in place: old strip out over 6 ticks, a 4-tick beat, each new panel in over
+  12 front to back (`CHANNEL_SWAP`). Re-measured on both captures for this
+  commit, one statistic on both sides (the mean absolute luma difference of a
+  strip region against the REST, BARE-FLOOR and SETTLED frames of its own
+  shot) and every time counted from the last rest frame, which is where our
+  trace also starts: old strip gone 0.100 s (footage 0.100 s, [Yrt
+  f07272-07275] and [Kpa f00735-00738]), new front half-way in 0.267 s
+  (0.244 s Yrt, 0.292 s Kpa, the crossing interpolated because the statistic
+  is linear in a fade), new front settled 0.367 s (0.367 s [Yrt f07283],
+  0.400 s [Kpa f00747]), second panel off the floor 0.333 s (0.367 s [Yrt
+  f07283], the file's 0.7 gate) - each inside one 30 fps frame of the
+  capture. The beat is 4 ticks and not the 2 first written here: the strip is
+  BARE for two to three frames [Yrt f07276-07277, Kpa f00739-00741] before
+  the new front moves, and a 2-tick beat put the front's half-way point two
+  frames early. Ours is traced on a DOWN: the archive's embedded homepage
+  gives Game Marketplace - the channel an Up lands on, and the one the
+  capture shows - ONE slot where the capture's console has two, so an Up here
+  can never grow a second panel to time. One cue per change; the
+  footage's one onset matches `snd_channelup/down` at 0.97 and its second,
+  26 dB quieter onset (panelfold/unfold at 0.99) is recorded, not played.
+  The "move, then fold, then unfold" claim is retracted in PLACEHOLDERS, the
+  README section and the smoke gate. The fold routine at 0x9248b7a8 is NOT
+  the channel change: it is the queue's part of the A/B fold, driven by
+  `TransitionChannel`.
+  **(3)** `controlp/Variables.xur`'s `SceneTransitions` group (the object the
+  spec said did not exist) carries `To`/`From`/`BackTo`/`BackFrom` (75 frames
+  each) animating the four variables the code reads every frame; the shell
+  plays `From` on A and `BackTo` on B, the queue rows fold through the
+  decoded routine (top-down, bottom-up back) and `Description` fades by
+  1 − |p|; `?page=` parks the group on `From`'s last frame so both routes
+  agree (gated: values C1 P1 S0, every row dim 0, counter opacity 0).
+  **(4)** `navIPTVSettings` is `Show=false` with no IPTV provider; the smoke
+  gates on painted text in the DOM (zero `<...>` tokens) on the A route and
+  the `?page=` route.
+  **(5)** `syncMeta` as in Blades: the table's description index on
+  DataAssociation 0 ([325] "Change your display output settings…" on
+  Display, [327] on Auto-Play), the six hardware-state values on 4, the
+  `NToM` range; System Settings' descriptions from its `PanelStrings`
+  [FRAME Kpa f0391]. Gated on the report and on the painted DOM.
+  **(6)** `curvesFor()` returns the plain pair always; measured ten 30 fps
+  frames on Kpa f05630-05639 (64→99→67 in the page region, a half-strength
+  crossover) = LegacyFrom + LegacyTo started together; the `…Ex` row is
+  rewritten and the 190.06-191.22 s window identified as list moves.
+  **(7)** the hinge is 0x92488480's left branch (`v = (−128,0,0)` for
+  θ ≥ 0; the sliver at 75° lands at design x 13..122 against the footage's
+  32..117), the front slot is `TransitionPanel × π/2` on it, the panels
+  behind fold by the decoded cascade and are never drawn in front of the
+  cursor (gated per tick). Measured the judge's way (seconds after the
+  press): front slot rotates 0.48 s (footage 0.47), gone 0.73 (0.63), page
+  shows 0.83 (0.73); legend 0.00 (0.30) and queue 0.38 (0.43) lead the
+  footage and are printed, not gated; on B the front slot returns 0.53 s
+  (0.67) and the rows 0.77 (0.83). The order legend → queue → panel → page
+  is gated on both sides.
+  **(8)** `passingOpacity`: `1 + z/spacing` floored at 0 [CODE
+  0x9248d8dc-0x9248d904]; gated on every tick of a Right with |z| in
+  100..400 and on the exit band's clearing against Kpa f05539-05550.
+  **(9)** `queueRowChannel` fills at most N − 1 rows above the current
+  (unit-tested for N = 7, 2, 1 [FRAME Yv5 f0042]); the wrap is labelled
+  INFERRED in `__dash.nxe.physics` and PLACEHOLDERS.
+  **(10)** `<description2>` → `setOwnerSlot(1)` on the slot: "TV and media
+  from your PC" is painted inside Media Center's rig (gated on the DOM).
+  **(11)** a refused press plays nothing (gated on the Welcome slot); a
+  change plays one cue; A plays select on the press, fold at the cascade
+  start, and the RANGE fires `snd_transitionfrom` at +9 (the two transition
+  cues are timeline keyframes of `TransitionSound`, no longer inferred); the
+  page is prefetched before the fold and pushed on the range's frame 120, so
+  the gap is frame-exact (`+44`, gated).
+  **(12)** the counter follows the strip on the tick the new one shows
+  (gated unchanged through the six-tick fade); the legend's own `Hide`
+  range plays on the press; the "System Settings" / "565 GB free" slot
+  observation is in PLACEHOLDERS (the second line is `mobyslot`'s
+  DataAssociation 1 presenter; the title is the slot's `Label_Head` hoisted
+  into `LTitle`).
+  PLACEHOLDERS: the `…Ex`, fold-order and tokens rows rewritten; rows added
+  for the `SceneTransitions` choreography, the 9199 Current Setting reads
+  (cited to Kpa f0377-f0389), the slot's second line, the wrap, and the
+  quieter cue. Reference cuts for every citation are regenerable into
+  `reference/frames/<capture>-30fps/` under the judge's numbering.

@@ -18,7 +18,7 @@
 // Blades' eleven rows are GONE: Themes moved to its own channel entry
 // (`gamer/ThemesRoot.xur`), Language and Locale merged, Startup and Shutdown
 // merged, Screen Saver moved under Display, and Auto-Play is new.
-import type { SettingsRow } from '@dash/blades/consoleSettings';
+import type { SettingsRow, CurrentSetting } from '@dash/blades/consoleSettings';
 
 export const CONSOLE_SETTINGS_SCENE_9199 = 'consoles/dashSysCslSet.xur';
 export const CONSOLE_SETTINGS_PACK_9199 = 'consoles';
@@ -66,3 +66,37 @@ export const LEGACY_CODE_TABLES: Readonly<Record<string, {
     va: CONSOLE_SETTINGS_VA_9199,
   },
 };
+
+/**
+ * The "Current Setting" block on 9199's Console Settings metapane.
+ *
+ * `metaScene_1line`'s `Pane_txtCurrentSetting` is DataAssociation 4, a
+ * 383x173 block at y = 33, and the eight description strings above start with
+ * three to six CRLFs to leave room for it [SCENE] - the same mechanism Blades'
+ * shell drives (dashboards/blades/consoleSettings.ts). The VALUES are console
+ * state this build cannot query. As in Blades, the rows the reference console
+ * was actually focused on carry the value read off the frame, marked
+ * hardware-state in PLACEHOLDERS, and the rest stay blank:
+ *
+ *   Display   "1920 x 1080 / Widescreen / DVI"       [FRAME Kpa f0377, f0378, f0389]
+ *   Audio     "Dolby Digital / Sound Effects Enabled" [FRAME Kpa f0379, f0386]
+ *   Language  "English / Canada"                       [FRAME Kpa f0385]
+ *   Startup   "Start Xbox Dashboard / Show Welcome Channel / Auto-Off Enabled /
+ *              Background Downloads Disa..."           [FRAME Kpa f0384] - the
+ *              console's OWN ellipsis: the block is 173 px tall and the fourth
+ *              line is cut by the console, so the text is carried as drawn
+ *   Auto-Play "Auto-Play Enabled"                      [FRAME Kpa f0381, f0382]
+ *   Remote    "Both Remotes"                           [FRAME Kpa f0383]
+ *
+ * Clock (f0380 shows "05/27/2025  07:04 / GMT-05 Eastern (U.S. & Canada)") is
+ * a clock, not a setting, and is left blank rather than frozen at the capture's
+ * minute; System Info is not focused in any capture.
+ */
+export const CONSOLE_SETTINGS_CURRENT_9199: readonly CurrentSetting[] = [
+  { row: 0, value: '1920 x 1080\r\nWidescreen\r\nDVI', frame: 'Kpa f0377 / f0378 / f0389' },
+  { row: 1, value: 'Dolby Digital\r\nSound Effects Enabled', frame: 'Kpa f0379 / f0386' },
+  { row: 2, value: 'English\r\nCanada', frame: 'Kpa f0385' },
+  { row: 4, value: 'Start Xbox Dashboard\r\nShow Welcome Channel\r\nAuto-Off Enabled\r\nBackground Downloads Disa...', frame: 'Kpa f0384 (the fourth line is cut by the console itself)' },
+  { row: 5, value: 'Auto-Play Enabled', frame: 'Kpa f0381 / f0382' },
+  { row: 6, value: 'Both Remotes', frame: 'Kpa f0383' },
+];

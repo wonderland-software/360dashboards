@@ -86,7 +86,14 @@ opposite axis assignment to Blades, and the file's own - `MobyPanelInput*` is
 the horizontal axis), A runs the focused slot's `<onclick>` and B pops the page
 stack. Navigation is a per-frame velocity integrator over the thirty constants
 in `controlp/Variables.xur`, stepped on the timeline's own 60 Hz clock, so
-`&manual` plus `__dashApi.stepFrames()` reproduces any position exactly. NXE scenes are 1280x720 and land 1:1 on the
+`&manual` plus `__dashApi.stepFrames()` reproduces any position exactly. The
+fold behind a page and the unfold in front of it are the same file's own
+`From` / `BackTo` ranges (the `SceneTransitions` group animates four
+variables the executable reads every frame) plus the executable's per-panel
+cascade, both decoded; a channel change is a measured fade
+(`dashboards/nxe/transitions.ts`, `physics.ts`, and the runtime README's M4d
+section). Rigs are mounted by distance every frame, so every slot of a channel
+reaches the front with its scene. NXE scenes are 1280x720 and land 1:1 on the
 output, so the Blades view transform does not apply to them - measured, see
 `packages/runtime/README.md`.
 
@@ -195,10 +202,15 @@ hand-written 9199 XML and the 9199 binary disagree, the binary wins
   `smoke-nxe`, which measures the composed NXE home page and a hosted legacy
   page against their reference stills with the same detector run over both,
   re-derives the perspective fit from its own thirty-two landmarks, drives a
-  scripted navigation path a 60 Hz frame at a time (Right/Left, Up/Down, A into
-  System Settings, A into Console Settings, B twice) printing the cue ticks and
-  the panel depths per tick, and mounts the app twice to prove the teardown
-  leaves exactly one viewport, one input router, one clock and one audio bank.
+  scripted navigation path a 60 Hz frame at a time (Right/Left, Up/Down, seven
+  Rights to "8 of 8", A into System Settings, A into Console Settings, B twice)
+  gating the cue ticks, the fold ranges, the queue direction, the metapane text
+  and the painted DOM per tick, then measures a channel change, an A, a B, a
+  page-over-page swap and a passing panel against the 30 fps cuts of the
+  reference captures with the same region traces (skipped, and said so, when
+  `reference/frames/<capture>-30fps/` is absent), and mounts the app twice to
+  prove the teardown leaves exactly one viewport, one input router, one clock
+  and one audio bank.
 - `JUDGE.md` records each phase's independent fidelity review.
 - `PLACEHOLDERS.md` lists the only things that are not the original (things
   the console pulled from Xbox Live), each with its reason.

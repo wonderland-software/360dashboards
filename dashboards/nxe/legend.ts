@@ -341,3 +341,29 @@ function find(root: NodeRecord, id: string): NodeRecord | null {
   go(root);
   return out;
 }
+
+/**
+ * Play a bound group's `Hide` or `Show` range - the legend's own authored
+ * exits and entrances (frames 21..40 and 1..20 on the four button groups,
+ * 11..20 and 1..10 on the title groups [SCENE]). The shell plays `Hide` when
+ * the home page folds away behind a page and `Show` when it comes back; the
+ * footage has the legend gone before the front slot starts rotating
+ * [FRAME Kpa f05585-05590].
+ */
+export function playLegendRange(engine: TimelineEngine, groups: readonly NodeRecord[], range: 'Hide' | 'Show'): number {
+  let n = 0;
+  for (const node of groups) {
+    const id = pathOf(node);
+    if (engine.playRange(id, range, `${range}End`)) n++;
+  }
+  return n;
+}
+
+/** The press flourish on one button's `Images` group (`Press`..`PressEnd`,
+ *  frames 1..20: the highlight blooms and the icon scales 1.2x [SCENE]). */
+export function pressLegend(engine: TimelineEngine, root: NodeRecord, group: string): boolean {
+  const node = find(root, group);
+  const images = node ? find(node, 'Images') : null;
+  if (!images) return false;
+  return engine.playRange(pathOf(images), 'Press', 'PressEnd');
+}
