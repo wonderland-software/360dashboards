@@ -656,6 +656,56 @@ Recorded per scene in `window.__dash`, never faked:
   2–3 px displacement of the same sign and size as the wing gate's 8-design-px
   knee offset. It cannot explain the flat offset, because every ring in
   `blade_grey_left` ends at alpha 0 and so no ring reaches a tab body at all.
+- **Colour-space interpolation is CLOSED as the explanation, and it was the
+  best one left.** The hypothesis: the Xenos reads a gamma surface through the
+  360's piecewise-linear "PWL" gamma, interpolates and blends in that linear
+  light and writes back, while SVG walks the stored bytes and CSS composites in
+  sRGB — which would leave our gradients flat in the middle and our page purple
+  grey, the shape of both open residuals. Measured against the **same-build**
+  6770 capture (blade 5 vs `f0042`, blade 2 vs `f0030`) with
+  `sweep-gradient.mjs space`, judged on achromatic flat 16×16 blocks binned by
+  luma and on per-channel means for the saturated page. The curve is documented
+  — four segments, `L = e`, `2e−64`, `4e−256`, `8e−1024` at e = 64 / 96 / 192,
+  then `L += trunc(L·slope)`, from AMD RRG-216M56-03 by way of Xenia's
+  `xenos.cc`. Three results:
+
+  | stopSpace | 160 | 170 | 180 | 190 | 200 | 210 | 220 | fit vs `f0042` | rms |
+  |---|---|---|---|---|---|---|---|---|---|
+  | `sRGB` (shipped) | +9.9 | +8.1 | +7.8 | +6.4 | +5.2 | +3.8 | +3.0 | 1.1186·ours − 29.38 | 0.59 |
+  | `linearRGB-attr` | +10.2 | +8.3 | +7.9 | +6.7 | +5.5 | +4.1 | +3.1 | 1.1212·ours − 30.12 | 0.70 |
+  | `linear` (sRGB EOTF) | +10.2 | +8.3 | +7.9 | +6.8 | +5.6 | +4.1 | +3.0 | 1.1217·ours − 30.23 | 0.73 |
+  | `pwl` (the 360 curve) | +10.1 | +8.3 | +7.9 | +6.5 | +5.5 | +4.1 | +3.0 | 1.1208·ours − 29.96 | 0.68 |
+
+  **(1)** The stop space cannot move the achromatic residual and does not — the
+  blocks are flat and every space agrees at the stops, so a colour space bends
+  the middle of a ramp and cannot lift a plateau. Every non-sRGB member is
+  slightly worse. **(2)** On the page purple (patch x 1450..1650 y 620..740,
+  frame R 132.6 / G 91.7 / B 197.8, spread 106.1) it helps a little and not
+  enough: `sRGB` 123.4 / 96.1 / 167.2 spread 71.2, `pwl` 126.3 / 97.4 / 172.8
+  spread 75.3 — about an eighth of the gap. **(3)** Alpha compositing in linear
+  light is worse everywhere. CSS has no switch, so each translucent layer was
+  ablated, its alpha recovered per pixel from (backdrop, our result), and the
+  same composite redone in linear light offline: mean per-channel error against
+  `f0042` goes 11.12 → 16.93 on `white_cover` (screen), 12.83 → 13.73 on
+  `Main_Panel`, 9.08 → 10.79 on `black_cover` (multiply), and 10.35 → 10.36 on
+  `top` — a multiply of a light grey is near the identity in either space, so
+  `f0042` cannot settle BlendMode 2's space at all. And hiding *any* of
+  `white_cover`, `Main_Panel`, `color_front`, `thing1/2/3`, `top` or
+  `black_cover` leaves the achromatic fit at 1.1186·ours − 29.38, rms 0.59,
+  n=809 — unchanged to four decimals. **0.0 of the global residual is
+  compositing.** A global transfer curve is refused too: both PWL directions
+  triple the rms about the fitted line (0.59 → 2.07 and 1.71), because the
+  residual is straight in luma and a gamma curve is not; only the 2.3 % chain
+  gain halves it. Shipped value stays `sRGB`; nothing was hacked in.
+
+  One thing the same run *did* find, and it is not a colour-space question:
+  our page purple is already ~50 low in blue **before** any translucent layer
+  (147.4 with `white_cover` hidden, against a frame that reads 197.8 *with* it),
+  and no alpha over our `color_front` backdrop can reach the frame — solving
+  `a·C + (1−a)·B = frame` on red wants `a = 2.03`. The suspect is what
+  `color_back` (multiply) resolves against: our opaque black `bg`, where the
+  console appears to have had the `thing1/2/3` ambient wash under it. That is a
+  z-order / backdrop question and it is open.
 - **`unverifiedBlendModes`** — `BlendMode` 1 is alpha (DOCUMENTED); 2–5 are
   guesses. They are **not** confined to `dashmain.xur` and the blade skins, as
   an earlier note here claimed: 2 is in `arcade/2500_LiveArcadeHome`,

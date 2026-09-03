@@ -5,6 +5,7 @@
 //   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs [stage2]
 //   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs wing
 //   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs stack
+//   SMOKE_URL=http://localhost:5231 node tests/smoke/sweep-gradient.mjs space
 //
 // Each candidate renders the System blade (f0051) and the Marketplace blade
 // (f0034) through the console view at 1920x1080 and is scored on the tab stack
@@ -22,6 +23,12 @@
 // is right - the flat lightness of the tab stack on f0051 - and the three
 // hypotheses ablation CLOSED for it, so nobody re-opens them by hand. It also
 // exits non-zero.
+//
+// `space` is the COLOUR-SPACE experiment, not a gate: it regenerates every
+// table in the GradientStopSpace block of xuiEnums.ts. It is the only part of
+// this file that measures against the SAME-BUILD 6770 capture rather than the
+// 6717 one, and it never reads a region mean - achromatic flat blocks binned
+// by luma for the chrome, per-channel means for the saturated page.
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -187,6 +194,12 @@ if (process.argv.includes('wing')) {
  *             fills fails exactly there (page interior -37.7 with it on); the
  *             table is in xuiEnums.ts under MODULATE_GRADIENT_BY_FILLCOLOR.
  * It exits non-zero.
+ *
+ * Its numbers are unchanged by the colour-space work of 2026-09-03: the
+ * shipped stop space is still 'sRGB', and `space` section 2 shows that hiding
+ * any translucent page layer moves the achromatic fit by nothing at all. If a
+ * future change moves these three, re-baseline them only with the measurement
+ * that justifies it in the commit message.
  */
 const STACK_COLS = [60, 200, 340];
 const STACK_ROWS = [300, 450, 600, 750, 900];
@@ -270,6 +283,194 @@ if (process.argv.includes('stack')) {
   console.log(`  (down x=60: ${base.dots[0].map((v, i) => sign(v - ref.dots[0][i])).join(' ')} at y 300/450/600/750/900 - flat, so no layer with a y ramp is missing)`);
   if (fails.length) { for (const f of fails) console.log(`  FAIL ${f}`); console.log('SWEEP_FAIL'); process.exit(1); }
   console.log('SWEEP_PASS');
+  process.exit(0);
+}
+
+/**
+ * THE COLOUR-SPACE EXPERIMENT (`space`). Not a gate - the record behind the
+ * GradientStopSpace block in xuiEnums.ts, kept so the tables can be
+ * regenerated. It measures against the SAME-BUILD 6770 capture (blade 5 vs
+ * f0042, blade 2 vs f0030), because an absolute colour question needs the
+ * build we render, and it judges the way README-6770 says to: achromatic flat
+ * 16x16 blocks binned by luma for the chrome, per-channel means for the
+ * saturated page. Three sections:
+ *   1  stop space - sRGB / linearRGB-attr / linear / pwl through ?gradxf=
+ *   2  compositing - ablate each translucent layer, then redo it in linear
+ *      light offline from (backdrop, our result) and score both
+ *   3  a GLOBAL transfer curve on our finished output
+ * Blade 2's page is deliberately not read per channel: 6770's console is
+ * signed in, so its Xbox LIVE page is different CONTENT.
+ */
+const F70 = resolve(HERE, '../../reference/frames/6770-boot');
+const SPACE_CASES = [
+  { blade: 5, ref: `${F70}/f0042.png`, name: '6770 f0042', purple: { x: 1450, y: 620, w: 200, h: 120 } },
+  { blade: 2, ref: `${F70}/f0030.png`, name: '6770 f0030', purple: null },
+];
+const SPACES = ['sRGB', 'linearRGB-attr', 'linear', 'pwl'];
+// Every translucent or blended layer over the System page, with the blend and
+// the source colour its stops carry (from the live DOM).
+const LAYERS = [
+  { id: 'white_cover', mode: 'screen', src: 235 },
+  { id: 'Main_Panel', mode: 'screen', src: 205 },
+  { id: 'top', mode: 'multiply', src: null },
+  { id: 'black_cover', mode: 'multiply', src: null },
+  { id: 'color_front', mode: null, src: null },
+  { id: 'thing1,thing2,thing3', mode: null, src: null },
+];
+
+const px = (im, x, y) => { const i = (y * im.w + x) * im.ch; return [im.data[i], im.data[i + 1], im.data[i + 2]]; };
+const LUM = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+const SAT = (c) => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]);
+const linS = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+const encS = (l) => { const c = l <= 0.0031308 ? l * 12.92 : 1.055 * l ** (1 / 2.4) - 0.055; return Math.max(0, Math.min(255, c * 255)); };
+// The 360's PWL gamma, the same four segments as figure.ts (see xuiEnums.ts).
+const linP = (e) => {
+  const v = Math.max(0, Math.min(255, e));
+  const [k, o, s] = v < 64 ? [1, 0, 1 / 1024] : v < 96 ? [2, -64, 2 / 1024] : v < 192 ? [4, -256, 4 / 1024] : [8, -1024, 8 / 1024];
+  let l = k * v + o; l += Math.trunc(l * s); return l / 1023;
+};
+const encP = (l) => {
+  const v = Math.max(0, Math.min(1, l));
+  const [s, o] = v < 64 / 1023 ? [1023, 0] : v < 128 / 1023 ? [1023 / 2, 32] : v < 512 / 1023 ? [1023 / 4, 64] : [1023 / 8, 128];
+  return Math.max(0, Math.min(255, Math.trunc(v * s) + o));
+};
+
+/** Locally flat achromatic 16x16 blocks common to both images, with an
+ *  optional LUT applied to ours. Flat is luma std < 3 and mean channel spread
+ *  < 10 in BOTH, which is what makes a luma comparison mean anything. */
+function achromaticBlocks(ours, ref, lut = null) {
+  const out = [];
+  for (let by = 0; by + 16 <= ours.h; by += 16) for (let bx = 0; bx + 16 <= ours.w; bx += 16) {
+    let sa = 0, sa2 = 0, sb = 0, sb2 = 0, qa = 0, qb = 0, n = 0;
+    for (let y = by; y < by + 16; y++) for (let x = bx; x < bx + 16; x++) {
+      let a = px(ours, x, y); if (lut) a = [lut[a[0]], lut[a[1]], lut[a[2]]];
+      const b = px(ref, x, y);
+      const la = LUM(a), lb = LUM(b);
+      sa += la; sa2 += la * la; sb += lb; sb2 += lb * lb; qa += SAT(a); qb += SAT(b); n++;
+    }
+    const ma = sa / n, mb = sb / n;
+    if (Math.sqrt(Math.max(0, sa2 / n - ma * ma)) < 3 && Math.sqrt(Math.max(0, sb2 / n - mb * mb)) < 3 && qa / n < 10 && qb / n < 10) out.push({ ma, mb });
+  }
+  return out;
+}
+function binLine(bs) {
+  const cells = [];
+  for (let v = 160; v < 230; v += 10) {
+    const s = bs.filter((b) => b.ma >= v && b.ma < v + 10);
+    cells.push(s.length < 4 ? '        .' : `${(s.reduce((q, b) => q + (b.ma - b.mb), 0) / s.length).toFixed(1)}[${s.length}]`.padStart(9));
+  }
+  const n = bs.length, mx = bs.reduce((s, b) => s + b.ma, 0) / n, my = bs.reduce((s, b) => s + b.mb, 0) / n;
+  let sxx = 0, sxy = 0; for (const b of bs) { sxx += (b.ma - mx) ** 2; sxy += (b.ma - mx) * (b.mb - my); }
+  const a = sxy / sxx, c = my - a * mx;
+  let r = 0, r0 = 0; for (const b of bs) { r += (b.mb - (a * b.ma + c)) ** 2; r0 += (b.mb - b.ma) ** 2; }
+  return `${cells.join('')}   ${a.toFixed(4)}x ${c >= 0 ? '+' : '-'} ${Math.abs(c).toFixed(2)} rms ${Math.sqrt(r / n).toFixed(2)} (id ${Math.sqrt(r0 / n).toFixed(2)}) n=${n}`;
+}
+const meanRgbOf = (im, r) => {
+  const s = [0, 0, 0]; let n = 0;
+  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { const c = px(im, x, y); s[0] += c[0]; s[1] += c[1]; s[2] += c[2]; n++; }
+  return s.map((v) => v / n);
+};
+const rgbCell = (c) => `${c[0].toFixed(1).padStart(6)}${c[1].toFixed(1).padStart(7)}${c[2].toFixed(1).padStart(7)}${(Math.max(...c) - Math.min(...c)).toFixed(1).padStart(9)}`;
+
+/**
+ * One translucent layer redone in linear light, from (backdrop, our result).
+ * A screen at alpha a over backdrop B with source S is B + a*S*(1-B) and a
+ * multiply is B*(1 + a*(S-1)), both in whatever space the compositor works in.
+ * With the source colour known, a is recovered per pixel by least squares over
+ * the three channels; a multiply layer here has alpha 1, so S itself comes out
+ * of our result directly. Only pixels the layer changes, and only where the
+ * backdrop is locally flat, so text and edges never enter.
+ */
+function recomposite(base, off, ref, mode, src) {
+  const flat = (im, x, y, b) => [[-2, 0], [2, 0], [0, -2], [0, 2]].every(([dx, dy]) => {
+    const q = px(im, Math.max(0, Math.min(im.w - 1, x + dx)), Math.max(0, Math.min(im.h - 1, y + dy)));
+    return Math.abs(q[0] - b[0]) + Math.abs(q[1] - b[1]) + Math.abs(q[2] - b[2]) <= 6;
+  });
+  const sums = [0, 0, 0], suml = [0, 0, 0], sumf = [0, 0, 0], sumb = [0, 0, 0];
+  let errS = 0, errL = 0, m = 0, changed = 0;
+  const Ssrgb = src === null ? 0 : src / 255, Slin = src === null ? 0 : linS(src);
+  for (let y = 0; y < base.h; y++) for (let x = 0; x < base.w; x++) {
+    const a = px(base, x, y), b = px(off, x, y), f = px(ref, x, y);
+    if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) <= 6) continue;
+    changed++;
+    if (!flat(off, x, y, b)) continue;
+    let pred;
+    if (mode === 'multiply') {
+      pred = [0, 1, 2].map((k) => (b[k] < 8 ? a[k] : encS(linS(b[k]) * linS(Math.min(1, a[k] / b[k]) * 255))));
+    } else {
+      let num = 0, den = 0;
+      for (const k of [0, 1, 2]) { const head = Ssrgb * (255 - b[k]); num += head * (a[k] - b[k]); den += head * head; }
+      const alpha = den ? Math.max(0, Math.min(1, num / den)) : 0;
+      pred = [0, 1, 2].map((k) => { const bl = linS(b[k]); return encS(bl + alpha * Slin * (1 - bl)); });
+    }
+    for (const k of [0, 1, 2]) { sums[k] += a[k]; suml[k] += pred[k]; sumf[k] += f[k]; sumb[k] += b[k]; }
+    errS += (Math.abs(a[0] - f[0]) + Math.abs(a[1] - f[1]) + Math.abs(a[2] - f[2])) / 3;
+    errL += (Math.abs(pred[0] - f[0]) + Math.abs(pred[1] - f[1]) + Math.abs(pred[2] - f[2])) / 3;
+    m++;
+  }
+  const fm = (s) => s.map((v) => (v / m).toFixed(0).padStart(4)).join('/');
+  return { changed, m, b: fm(sumb), s: fm(sums), l: fm(suml), f: fm(sumf), errS: errS / m, errL: errL / m };
+}
+
+if (process.argv.includes('space')) {
+  const shot = (blade, tag) => `${OUT}/6770-blade${blade}-${tag.replace(/[^a-z0-9]+/gi, '_')}.png`;
+  const url = (blade, hide, sp) => `${BASE}/?zoom=1.5&mute&manual&blade=${blade}&hide=lines${hide ? ',' + hide : ''}${sp && sp !== 'sRGB' ? `&gradxf=stopSpace=${sp}` : ''}`;
+  const jobs = [];
+  for (const c of SPACE_CASES) for (const sp of SPACES) jobs.push([c.blade, sp, '', sp]);
+  for (const l of LAYERS) jobs.push([5, `hide-${l.id}`, l.id, 'sRGB']);
+  try {
+    for (const [blade, tag, hide, sp] of jobs) {
+      if (!existsSync(shot(blade, tag))) await render(url(blade, hide, sp), shot(blade, tag));
+    }
+  } finally {
+    await browser.close();
+  }
+
+  console.log('\n=== 1. gradient stop space (?gradxf=stopSpace=), achromatic flat blocks by OUR luma bin');
+  for (const c of SPACE_CASES) {
+    const ref = readPng(c.ref);
+    console.log(`\n  blade ${c.blade} vs ${c.name}` + '\n  stopSpace'.padEnd(20) + [160, 170, 180, 190, 200, 210, 220].map((v) => String(v).padStart(9)).join('') + '   fit frame = a*ours + c');
+    for (const sp of SPACES) console.log(('  ' + sp).padEnd(20) + binLine(achromaticBlocks(readPng(shot(c.blade, sp)), ref)));
+  }
+  const pc = SPACE_CASES[0];
+  const pref = readPng(pc.ref);
+  console.log(`\n  page purple patch x ${pc.purple.x}..${pc.purple.x + pc.purple.w} y ${pc.purple.y}..${pc.purple.y + pc.purple.h}, per channel`);
+  console.log('  stopSpace'.padEnd(20) + '     R      G      B   spread');
+  console.log(`  ${('frame ' + pc.name).padEnd(18)}${rgbCell(meanRgbOf(pref, pc.purple))}`);
+  for (const sp of SPACES) console.log(`  ${sp.padEnd(18)}${rgbCell(meanRgbOf(readPng(shot(5, sp)), pc.purple))}`);
+
+  console.log('\n=== 2. compositing. The same patch with one layer ABLATED, then that layer redone in linear light');
+  const base5 = readPng(shot(5, 'sRGB'));
+  console.log('  hidden'.padEnd(30) + '     R      G      B   spread');
+  console.log(`  ${'nothing (ship)'.padEnd(28)}${rgbCell(meanRgbOf(base5, pc.purple))}`);
+  for (const l of LAYERS) console.log(`  ${l.id.padEnd(28)}${rgbCell(meanRgbOf(readPng(shot(5, `hide-${l.id}`)), pc.purple))}`);
+  console.log(`  ${('frame ' + pc.name).padEnd(28)}${rgbCell(meanRgbOf(pref, pc.purple))}`);
+  console.log('\n  layer (blend, source)          backdrop     ours,sRGB  err    linear light err     frame');
+  for (const l of LAYERS) {
+    if (!l.mode) continue;
+    const r = recomposite(base5, readPng(shot(5, `hide-${l.id}`)), pref, l.mode, l.src);
+    console.log(`  ${`${l.id} (${l.mode}${l.src ? ', ' + l.src : ''})`.padEnd(30)}${r.b}  ${r.s} ${r.errS.toFixed(2).padStart(6)}  ${r.l} ${r.errL.toFixed(2).padStart(6)}  ${r.f}`);
+  }
+  console.log('\n  and the achromatic bins under each ablation - compositing cannot be the global residual if these do not move');
+  console.log('  hidden'.padEnd(30) + [160, 170, 180, 190, 200, 210, 220].map((v) => String(v).padStart(9)).join('') + '   fit');
+  console.log('  ' + 'nothing (ship)'.padEnd(28) + binLine(achromaticBlocks(base5, pref)));
+  for (const l of LAYERS) console.log('  ' + l.id.padEnd(28) + binLine(achromaticBlocks(readPng(shot(5, `hide-${l.id}`)), pref)));
+
+  console.log('\n=== 3. a GLOBAL transfer curve on our finished output');
+  const CURVES = [
+    ['identity (ship)', (v) => v],
+    ['sRGB->PWL (we author sRGB)', (v) => encP(linS(v))],
+    ['PWL->sRGB (console authors PWL)', (v) => encS(linP(v))],
+    ['gain 1/1.0228 (the chain)', (v) => v / 1.0228],
+  ];
+  for (const c of SPACE_CASES) {
+    const ref = readPng(c.ref), ours = readPng(shot(c.blade, 'sRGB'));
+    console.log(`\n  blade ${c.blade} vs ${c.name}` + '\n  curve'.padEnd(37) + [160, 170, 180, 190, 200, 210, 220].map((v) => String(v).padStart(9)).join('') + '   fit');
+    for (const [name, fn] of CURVES) {
+      const lut = Array.from({ length: 256 }, (_, i) => fn(i));
+      console.log(('  ' + name).padEnd(37) + binLine(achromaticBlocks(ours, ref, lut)));
+    }
+  }
   process.exit(0);
 }
 

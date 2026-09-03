@@ -10,6 +10,7 @@
 //  2. framebuffer -> window. A uniform fit, which is the browser's problem
 //     and not the console's.
 import * as E from '../xuiEnums';
+import { activeBuild } from '../build';
 
 export interface ViewportOptions {
   /**
@@ -38,7 +39,7 @@ export class Viewport {
     this.stage.className = 'xui-stage';
     this.canvas = document.createElement('div');
     this.canvas.className = 'xui-canvas';
-    const c = opts.canvas ?? { w: E.DASHBOARD_CANVAS.width, h: E.DASHBOARD_CANVAS.height };
+    const c = opts.canvas ?? defaultCanvas();
     this.canvas.style.width = `${c.w}px`;
     this.canvas.style.height = `${c.h}px`;
     this.canvas.style.transformOrigin = '0 0';
@@ -51,7 +52,7 @@ export class Viewport {
   /** The console's output size in framebuffer pixels. */
   get framebuffer(): { width: number; height: number } {
     const z = this.opts.zoom ?? 1;
-    const c = this.opts.canvas ?? { w: E.DASHBOARD_CANVAS.width, h: E.DASHBOARD_CANVAS.height };
+    const c = this.opts.canvas ?? defaultCanvas();
     return this.opts.consoleView
       ? { width: E.FRAMEBUFFER.width * z, height: E.FRAMEBUFFER.height * z }
       : { width: c.w, height: c.h };
@@ -80,7 +81,7 @@ export class Viewport {
     this.stage.style.transform = `scale(${k})`;
     if (this.opts.consoleView) {
       const z = this.opts.zoom ?? 1;
-      const v = E.VIEW_TRANSFORM;
+      const v = activeBuild().view;
       this.canvas.style.transform =
         `scale(${z}) translate(${v.ox}px, ${v.oy}px) scale(${v.sx}, ${v.sy})`;
     } else {
@@ -91,4 +92,10 @@ export class Viewport {
   mount(el: HTMLElement): void {
     this.canvas.replaceChildren(el);
   }
+}
+
+/** The active build's root canvas: 1120x770 on Blades, 1280x720 on NXE. */
+function defaultCanvas(): { w: number; h: number } {
+  const c = activeBuild().canvas;
+  return { w: c.width, h: c.height };
 }

@@ -8,6 +8,8 @@
 // The manifest built by tools/build-manifest.ts is the authority for what was
 // extracted, so a path that is not in it is a MISSING image, never a guess.
 
+import { DEFAULT_BUILD, type BuildId } from '../build';
+
 export interface ManifestEntry { path: string; kind: string; size: number; sha256: string; out: string }
 export interface ManifestPack { name: string; entries: ManifestEntry[] }
 export interface Manifest {
@@ -55,11 +57,18 @@ export class AssetIndex {
     }
   }
 
-  static async load(base: string): Promise<AssetIndex> {
-    const url = base + 'assets/6770/manifest.json';
+  /**
+   * `build` picks which extracted dump is served: public/assets/<build>/.
+   * The manifest carries its own `build` field, and a mismatch is an error
+   * rather than a silent cross-build render.
+   */
+  static async load(base: string, build: BuildId = DEFAULT_BUILD): Promise<AssetIndex> {
+    const url = `${base}assets/${build}/manifest.json`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`manifest ${url}: HTTP ${res.status}`);
-    return new AssetIndex((await res.json()) as Manifest, base);
+    const manifest = (await res.json()) as Manifest;
+    if (manifest.build !== build) throw new Error(`manifest ${url} says build ${manifest.build}, not ${build}`);
+    return new AssetIndex(manifest, base);
   }
 
   get build(): string { return this.manifest.build; }

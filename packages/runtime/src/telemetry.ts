@@ -9,6 +9,10 @@ export interface SceneReport {
   /** Classes rendered as a plain container because their content is filled by
    *  console code we have not written yet (lists, video, gamercard). */
   runtimeDrivenClasses: string[];
+  /** Classes drawn as a faithful container because their real behaviour is a
+   *  GPU feature (perspective, render-to-texture, shaders, avatars). Their
+   *  children ARE rendered and the class IS recorded; nothing is dropped. */
+  approximatedClasses: string[];
   unresolvedVisuals: string[];
   missingImages: string[];
   /** file:// paths the console read off a disc or memory unit. */
@@ -63,6 +67,8 @@ export interface DashTelemetry extends SceneReport {
   input: { button: string; repeat: boolean; layer: string | null }[];
   /** The Blades shell's state, on the default route only. */
   shell: unknown;
+  /** The NXE shell's state, on ?build=9199 only. */
+  nxe: unknown;
   locale: string;
   /** What applyLocale actually changed, for the locale smoke check. */
   localePatches: number;
@@ -75,7 +81,7 @@ declare global {
 export function emptyReport(scene = ''): SceneReport {
   return {
     scene, controls: 0, objects: 0,
-    unknownClasses: [], runtimeDrivenClasses: [], unresolvedVisuals: [],
+    unknownClasses: [], runtimeDrivenClasses: [], approximatedClasses: [], unresolvedVisuals: [],
     missingImages: [], deviceFiles: [], sceneTextures: [], unknownTextStyleBits: [],
     unverifiedBlendModes: [], blendIsolated: [], codeDrivenStates: [],
     invisibleAtRest: false, invisibleGroups: [], canvas: { w: 0, h: 0 },
@@ -87,7 +93,7 @@ export function createTelemetry(build: string): DashTelemetry {
   const t: DashTelemetry = {
     ...emptyReport(), build, placeholders: [], gallery: [], fps: 0,
     timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
-    focusId: null, lastCue: null, cues: [], input: [], shell: null,
+    focusId: null, lastCue: null, cues: [], input: [], shell: null, nxe: null,
     locale: 'en', localePatches: 0,
   };
   window.__dash = t;

@@ -1,4 +1,5 @@
 export * from './xuiEnums';
+export * from './build';
 export * from './telemetry';
 export * from './assets/AssetIndex';
 export * from './scene/SceneLoader';

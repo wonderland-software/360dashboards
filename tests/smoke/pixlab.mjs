@@ -3,6 +3,12 @@
 // otherwise, with Rec. 709 weights - the same numbers as
 // reference/calibration/pixlib.py, so measurements here and there agree.
 //
+// It decodes on every call and caches NOTHING, deliberately. Its Python twin
+// caches the decoded `.rgb` beside the PNG by BASENAME, so pointing it at two
+// frame directories that both hold an `f0045.png` with one cache dir silently
+// measures the wrong image. If a cache is ever added here, key it by the full
+// resolved path - the failure mode is a plausible wrong number, not a throw.
+//
 // The decoder handles what the material is: 8-bit, non-interlaced, colour
 // types 0/2/4/6 (grey, RGB, grey+alpha, RGBA). The reference frames are RGB
 // and Chrome's screenshots are RGB or RGBA; anything else is refused loudly

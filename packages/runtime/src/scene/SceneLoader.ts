@@ -1,15 +1,28 @@
-// Fetch a .xur, parse it with the build-6770 class registry, and hand back the
-// object tree. Nothing here draws; nothing here invents.
+// Fetch a .xur, parse it with the ACTIVE build's class registry, and hand back
+// the object tree. Nothing here draws; nothing here invents.
+//
+// The registry is per build and it is not interchangeable: XUR stores
+// properties as bitmasks over each class's property list in declaration order,
+// so parsing 9199 with 6770's list misaligns rather than failing. Each
+// registry is generated from that build's own decrypted dash.xex
+// (tools/build-registry.ts), and the parser asserts every class's mask-byte
+// count against it, so the wrong one fails loudly.
 import { XuRegistry, parseXur, type XuObject, type XurDocument } from '@xur/index';
-import registryJson from '../../../xur/extensions/6770/registry.json';
+import registry6770 from '../../../xur/extensions/6770/registry.json';
+import registry9199 from '../../../xur/extensions/9199/registry.json';
+import { activeBuildId, type BuildId } from '../build';
 import { AssetIndex, splitScenePath } from '../assets/AssetIndex';
 
-let registry: XuRegistry | null = null;
-export function xuiRegistry(): XuRegistry {
-  // The registry is generated from the decrypted executable, so it is the
-  // property order build 6770 actually shipped, not a later build's XML.
-  if (!registry) registry = new XuRegistry(registryJson as never);
-  return registry;
+const REGISTRY_JSON: Readonly<Record<BuildId, unknown>> = {
+  '6770': registry6770,
+  '9199': registry9199,
+};
+const registries = new Map<BuildId, XuRegistry>();
+
+export function xuiRegistry(build: BuildId = activeBuildId()): XuRegistry {
+  let reg = registries.get(build);
+  if (!reg) { reg = new XuRegistry(REGISTRY_JSON[build] as never); registries.set(build, reg); }
+  return reg;
 }
 
 export interface LoadedScene {
@@ -19,8 +32,8 @@ export interface LoadedScene {
   path: string;
   doc: XurDocument;
   root: XuObject;
-  /** Classes in the file that the registry does not describe. Always empty in
-   *  6770; kept because a later build will not be. */
+  /** Classes in the file that the registry does not describe. Empty on both
+   *  builds today; kept because an unknown class must never be silent. */
   unknownClasses: string[];
 }
 

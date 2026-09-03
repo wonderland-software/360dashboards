@@ -5,7 +5,11 @@
   /* The real console face, decoded from sysmedia/xenonclatin.xtt. If the
      extract step has not produced it the browser falls back and
      window.__dash.placeholders says so. */
-  src: url('/assets/6770/fonts/ConvectionUI.ttf') format('truetype');
+  /* Both builds ship the same face, decoded from the console's own
+     xenonclatin.xtt by tools/xtt2ttf.py, so either dump supplies it and the
+     browser takes the first that answers. */
+  src: url('/assets/6770/fonts/ConvectionUI.ttf') format('truetype'),
+       url('/assets/9199/fonts/ConvectionUI.ttf') format('truetype');
   font-display: block;
 }
 

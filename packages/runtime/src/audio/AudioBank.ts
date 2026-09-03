@@ -1,11 +1,17 @@
 // The dashboard's sound cues.
 //
 // The XMA sounds were converted to .ogg by tools/convert-audio.ts and land at
-// public/assets/6770/audio/<pack>/<name>.ogg. There are 16 of them:
+// public/assets/<build>/audio/<pack>/<name>.ogg. Build 6770 has 16 of them:
 //   shrdres   btn_Focus, btn_Select, btn_Back, btn_InactiveFocus, btn_InactiveSelect
 //   dashmain  dash_BladeSwitch_1..4, dash_BladeLand, dash_2ndLevelOpen/Close,
 //             dash_3rdLevelOpen/Close, dash_Blink
 //   dashcomm  tab_Switch
+// Build 9199 has 17: shrdres's five plus dashcomm/tab_Switch, and controlp's
+// ten NXE navigation cues (snd_buttonback, snd_buttonselect, snd_channelup,
+// snd_channeldown, snd_panelleft, snd_panelright, snd_panelfold,
+// snd_panelunfold, snd_transitionfrom, snd_transitioninto). The NXE ones are
+// named in a CODE table (.rdata 0x927f7194) and played by the glue, not by a
+// timeline keyframe - the opposite of the Blades rule [SPEC NXE §2.3].
 //
 // A cue is named by its file's basename, so "btn_Focus" is the cue and the
 // bank finds it in whichever pack holds it.
@@ -48,7 +54,8 @@ export class AudioBank {
         if (e.kind !== 'xma') continue;
         // convert-audio.ts writes <name>.ogg beside the pack's xma entry.
         const name = e.path.replace(/\.[^.]+$/, '');
-        urls.set(name, assets.base + 'assets/' + `6770/audio/${pack.name}/${name}.ogg`);
+        // convert-audio.ts writes public/assets/<build>/audio/<pack>/<name>.ogg.
+        urls.set(name, `${assets.base}assets/${assets.build}/audio/${pack.name}/${name}.ogg`);
       }
     }
     const bank = new AudioBank([...urls.keys()]);

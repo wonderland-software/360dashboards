@@ -18,6 +18,8 @@ import type { NodeSink, NodeRecord } from './update';
 import { renderFigure } from './controls/figure';
 import { renderImage } from './controls/image';
 import { renderText, type TextOwner } from './controls/text';
+import { renderNineGrid } from './controls/ninegrid';
+import { activeBuild } from '../build';
 
 export interface RenderCtx {
   assets: AssetIndex;
@@ -38,6 +40,28 @@ const RUNTIME_DRIVEN = new Set([
   'XuiProgressBar', 'XuiSlider', 'XuiScrollBar', 'XuiHtmlPresenter', 'XuiHtmlElement',
   'DashVideo', 'VideoData', 'LiveVisionControl', 'ScriptList', 'ScriptData', 'ScriptImage',
   'XuiBOTDOfflineContainer', 'XuiBOTDOfflineScene', 'XuiFall07BOTDScene',
+  // NXE 9199 additions to the same category: their CONTENT came from Live or
+  // from the console's own hardware, and none of them is in this archive.
+  'XuiVideo', 'MediaScene', 'XuiAvatar', 'AuraControl',
+]);
+
+/**
+ * Classes the DOM draws as a faithful CONTAINER - children rendered, class
+ * recorded, nothing dropped - because the thing they really do is a GPU
+ * feature this runtime does not have.
+ *
+ * None of them is "unknown": every one is in the build's own registry, so its
+ * properties parse and its children render in the right place. What is
+ * approximate is the effect on top: XuiPerspectiveScene's projection is
+ * applied by the glue as a CSS perspective (dashboards/nxe/projection.ts),
+ * XuiTextureSurface is a live DOM subtree rather than a render target,
+ * XuiShader is a CSS stand-in recorded in PLACEHOLDERS.md, and XuiAvatar has
+ * no model in the archive at all. Reported in __dash.approximatedClasses so a
+ * reader can see exactly which scenes lean on one.
+ */
+const APPROXIMATED = new Set([
+  'XuiPerspectiveScene', 'XuiTextureSurface', 'XuiShader', 'XuiAvatar',
+  'AuraControl', 'LegacyControl', 'MobyChannelScene', 'XuiVariable',
 ]);
 
 interface Owner {
@@ -159,7 +183,7 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   const reg = xuiRegistry();
   if (!reg.has(o.className)) {
     note(ctx.report.unknownClasses, o.className);
-    return fallbackBox(o, opts);
+    return fallbackBox(o, ctx, opts);
   }
   const kind = classify(o.className);
   if (kind === 'sound') return null; // XuiSoundXAudio plays, it does not draw
@@ -167,11 +191,18 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   ctx.report.objects++;
   if (isA(o.className, 'XuiControl')) ctx.report.controls++;
   if (RUNTIME_DRIVEN.has(o.className)) note(ctx.report.runtimeDrivenClasses, o.className);
-
+  if (APPROXIMATED.has(o.className)) note(ctx.report.approximatedClasses, o.className);
   // A live copy: the timeline engine writes animated values into this map and
   // the PropBag reads them back. Cloning keeps the shared empty map safe.
   const live = new Map(opts.overrides);
   const p = PropBag.of(o, live);
+  // A ClassOverride is the console's own subclass name. It is not a XUI class
+  // and never changes how an object parses, but it IS how the console's code
+  // (and this glue) finds a scene, so it is recorded rather than thrown away -
+  // and MobyChannelScene, VariablesScene, CEpixHomePageScene and the rest of
+  // the NXE shell live entirely in these names.
+  const classOverride = p.str('ClassOverride');
+  if (classOverride && APPROXIMATED.has(classOverride)) note(ctx.report.approximatedClasses, classOverride);
   const authored = authoredRect(p);
   let rect = applyAnchor(authored, p.num('Anchor', E.Anchor.NONE), opts.delta, opts.parent);
   if (opts.size) rect = { ...rect, w: opts.size.w, h: opts.size.h };
@@ -180,6 +211,7 @@ export function renderElement(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElem
   el.dataset['xuiClass'] = o.className;
   const id = idOf(o);
   if (id) el.dataset['xuiId'] = id;
+  if (classOverride) el.dataset['xuiOverride'] = classOverride;
 
   const blend = p.num('BlendMode', 0);
   if (E.UNVERIFIED_BLEND_MODES.includes(blend)) {
@@ -331,6 +363,7 @@ export function contentFor(
     case 'figure': return renderFigure(p, rect.w, rect.h, ctx);
     case 'image': case 'imagePresenter':
       return renderImage(p, rect.w, rect.h, ctx, owner?.imagePath ?? null, kind === 'image');
+    case 'ninegrid': return renderNineGrid(p, rect.w, rect.h, ctx);
     case 'text': case 'textPresenter': {
       const t: TextOwner | null = owner ? { text: owner.text, pointSize: owner.pointSize, slots: owner.slots } : null;
       return renderText(p, rect.w, rect.h, ctx, t, kind === 'text');
@@ -366,7 +399,17 @@ function blendCss(mode: number): string {
   return css ? `mix-blend-mode:${css}` : '';
 }
 
-function fallbackBox(o: XuObject, opts: Opts): HTMLElement {
+/**
+ * A class the build's registry does not describe.
+ *
+ * It is still an element: its Position/Width/Height are the first properties of
+ * XuiElement and they parse without the class's own list, so the box goes in
+ * the right place - and its CHILDREN are rendered, because dropping a subtree
+ * because its parent's class is unknown would silently delete whole pages.
+ * The class name is recorded in __dash.unknownClasses either way, and the box
+ * is marked in the DOM so a reader can see it. Empty on both builds today.
+ */
+function fallbackBox(o: XuObject, ctx: RenderCtx, opts: Opts): HTMLElement {
   const p = PropBag.of(o, opts.overrides);
   const r = authoredRect(p);
   const el = document.createElement('div');
@@ -378,10 +421,11 @@ function fallbackBox(o: XuObject, opts: Opts): HTMLElement {
     `transform:translate(${fmt(r.x)}px, ${fmt(r.y)}px)`,
     'outline:1px dashed rgba(255,0,0,.9)',
   ].join(';');
+  appendChildren(el, o, ctx, r, r, opts.owner, opts.frame ?? 0, opts.parentNode, opts.hostControlId ?? null, opts.fadedAncestor ?? null);
   return el;
 }
 
-export type Kind = 'figure' | 'image' | 'imagePresenter' | 'text' | 'textPresenter' | 'sound' | 'control' | 'element';
+export type Kind = 'figure' | 'image' | 'imagePresenter' | 'text' | 'textPresenter' | 'sound' | 'control' | 'ninegrid' | 'element';
 
 /** The state a visual actually lands on, down the documented fallback chain. */
 function resolveState(v: XuObject, wanted: string): { name: string; frame: number } | null {
@@ -455,6 +499,10 @@ export function defaultVisualFor(className: string, ctx: RenderCtx): string {
 }
 
 export function classify(className: string): Kind {
+  // Gated on the build: no scene in build 6770 carries a XuiNineGrid (swept
+  // over the whole corpus), so Blades cannot see this branch, and 9199's
+  // PanelScene shadow depends on it.
+  if (activeBuild().renderNineGrid && isA(className, 'XuiNineGrid')) return 'ninegrid';
   if (isA(className, 'XuiFigure')) return 'figure';
   if (isA(className, 'XuiImagePresenter')) return 'imagePresenter';
   if (isA(className, 'XuiImage')) return 'image';

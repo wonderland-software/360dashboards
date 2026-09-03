@@ -148,17 +148,25 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
     }
     g.setAttribute('gradientTransform', matrixCss(mul(scaleM(w, h), radial ? mul(fillMatrix(fill, w, h), radialBase(w, h)) : fillMatrix(fill, w, h))));
     const mod = modulation(fill, E.MODULATE_GRADIENT_BY_FILLCOLOR);
+    const authored: Stop[] = [];
     for (let i = 0; i < n; i++) {
       const c = colours[i]; if (!c) continue;
+      authored.push({
+        off: clamp01(stops[i] ?? (n > 1 ? i / (n - 1) : 0)),
+        r: mod ? Math.round(c.r * mod.r) : c.r,
+        g: mod ? Math.round(c.g * mod.g) : c.g,
+        b: mod ? Math.round(c.b * mod.b) : c.b,
+        a: (c.a / 255) * (mod ? mod.a : 1),
+      });
+    }
+    for (const st of resample(authored, E.GRADIENT_TRANSFORM.stopSpace)) {
       const s = document.createElementNS(SVG, 'stop');
-      s.setAttribute('offset', String(clamp01(stops[i] ?? (n > 1 ? i / (n - 1) : 0))));
-      const r = mod ? Math.round(c.r * mod.r) : c.r;
-      const gg = mod ? Math.round(c.g * mod.g) : c.g;
-      const b = mod ? Math.round(c.b * mod.b) : c.b;
-      s.setAttribute('stop-color', `rgb(${r},${gg},${b})`);
-      s.setAttribute('stop-opacity', ((c.a / 255) * (mod ? mod.a : 1)).toFixed(4));
+      s.setAttribute('offset', String(st.off));
+      s.setAttribute('stop-color', `rgb(${st.r},${st.g},${st.b})`);
+      s.setAttribute('stop-opacity', st.a.toFixed(4));
       g.appendChild(s);
     }
+    if (E.GRADIENT_TRANSFORM.stopSpace === 'linearRGB-attr') g.setAttribute('color-interpolation', 'linearRGB');
     defs.appendChild(g);
     path.setAttribute('fill', `url(#${id})`);
     return;
@@ -167,6 +175,101 @@ function applyFill(path: SVGPathElement, defs: SVGDefsElement, p: PropBag, ctx: 
   // A FillType we have never seen. Draw nothing and say so.
   note(ctx.report.unknownClasses, `XuiFigureFill.FillType=${type}`);
   path.setAttribute('fill', 'none');
+}
+
+/* ------------------------------------------------ gradient stop colour space
+ *
+ * SVG interpolates a gradient's stops in sRGB - it walks the stored BYTES.
+ * The console's GPU did not: the Xenos reads a gamma surface through its
+ * piecewise-linear "PWL" curve, interpolates and blends in that linear light,
+ * and writes back through the inverse. GRADIENT_STOP_SPACE in xuiEnums.ts
+ * says which space we interpolate in and carries the measurement.
+ *
+ * Rather than trust `color-interpolation` (which no engine implements for
+ * gradients - the 'linearRGB-attr' member is here to MEASURE that, and it
+ * renders identically to 'sRGB'), the two real members subdivide: each
+ * authored segment gets STEPS-1 extra stops whose colours are mixed in the
+ * chosen space and re-encoded to bytes. That works in every browser and it is
+ * exact to a byte at 8 subdivisions, because the encoded curve is smooth
+ * between stops and the browser's own sRGB lerp closes each 1/8 gap.
+ *
+ * Alpha is always mixed linearly in alpha, in both spaces; only the colour
+ * moves. (Chrome premultiplies gradient stops, so a segment whose alpha AND
+ * colour both change is still approximate at the sub-byte level.)
+ */
+type Stop = { off: number; r: number; g: number; b: number; a: number };
+const STEPS = 8;
+
+/** sRGB byte -> linear light, and back (IEC 61966-2-1). */
+function srgbToLinear(v: number): number {
+  const c = v / 255;
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+function linearToSrgb(l: number): number {
+  const c = l <= 0.0031308 ? l * 12.92 : 1.055 * l ** (1 / 2.4) - 0.055;
+  return Math.max(0, Math.min(255, Math.round(c * 255)));
+}
+
+/**
+ * The Xbox 360's PWL gamma, four segments, DOCUMENTED (AMD RRG-216M56-03
+ * via Xenia's xenos.cc PWLGammaToLinear / LinearToPWLGamma, which reproduce
+ * the Direct3D 9 disassembly and the Source Engine's X360 helpers). In 8-bit
+ * code units e and 10-bit linear units L:
+ *     e <   64   L = 1*e            e >= 128*... (inverse below)
+ *    64 <= e < 96   L = 2*e -   64
+ *    96 <= e < 192  L = 4*e -  256
+ *   192 <= e        L = 8*e - 1024
+ * then L += trunc(L * slope) with slope 1/1024, 2/1024, 4/1024, 8/1024, which
+ * is what makes e=255 land on exactly L=1023. It is a gamma-2.0-ish curve with
+ * NO linear toe, so it is much brighter than sRGB near black (e=32 gives
+ * 0.031 against sRGB's 0.016) and slightly darker at the top (e=192 gives
+ * 0.502 against 0.527).
+ */
+function pwlToLinear(e: number): number {
+  const v = Math.max(0, Math.min(255, e));
+  const [k, off, slope] = v < 64 ? [1, 0, 1 / 1024]
+    : v < 96 ? [2, -64, 2 / 1024]
+      : v < 192 ? [4, -256, 4 / 1024]
+        : [8, -1024, 8 / 1024];
+  let l = k * v + off;
+  l += Math.trunc(l * slope);
+  return l / 1023;
+}
+function linearToPwl(l: number): number {
+  const v = Math.max(0, Math.min(1, l));
+  const [scale, off] = v < 64 / 1023 ? [1023, 0]
+    : v < 128 / 1023 ? [1023 / 2, 32]
+      : v < 512 / 1023 ? [1023 / 4, 64]
+        : [1023 / 8, 128];
+  return Math.max(0, Math.min(255, Math.trunc(v * scale) + off));
+}
+
+/** Authored stops -> the stops we emit, subdividing when the space is not sRGB. */
+function resample(src: Stop[], space: E.GradientStopSpace): Stop[] {
+  if (space !== 'linear' && space !== 'pwl') return src;
+  const dec = space === 'pwl' ? pwlToLinear : srgbToLinear;
+  const enc = space === 'pwl' ? (l: number) => linearToPwl(l) : linearToSrgb;
+  const out: Stop[] = [];
+  for (let i = 0; i < src.length; i++) {
+    const a = src[i]!;
+    out.push(a);
+    const b = src[i + 1];
+    // A hard stop (two stops at one offset) and a constant segment need no
+    // intermediate stops, and inserting any into a hard stop would erase it.
+    if (!b || b.off <= a.off) continue;
+    if (a.r === b.r && a.g === b.g && a.b === b.b) continue;
+    const [ar, ag, ab] = [dec(a.r), dec(a.g), dec(a.b)];
+    const [br, bg, bb] = [dec(b.r), dec(b.g), dec(b.b)];
+    for (let k = 1; k < STEPS; k++) {
+      const t = k / STEPS;
+      out.push({
+        off: a.off + (b.off - a.off) * t,
+        r: enc(ar + (br - ar) * t), g: enc(ag + (bg - ag) * t), b: enc(ab + (bb - ab) * t),
+        a: a.a + (b.a - a.a) * t,
+      });
+    }
+  }
+  return out;
 }
 
 /**

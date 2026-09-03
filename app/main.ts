@@ -17,14 +17,25 @@
 //   &mute                   build no AudioContext; cues are logged, not heard
 //   &focus=N                focus list row N instead of the scene's default
 //   &gradxf=k=v,...         override GRADIENT_TRANSFORM fields for the sweep
+//   ?build=9199             serve NXE 9199 instead of Blades 6770. The same
+//                           app serves both: the manifest, the class registry,
+//                           the skin, the string tables, the audio bank and the
+//                           viewport all take the build. The default is 6770
+//                           and every route above behaves exactly as before.
+//   &page=<pack>/<file>     (9199) host that 880x480 legacy page in the shell
+//                           instead of the home strip
+//   &channel=<id>           (9199) come up on that channel instead of the XML's
+//                           own <defaultchannelid>
 import {
   AssetIndex, loadScene, Skin, VisualScope, indexVisuals, renderScene, Viewport,
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
   NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, refreshVisibility,
   InputRouter, Button, AudioBank, Strings, ListView,
   DEFAULT_LOCALE, isNativeLocale,
-  BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, type RenderCtx, type SceneReport, type DashTelemetry,
+  BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, parseBuild, setActiveBuild, activeBuild,
+  type RenderCtx, type SceneReport, type DashTelemetry,
 } from '@runtime/index';
+import { NxeShell, type NxeReport } from '@dash/nxe/NxeShell';
 import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
 import { DEFAULT_TAB } from '@dash/blades/tabs';
 import { populateLists } from '@dash/blades/lists';
@@ -60,6 +71,8 @@ interface DashApi {
   focusList(id: string, index: number): string | null;
   setState(controlId: string, state: string): boolean;
   playRange(scopeId: string, from: string, to?: string): boolean;
+  /** The NXE shell's report, on ?build=9199 only. */
+  nxe?: () => NxeReport;
   /** Step exactly N timeline frames, synchronously, ignoring wall time. */
   stepFrames(n: number): void;
   scopeIds(): string[];
@@ -94,27 +107,33 @@ async function main(): Promise<void> {
     (GRADIENT_TRANSFORM as unknown as Record<string, unknown>)[k] = k === 'rotation' ? Number(v) : v;
   }
   const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
-  const assets = await AssetIndex.load(base);
+  // The build is chosen BEFORE anything loads: it picks the manifest, the class
+  // registry every .xur is parsed with, and the canvas -> framebuffer view.
+  const { build, error } = parseBuild(params.get('build'));
+  setActiveBuild(build);
+  const assets = await AssetIndex.load(base, build);
   const telemetry = createTelemetry(assets.build);
+  if (error) telemetry.errors.push(error);
   startFpsMeter(telemetry);
-  await loadFont(telemetry.placeholders);
+  await loadFont(assets.base + `assets/${build}/fonts/`, telemetry.placeholders);
 
-  const skin = await Skin.load(assets);
+  const skin = await Skin.load(assets, activeBuild().skin);
   if (params.has('gallery')) await gallery(assets, skin, telemetry);
   else if (params.has('scene')) await single(assets, skin, telemetry, params.get('scene')!);
+  else if (build === '9199') await nxe(assets, skin, telemetry);
   else await blades(assets, skin, telemetry);
   document.body.dataset['ready'] = 'true';
 }
 
 /** The console face is extracted from the ROM, so a miss is a real placeholder. */
-async function loadFont(placeholders: string[]): Promise<void> {
+async function loadFont(fontDir: string, placeholders: string[]): Promise<void> {
   try {
     // check() only answers for a face the page has already asked for, so load
     // it explicitly before gating first paint on it.
     await document.fonts.load(`16px ${FONT_FAMILY}`);
     await document.fonts.ready;
     if (!document.fonts.check(`16px ${FONT_FAMILY}`)) {
-      placeholders.push(`font ${FONT_FAMILY}: ConvectionUI.ttf is not in public/assets/6770/fonts, falling back to a system sans`);
+      placeholders.push(`font ${FONT_FAMILY}: ConvectionUI.ttf is not in ${fontDir}, falling back to a system sans`);
     }
   } catch {
     placeholders.push(`font ${FONT_FAMILY}: could not be checked`);
@@ -372,6 +391,63 @@ function installApi(engine: TimelineEngine, t: DashTelemetry, input: InputRouter
     stepFrames: (n) => { for (let i = 0; i < n; i++) engine.step(); t.timeline = { ...engine.report(), fps: t.timeline.fps }; },
     scopeIds: () => engine.all().map((s) => s.id),
   };
+}
+
+/* ------------------------------------------------------------- the NXE shell */
+
+/**
+ * ?build=9199. The NXE home page is not a scene: homepage/homepage.xur is three
+ * empty groups, and NxeShell composes the channel queue and the panel strip out
+ * of homepage/emb_homepage.xml, the epix:// channel files and
+ * controlp/Variables.xur. &page=<pack>/<file> hosts a legacy 880x480 page in the
+ * same shell instead.
+ */
+async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<void> {
+  const viewportHost = document.createElement('div');
+  viewportHost.className = 'xui-viewport';
+  host.appendChild(viewportHost);
+  const zoom = Number(params.get('zoom') ?? '1') || 1;
+  // consoleView is still the right flag: it just resolves to the IDENTITY view
+  // transform on 9199, whose scenes are 1280x720 and land 1:1 (build.ts).
+  const viewport = new Viewport(viewportHost, { consoleView: !params.has('design'), zoom });
+
+  const report = emptyReport('homepage/homepage.xur');
+  const nodes = new NodeIndex();
+  const engine = new TimelineEngine();
+  const strings = new Strings(assets);
+  const locale = params.get('locale') ?? DEFAULT_LOCALE;
+  t.locale = locale;
+
+  const shell = await NxeShell.mount({
+    assets, skin, nodes, engine, report, host: viewport.canvas, strings, locale,
+    state: {
+      page: params.get('page'),
+      channel: params.get('channel'),
+      // Every console-state predicate is a switch, because none of them can be
+      // answered from this archive; the defaults are the offline/no-profile
+      // state the 8955 capture is in (dashboards/nxe/epix.ts).
+      liveTierNone: !params.has('live'),
+      hdDvdInstalled: params.has('hddvd'),
+      mediaroomEnabled: params.has('mediaroom'),
+      showWelcomeChannel: !params.has('nowelcome'),
+    },
+    render: (root, ctx) => renderScene(root, ctx),
+  });
+  viewport.setCanvas({ w: report.canvas.w, h: report.canvas.h });
+  await shell.idle();
+  publish(t, report);
+  t.nxe = shell.report();
+
+  const audio = AudioBank.index(assets, params.has('mute'));
+  if (!params.has('mute')) audio.unlockOnGesture();
+  audio.attach(engine);
+  const input = new InputRouter();
+  input.attach();
+  installApi(engine, t, input, audio, []);
+  window.__dashApi!.nxe = () => shell.report();
+  runClock(engine, t);
+
+  if (params.has('debug')) mountInspector(host, shell.home.root, viewport.canvas);
 }
 
 /* ------------------------------------------------------------------- input */

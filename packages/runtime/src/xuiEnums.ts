@@ -446,10 +446,171 @@ export interface GradientTransformModel {
   radial: 'axis' | 'max' | 'min' | 'width' | 'height';
   translation: 'box' | 'design';
   order: 'SRT' | 'RST' | 'TRS';
+  /** NOT a transform: the colour space a gradient's stops are interpolated in,
+   *  measured in the GradientStopSpace block below. It rides this object only
+   *  so that `?gradxf=stopSpace=pwl` sweeps it with no new query parameter -
+   *  app/main.ts already forwards every key of GRADIENT_TRANSFORM. */
+  stopSpace: GradientStopSpace;
 }
 export const GRADIENT_TRANSFORM: GradientTransformModel = {
   direction: 'texture', origin: 'centre', rotation: 1, radial: 'axis', translation: 'box', order: 'SRT',
+  stopSpace: 'sRGB',
 };
+
+/**
+ * WHICH SPACE A GRADIENT'S STOPS ARE INTERPOLATED IN. MEASURED against the
+ * same-build 6770 capture, 2026-09-03, and REFUSED: the shipping value stays
+ * 'sRGB'. The implementation is `resample()` in render/controls/figure.ts, the
+ * experiment is `tests/smoke/sweep-gradient.mjs space`, and the four members
+ * are sweepable as `?gradxf=stopSpace=pwl`.
+ *
+ * THE HYPOTHESIS. The Xenos reads a gamma surface through the 360's
+ * piecewise-linear "PWL" gamma, interpolates and blends in that linear light
+ * and writes back through the inverse, while SVG walks the stored BYTES. If so
+ * our gradients are too flat in the middle and our page purple too grey, which
+ * is the shape of both open residuals (README-6770 sections 5 and 6).
+ *
+ * THE CURVE, DOCUMENTED. Four segments, from AMD RRG-216M56-03 by way of
+ * Xenia's `src/xenia/gpu/xenos.cc` (`PWLGammaToLinear` / `LinearToPWLGamma`,
+ * which reproduce the Direct3D 9 disassembly and the Source Engine's X360
+ * helpers). With e the 8-bit code and L the 10-bit linear value:
+ *          e <  64   L = 1*e            64 <= e <  96   L = 2*e -   64
+ *    96 <= e < 192   L = 4*e - 256     192 <= e         L = 8*e - 1024
+ * then `L += trunc(L * slope)` with slope 1/1024, 2/1024, 4/1024, 8/1024 -
+ * which is what puts e=255 on exactly L=1023 - and L/1023 is the linear value.
+ * It has NO linear toe, so it is far brighter than sRGB near black (e=32 gives
+ * 0.031 against sRGB's 0.016) and a little darker at the top (e=192 gives
+ * 0.502 against 0.527); its exponent at mid grey is 2.006.
+ *
+ * MEASURED at 1920x1080 with `lines` hidden, blade 5 (System) against 6770
+ * `f0042` and blade 2 (Xbox LIVE) against `f0030`. Achromatic flat 16x16
+ * blocks (luma std < 3 AND mean channel spread < 10 in BOTH images) binned by
+ * OUR luma; cells are mean(ours - frame)[n blocks].
+ *
+ *   blade 5 vs f0042      160      170      180      190      200      210      220   fit frame = a*ours + c
+ *   sRGB (ship)       9.9[46]  8.1[69] 7.8[110]  6.4[95] 5.2[119] 3.8[144] 3.0[225]   1.1186x - 29.38  rms 0.59
+ *   linearRGB-attr   10.2[46]  8.3[69] 7.9[109]  6.7[96] 5.5[109] 4.1[154] 3.1[227]   1.1212x - 30.12  rms 0.70
+ *   linear (sRGB)    10.2[48]  8.3[69] 7.9[108]  6.8[97] 5.6[109] 4.1[154] 3.0[227]   1.1217x - 30.23  rms 0.73
+ *   pwl (360 curve)  10.1[46]  8.3[69] 7.9[109]  6.5[96] 5.5[109] 4.1[155] 3.0[225]   1.1208x - 29.96  rms 0.68
+ *
+ *   blade 2 vs f0030      160      170      180      190      200      210      220
+ *   sRGB (ship)       9.8[15]  9.1[49] 8.5[124]  6.6[29] 5.4[118] 4.2[139] 3.0[152]   1.0880x - 23.35  rms 1.14
+ *   linearRGB-attr    9.9[13]  9.3[51] 8.6[125]  7.3[27] 6.3[108] 4.9[153] 3.1[156]   1.0850x - 23.09  rms 1.48
+ *   linear (sRGB)    10.0[14]  9.3[49] 8.6[126]  7.2[27] 6.3[108] 4.9[155] 3.0[154]   1.0851x - 23.10  rms 1.47
+ *   pwl (360 curve)  10.0[14]  9.2[47] 8.7[125]  7.6[28] 6.2[111] 4.9[150] 3.1[156]   1.0853x - 23.14  rms 1.54
+ *
+ * and the page purple patch, x 1450..1650 y 620..740 on blade 5, per channel
+ * (the ONLY honest way to read a saturated surface - see README-6770 section
+ * 5). Blade 2's page cannot be used for colour at all: 6770's console is
+ * signed in, so its Xbox LIVE page is different CONTENT.
+ *
+ *   stopSpace              R      G      B    spread
+ *   frame f0042        132.6   91.7  197.8     106.1
+ *   sRGB (ship)        123.4   96.1  167.2      71.2
+ *   linearRGB-attr     126.8   97.7  173.6      75.9
+ *   linear (sRGB)      126.5   97.5  173.2      75.6
+ *   pwl (360 curve)    126.3   97.4  172.8      75.3
+ *
+ * FOUR THINGS THIS SETTLES.
+ *
+ * 1. Chrome DOES honour `color-interpolation="linearRGB"` on a gradient, and
+ *    it agrees with our own subdivision to 0.4 of a byte on the purple patch.
+ *    That is a free cross-check of `resample()`: two independent
+ *    implementations of "interpolate this gradient in linear light" land on
+ *    the same pixels. We keep the subdivision because it is the only way to
+ *    reach the CONSOLE's curve, which no attribute can name, and because the
+ *    attribute is not portable.
+ * 2. The stop space cannot move the achromatic residual, and does not: 0.1 to
+ *    0.9 luma per bin, the wrong way, against a residual of 8-10. The reason
+ *    is arithmetic, not empirical - the residual is measured on FLAT blocks
+ *    and every space agrees at the stops. A colour space bends the MIDDLE of a
+ *    ramp; it cannot lift a plateau. Judged on rms about the fitted line,
+ *    every non-sRGB member is worse (0.59 -> 0.68..0.73 on blade 5).
+ * 3. On the page purple it is a real but small improvement: blue -30.6 ->
+ *    -24.7, channel spread 71.2 -> 75.6 against the captures' 97..106. It
+ *    recovers about an eighth of the gap. Not enough to ship on, and it costs
+ *    the achromatic bins, so the switch stays off.
+ * 4. 'linear' and 'pwl' differ by under a byte anywhere these stops go
+ *    (purple 126.5/97.5/173.2 against 126.3/97.4/172.8). This build's footage
+ *    cannot separate the true sRGB EOTF from the console's own curve, so
+ *    neither can be preferred on evidence even though 'pwl' is the one the
+ *    hardware documents.
+ *
+ * WHERE THE PURPLE ACTUALLY GOES WRONG, from the same session's ablations
+ * (blade 5, the same patch, `?hide=`):
+ *
+ *   hidden                          R      G      B   spread
+ *   nothing (ship)              123.4   96.1  167.2     71.2
+ *   white_cover                  93.2   59.2  147.4     88.2
+ *   Main_Panel                  117.4   88.0  164.6     76.7
+ *   color_front                  72.4   66.2   82.2     16.0
+ *   thing1,thing2,thing3        119.6   94.1  160.4     66.3
+ *   white_cover + Main_Panel     84.9   48.4  143.3     94.8
+ *   frame f0042                 132.6   91.7  197.8    106.1
+ *
+ * Our blue is already 50 low BEFORE any translucent layer is composited
+ * (147.4 under `white_cover`, against a frame that reads 197.8 WITH it), and
+ * no alpha over our `color_front` backdrop can reach the frame: solving
+ * a*C + (1-a)*B = frame on the red channel wants a = 2.03. So the page purple
+ * is not a compositing-space error and not a stop-space error; something
+ * upstream - the multiply layer `color_back` resolving against our opaque
+ * black `bg` where the console had the thing1/2/3 ambient wash under it - is
+ * the open question. That is a z-order / backdrop question, not a colour one.
+ */
+export type GradientStopSpace = 'sRGB' | 'linearRGB-attr' | 'linear' | 'pwl';
+
+/**
+ * ALPHA COMPOSITING AND BLENDING IN LINEAR LIGHT: MEASURED AND REFUSED
+ * (2026-09-03). CSS composites in sRGB and offers no switch, so this was
+ * measured WITHOUT shipping anything: for each translucent layer, render the
+ * blade with the layer hidden (the backdrop B), read our shipping render (the
+ * sRGB composite), recover the layer's own alpha per pixel by least squares
+ * over the three channels, then apply the SAME layer arithmetic in linear
+ * light and score both against 6770 `f0042`. Only pixels the layer changes,
+ * and only where the backdrop is locally flat, so text and edges stay out.
+ * The script is `tests/smoke/sweep-gradient.mjs space` (section 3).
+ *
+ * Mean RGB over the layer's own footprint, and mean per-channel |error|
+ * against the capture:
+ *
+ *   layer (blend, source)        backdrop        ours, sRGB   err     linear light  err    frame f0042
+ *   white_cover (screen, 235)  107.2/ 77.2/151.7  130/106/167  11.12   142/125/172  16.93  135/101/184
+ *   Main_Panel  (screen, ~205) 124.7/ 92.9/174.0  137/109/180  12.83   140/115/182  13.73  142/105/200
+ *   top         (multiply)     154.4/121.4/195.4  141/111/178  10.35   141/111/178  10.36  144/108/190
+ *   black_cover (multiply)     133.2/108.6/165.3  128/105/157   9.08   125/102/154  10.79  131/102/168
+ *
+ * EVERY layer is WORSE in linear light. The two screens run away to white -
+ * a translucent light wash in linear light lifts the dark channel much harder
+ * than in sRGB, so it DESATURATES faster, and the page purple's problem is
+ * that it is already too grey. The two multiplies barely move (10.35 vs 10.36
+ * on `top`) because these sources are light greys, where a multiply is near
+ * the identity in either space; f0042 cannot settle BlendMode 2's space, and
+ * a darker multiply source somewhere in the build would be needed to try.
+ *
+ * And compositing is not where the achromatic residual lives at all: hiding
+ * `white_cover`, `Main_Panel`, `color_front`, `thing1/2/3`, `top` or
+ * `black_cover` leaves the achromatic bins and the fitted line UNCHANGED to
+ * four decimals (1.1186*ours - 29.38, rms 0.59, n=809 in every run). That is
+ * the ablation of README-6770 section 6's "one global luma-transfer
+ * difference", now run against a same-build capture: 0.0 of it is compositing.
+ *
+ * A GLOBAL transfer curve does not explain it either. Pushing our finished
+ * render through a candidate curve and re-fitting the achromatic blocks:
+ *
+ *   curve on our output                  160   170   180   190   200   210   220   fit vs f0042      rms
+ *   identity (ship)                      +9.9  +8.1  +7.8  +6.4  +5.2  +3.8  +3.0  1.1186x - 29.38  0.59
+ *   sRGB->PWL (we author sRGB, TV PWL)   +5.3  +6.6  +8.7  +8.7  +5.8  +2.6  +1.1  1.0952x - 24.17  2.07
+ *   PWL->sRGB (console PWL, we sRGB)    +14.5  +9.2  +6.5  +4.0  +4.7  +4.8  +4.3  1.1070x - 27.39  1.71
+ *   gain 1/1.0228 (the 6717<->6770 chain) +5.2  +3.9  +2.9  +1.7  +0.1  -1.6  -3.4  1.1441x - 29.38  0.59
+ *
+ * Both PWL directions TRIPLE the rms about the fitted line: the residual is
+ * straight in luma and a gamma curve is not. The chain gain is the only thing
+ * that halves it (identity rms 5.81 -> 2.81) and it crosses zero at 200,
+ * which is what a scale, not a transfer, looks like. Colour-space
+ * interpolation is now CLOSED as an explanation of the global residual; what
+ * is left is still what section 6 says it is, and still not separable from the
+ * capture chain with two YouTube uploads.
+ */
 
 /* -------------------------------------------------------------------- Anchor */
 

@@ -6,6 +6,7 @@
 // XuiTextPresenter has no text of its own - it shows the OWNING control's Text,
 // which is how one Label_Head visual serves 179 different labels.
 import * as E from '../../xuiEnums';
+import { activeBuild } from '../../build';
 import { PropBag, cssColour } from '../props';
 import type { RenderCtx } from '../DomRenderer';
 import { noteNum } from '../../telemetry';
@@ -107,7 +108,7 @@ export function renderText(
   const vcentre = (style & E.TextStyle.VALIGN_CENTER) !== 0;
   span.style.cssText = [
     'width:100%',
-    `transform:scaleY(${E.GLYPH_ASPECT})`,
+    `transform:scaleY(${activeBuild().glyphAspect})`,
     `transform-origin:0 ${vcentre ? '50%' : '0'}`,
   ].join(';');
   if (style & E.TextStyle.ELLIPSIS) {
