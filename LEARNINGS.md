@@ -198,6 +198,24 @@ Append-only. Stable headers; dated entries; the transferable rule in bold.
   bleed). sx/sy = 22/21, so circles are 4.8% wider than tall on the console
   and a uniform scale is tens of pixels wrong. Fit landed on exactly
   1920/1120 with 0.12 px offset, ruling out a capture crop.
+- **Confirmed on a same-build capture** (build 6770, genuine 1080p60,
+  reference/calibration/README-6770.md): sx agrees to 0.0005%, sy to
+  0.022%, offsets within half a pixel. The rule is the console's.
+- **Two captures of one console output differ by a pure gain of 2.3%**
+  (6770 = 1.0228 x 6717 + 0.13 over 791 achromatic blocks), so an absolute
+  luma read off one capture is worth about +-5 on the chrome. Judge with
+  achromatic flat 16x16 blocks binned by luma, never with region means over
+  gradients and never by luma on a saturated surface (the page "agreed"
+  only because it was purple). Check a capture's motion map before
+  trusting a still: 6770-boot f0041 and f0048 look at rest and are not.
+- **The Blades residual is global, not the chrome:** at matched luma the
+  page and the chrome are both light by the same few percent in the
+  160-200 band (frame = 1.119 x ours - 29.4, rms 0.6), and our page
+  purple's channel spread is 71 against 97/106 in the two captures. Wing
+  stroke, FillColor modulation, blend modes and skin authoring are all
+  closed against; the open question is colour-space interpolation of
+  gradients and blends (the console blended in its piecewise-linear gamma
+  space).
 - **List item pitch is 45 design px and row k's top is list y + 45k with
   NO inset.** The calibration's "row 0 top = 157" was the half-intensity
   crossing of a 3 px separator figure that starts at the row's own y (154);
