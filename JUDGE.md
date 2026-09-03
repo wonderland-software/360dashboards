@@ -179,5 +179,14 @@ each is closed with what changed.
   a hand rule, 30 px low; (5) no home legend ("A Select" from the slot's
   helptext); (6) gamer-card slot shows the signed-in group; (7) legacy
   page offsets real (empty LegacyControl visual; the frame is
-  BackgroundPanel's nine-grid), border attribution false; (8) nits. Fixes
-  in progress with M4b.
+  BackgroundPanel's nine-grid), border attribution false; (8) nits.
+- **Round 2 @ a70b89c: FAIL on M4b; all eight round-1 closures re-measured
+  PASS** (queue order and marker, reflection at the foot, projection refit
+  bracketed by two independent fits, icons within 2 px, home legend,
+  signed-out card, legacy page within 0.9 px on three edges). New: (N1)
+  the Aura scene draws shader-fed white plates as opaque white (a slab and
+  a floor band; the README understated it); (N2) the integrator lands
+  10-17% short of its own closed form (arrival clamp), while the constants
+  reproduce both captures within a frame; (N3) fold fires at the press,
+  the console folds after the 0.30 s move; (N4) the LegacyToEx claim is an
+  inference; (N5) queue size ramp, placeholders. Fixes in progress with M4c.
