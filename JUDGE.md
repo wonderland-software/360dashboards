@@ -142,3 +142,14 @@ each is closed with what changed.
   focus evidenced from DashLiveSignedOut, and a provenance correction: the
   basefile is flat-mapped, so every .text address the tools printed was
   0x200 high; tools fixed and both registries regenerated.
+- **Round 2 @ 7d3c879: PASS (M3 certified).** All nine re-verified from a
+  fresh snapshot: LIVE offline content string-for-string against f0026,
+  Sign Out disabled on every blade, the 9-row window and chevron ink,
+  locale on the driven route (40-45 patches), tokens gone, option lists
+  re-read from the binary. Follow-ups: F10 an empty localized positional
+  entry painted a blank row (the console fell back to the root string) —
+  fixed in the next commit with root fallback and a blanks counter; F11 the
+  System Info value was typed from the reference console (2.0.6717.0) — now
+  the running build's own 2.0.6770.0 from the pack format string; F12 the
+  tab-stack residual is unchanged on the System still (+30/+30/+17/+12
+  luma at x=30/60/100/150) and stays open with that number.

@@ -55,11 +55,28 @@ export class Strings {
   /** A POSITIONAL table's values, in table order; the console indexes these
    *  directly (consoles/dashCSettingsStrings.xus is 601 of them). */
   async stringsByIndex(pack: string, file: string, locale = 'root'): Promise<string[]> {
-    const t = await this.table(pack, locale, file) ?? await this.table(pack, 'root', file);
+    const root = await this.table(pack, 'root', file);
+    const loc = locale === 'root' ? null : await this.table(pack, locale, file);
+    const t = loc ?? root;
     if (!t) return [];
-    if (t.kind !== XusKind.Positional) return t.entries.map((e) => e.value);
-    return t.entries.map((e) => e.value);
+    const values = t.entries.map((e) => e.value);
+    // A locale table leaves an entry EMPTY when its translation equals the
+    // English (LEARNINGS, XUS): the console fell back to the root string.
+    // An entry empty in both is a genuine blank and is reported, not hidden.
+    if (loc && root) {
+      values.forEach((v, i) => {
+        if (v === '') {
+          const r = root.entries[i]?.value ?? '';
+          if (r !== '') values[i] = r;
+          else this.blanks.push(`${pack}/${locale}/${file}[${i}]`);
+        }
+      });
+    }
+    return values;
   }
+
+  /** Positional entries empty in the locale AND the root table (Judge E F10). */
+  readonly blanks: string[] = [];
 
   /**
    * Patch a parsed scene in place from its sibling locale table. Returns what

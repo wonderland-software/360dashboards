@@ -88,7 +88,10 @@ export const CONSOLE_SETTINGS_CURRENT: readonly CurrentSetting[] = [
   // 1080p / Widescreen / Standard - resolution, aspect, reference level.
   { row: 0, value: '1080p\r\nWidescreen\r\nStandard', frame: '6717-60fps/f01580' },
   { row: 5, value: 'United Kingdom', frame: '6717/f0060' },
-  { row: 10, value: 'Dashboard: 2.0.6717.0', frame: '6717/f0066' },
+  // The System Info value is the RUNNING dashboard's version, not hardware
+  // state: the pack string is the format "Dashboard: %hs" and this build is
+  // 2.0.6770.0 (xex-headers.txt). The reference console printed 6717.
+  { row: 10, value: 'Dashboard: 2.0.6770.0', frame: 'format from the pack strings; version from extracted/6770/xex-headers.txt (f0066 shows the reference console\'s own 6717)' },
 ];
 
 /**
