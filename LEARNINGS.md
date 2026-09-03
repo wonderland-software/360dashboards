@@ -450,3 +450,40 @@ console with no profile, where the frames show them desaturated and blank. Two
 writes are needed, not one: `setOwnerText` for the caption and `remountVisual`
 for the artwork.
 
+
+## NXE 9199 shell (from reference/glue-nxe/NXE_GLUE_SPEC.md, 2026-09-03)
+
+- **The root is `homepage/homepage.xur`, 1280x720 native, 1:1 on screen**
+  (`CEpixHomePageScene : MobyRootScene : XuiPerspectiveScene`); the Blades
+  8/7 x 12/11 mapping does not apply (three landmarks within ~2 px of
+  authored size). It is empty: PanelLayer/ChannelLayer/AnchorLayer groups,
+  four parked legend buttons, an AuraControl. Composition comes from
+  `emb_homepage.xml` + three `epix://*.xml` files with `<condition>`
+  predicates (the offline My Xbox channel: 11 slots, 8 pass offline).
+- **Channels are vertical** (`MobyChannelScene`, a 9-row name queue
+  `Queue\Prev1`, `Queue\Next1..6`, 36 px pitch, backslash child paths);
+  **panels go horizontally into depth**: every page is a
+  `controlpack://PanelScene.xur` clone (XuiTextureSurface render target,
+  `reflection.uxfx`, a Scale (1,-1,1) mirror, nine-grid shadow) on a 3D line
+  from FrontPosition to BackPosition.
+- **Navigation is a physics integrator**, not named ranges: thirty
+  constants in `controlp/Variables.xur` (spacing 505/480, accel/decel/max
+  velocity, fold/unfold speeds, visible distance 3225/1850) via a 43-name
+  table at .rdata 0x927f7108 that also names the eight cues, so the glue
+  plays the cues (the inverse of the Blades rule).
+- **LegacyControl (172 scenes) hosts the Blades dashboard inside the
+  shell**: an 880x480 DashScene centred at x=640 with legend/header parked
+  off-screen so the shell's LegendScene (1088x32 @ 96,632) hoists captions;
+  DashScene's Panel* and MetaPanelScene are unchanged from 6770. Console
+  Settings is 8 rows in a 16-byte table at 0x92016a90.
+- `.uxfx` = UXFX header + ps_2_0 PC blob + ps_3_0 Xbox blob with uniforms
+  ColorFactor/ControlSize/EffectParams1..5/Texture1-2: XuiShader's
+  EffectParamsN are shader constants.
+- Footage: Kparblu6r14 (9199 devkit tour, 1080p 29.97), YrtwSj1f6aY (9199
+  default theme, 30 fps doubled), ucJoSC29UL8 (8498, genuine 60 fps),
+  Yv5A4DFHAAE (8955, the only offline/no-profile capture). The installed
+  yt-dlp silently falls back to 360p on DASH 403s; use a current binary.
+- Open: the archive's "9199" XEX was built 2010-02-18 and ships What's-New
+  slides from late 2009/2010, so its label may be wrong; perspective
+  defaults, fold curve, SceneTransitions resolution, missing
+  SolutionsSlotScene.xur.
