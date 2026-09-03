@@ -818,3 +818,33 @@ suite's own printout at this commit.
   Observation: the queue bullet is present on the signed-out frames (Kpa
   f0048, Yv5 f0042) and absent on the signed-in ones; the Marker row should
   state the rule. Fixes pending with M4f.
+- **2026-09-03, Judge E round 3 @ b274833: FAIL.** Reproduced (typecheck 0,
+  111/111, Blades suites green); the judge's own walker drove 5 blades, 51
+  pages, 447 screens, A on every row and every option row on 18 of 20 option
+  pages, re-disassembled every press handler (Screensaver 0x1000/0xa, Auto-Off
+  0/0x168, Startup masks, Remote nibble, audio flags, DST bit 2, parental,
+  rating via 0x921c7b38, Output Levels 1/2/3, all ending in bl 0x921b5428) and
+  found them as claimed; 0 painted tokens on 447 screens. Findings: (1) HIGH
+  every page pushed from the Games and Media blades is drawn offset by the
+  blade container's position (MediaSourceSelection's labelHeader authored at
+  156,96 paints at 415,248 = Tab4/scBlade/scContainer's 258,151; arcade pages
+  carry Tab3's 221,151) because push() hosts the page at scContainer; the
+  System blade is the only one hosted at the canvas origin; (2) HIGH
+  selecting Time Format, Time Zone or Daylight Saving (A or B out) leaves
+  the Clock page blank: the four scenes share the scene Id scClockSettings,
+  back() keys transitions by scene Id, so the popped page's teardown removes
+  the PARENT's TransBackTo FadeIn inside its hidden frames; the same
+  collision waits on PControlPasscode → PasscodeHint (both scRating); (3)
+  MED Date and Time shows "14 : 24 PM" in 24-hour mode where the console
+  hides lstAMPM (0x921cc8b4-0x921cc8bc) and the year spinner paints "2..."
+  for a four-digit value; (4) MED the Display page draws the TV/HDTV switch
+  art on the HD reference state where UpdateCurrentSetting (0x921c6f30)
+  hides SwitchImage and re-shows it only on the AV-pack-0 branch; (5) MED
+  MediaSourceSelection paints "Please wait" beside "No computers found." -
+  two labelPleaseWaitText, findById hid the wrong one; (6) MED B only
+  presses a control literally named legend_b, so MSS (navB), the arcade
+  pages and System Info (btnB) play no Press and no btn_Back; (7) LOW
+  missingStrings: dashSysCslSetPControl PanelStrings[8] (btnDone) is empty
+  without a CODE_FILLED reason. Could not verify: Time Zone's per-row writes
+  (the list wraps), PControlContent's two rows, the Family Timer off row,
+  the Passcode blank-page case. Fixes pending with M3f.
