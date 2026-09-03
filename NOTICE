@@ -10,6 +10,10 @@ XZP-Tool-v3 project (https://github.com/NGxDTV/XZP-Tool-v3) was read as a
 reference and no code from it was copied.
 
 The Xbox 360 dashboard executables, resource packs, artwork, sounds, strings
-and fonts are copyright Microsoft. None of them are distributed in this
-repository. The extraction tools operate on files the user supplies locally
-from https://github.com/thedev0ps/Xbox-360-Dashboard-Archive.
+and fonts are copyright Microsoft. The executables and resource packs are not
+distributed here; the extraction tools read them from a local copy of
+https://github.com/thedev0ps/Xbox-360-Dashboard-Archive. The EXTRACTED,
+served data under public/assets/ (scenes, images, audio, fonts and string
+tables for each build) IS included, so that the site can be built and served
+from this repository alone. That material is Microsoft's and is not covered by
+this repository's GPL-3 licence.

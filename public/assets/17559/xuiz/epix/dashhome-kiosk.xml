@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+    <id>nuihub</id>
+    <defaultchannelid>HOME</defaultchannelid>
+    <!-- HOME HUB -->
+    <channel>
+        <id>HOME</id>
+        <channeldef layouttemplate="epix://template1.xur">
+            <description>%EvResStr(IDS_KIOSK_CONTENT_MISSING_TITLE)%</description>
+            <!-- SLOT 1 -->
+            <slotgroup>
+                <slot>
+                    <name>Turn Off</name>
+                    <description>%EvResStr(IDS_SLOT_SETTINGS_TURNOFF_VUI_DISPLAY)%</description>
+                    <vui>
+                        <visiblephrase>%EvResStr(IDS_SLOT_SETTINGS_TURNOFF_VUI_DISPLAY_ALT)%</visiblephrase>
+                        <phrase>%EvResStr(IDS_SLOT_SETTINGS_TURNOFF_VUI_PRON)%</phrase>
+                        <responsetype>RequestYesNo</responsetype>
+                        <message>%EvResStr(IDS_SLOT_SETTINGS_TURNOFF_VUI_MESSAGE)%</message>
+                    </vui>
+                    <deepasset>
+                        <format>EpixScene</format>
+                        <path>EsLiveTile</path>
+                        <param>common://ico_64x_turnoff.png</param>
+                    </deepasset>
+                    <onclick>
+                        <button>A</button>
+                        <action>EpixCmd</action>
+                        <cmd>EcShutdownConsole</cmd>
+                    </onclick>
+                </slot>
+            </slotgroup>
+            <slotgroup>
+                <slot>
+                    <name>ErrorMsg</name>
+                    <description>%EvResStr(IDS_KIOSK_CONTENT_MISSING_MESSAGE)%</description>
+                </slot>
+            </slotgroup>
+        </channeldef>
+    </channel>
+</manifest>

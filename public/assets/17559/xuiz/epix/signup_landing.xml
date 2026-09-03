@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+    <description2>%EvResStr(IDS_SIGNUP_LANDING_TITLE)%</description2>
+    <backgroundimage>common://oobe_bg.jpg</backgroundimage>
+    <channel>
+        <channeldef layouttemplate="epix://TemplateSignupLandingHD.xur">
+            <!-- Slot 1, Description -->
+            <slotgroup>
+                <slot showdesc="no">
+                    <name>GoldExplanation</name>
+                    <condition>
+                        <condition>EcoActiveDemandType(Gold)</condition>
+                    </condition>
+                    <deepasset>
+                        <format>SignupExplanation</format>
+                        <param>Gold</param>
+                    </deepasset>
+                    <metadata>
+                        <property>
+                            <name>interactive</name>
+                            <value>no</value>
+                        </property>
+                    </metadata>
+                </slot>
+                <slot showdesc="no">
+                    <name>SilverExplanation</name>
+                    <deepasset>
+                        <format>SignupExplanation</format>
+                        <param>Silver</param>
+                    </deepasset>
+                    <metadata>
+                        <property>
+                            <name>interactive</name>
+                            <value>no</value>
+                        </property>
+                    </metadata>
+                </slot>
+            </slotgroup>
+            <!-- Slot 2, Signup / Get Gold -->
+            <slotgroup>
+                <slot showcontrollerrequired="no" showdesc="yes">
+                    <name>GetGold</name>
+                    <condition>
+                        <condition>EcoActiveDemandType(Gold)</condition>
+                        <condition>EcoLiveTier(Silver)</condition>
+                    </condition>
+                    <description>%EvResStr(IDS_SIGNUP_LANDING_GETGOLD_VUI_DISPLAY)%</description>
+                    <vui>
+                        <visiblephrase>%EvResStr(IDS_SIGNUP_LANDING_GETGOLD_VUI_DISPLAY_ALT)%</visiblephrase>
+                        <phrase>%EvResStr(IDS_SIGNUP_LANDING_GETGOLD_VUI_PRON)%</phrase>
+                        <responsetype>RequestYesNo</responsetype>
+                        <message>%EvComResStr(IDS_CONTROLLER_REQUIRED_VUI_MESSAGE)%</message>
+                    </vui>
+                    <deepasset>
+                        <format>EpixScene</format>
+                        <path>EsLiveTile</path>
+                        <param>common://ico_64x_addEditText.png</param>
+                    </deepasset>
+                    <onclick>
+                        <button>A</button>
+                        <action>EpixCmd</action>
+                        <cmd>EcNavToPamApp</cmd>
+                        <param>Dash.MP.LiveSignup.lex</param>
+                    </onclick>
+                </slot>
+                <slot showcontrollerrequired="yes" showdesc="yes">
+                    <name>Signup</name>
+                    <description>%EvResStr(IDS_SIGNUP_LANDING_SIGNUP_VUI_DISPLAY)%</description>
+                    <vui>
+                        <visiblephrase>%EvResStr(IDS_SIGNUP_LANDING_SIGNUP_VUI_DISPLAY_ALT)%</visiblephrase>
+                        <phrase>%EvResStr(IDS_SIGNUP_LANDING_SIGNUP_VUI_PRON)%</phrase>
+                    </vui>
+                    <deepasset>
+                        <format>EpixScene</format>
+                        <path>EsLiveTile</path>
+                        <param>common://ico_64x_addEditText.png</param>
+                    </deepasset>
+                    <onclick>
+                        <button>A</button>
+                        <action>EpixCmd</action>
+                        <cmd>EcLaunchLiveSignup</cmd>
+                    </onclick>
+                </slot>
+            </slotgroup>
+            <!-- Slot 3, Signin -->
+            <slotgroup>
+                <slot showcontrollerrequired="no" showdesc="yes">
+                    <name>Signin</name>
+                    <description>%EvResStr(IDS_SIGNUP_LANDING_SIGNIN_VUI_DISPLAY)%</description>
+                    <vui>
+                        <visiblephrase>%EvResStr(IDS_SIGNUP_LANDING_SIGNIN_VUI_DISPLAY_ALT)%</visiblephrase>
+                        <phrase>%EvResStr(IDS_SIGNUP_LANDING_SIGNIN_VUI_PRON)%</phrase>
+                        <responsetype>Maintain</responsetype>
+                    </vui>
+                    <deepasset>
+                        <format>EpixScene</format>
+                        <path>EsLiveTile</path>
+                        <param>common://ico_64x_SignIn.png</param>
+                    </deepasset>
+                    <onclick>
+                        <button>A</button>
+                        <action>EpixCmd</action>
+                        <cmd>EcNavToPamApp</cmd>
+                        <param>BuiltIn.Hub.xzp</param>
+                        <param2>Provider=Signin</param2>
+                    </onclick>
+                </slot>
+            </slotgroup>
+            <!-- Slot 4, No Thanks -->
+            <slotgroup>
+                <slot showcontrollerrequired="no" showdesc="yes">
+                    <name>NoThanks</name>
+                    <description>%EvResStr(IDS_SIGNUP_LANDING_NOTHANKS_VUI_DISPLAY)%</description>
+                    <vui>
+                        <visiblephrase>%EvResStr(IDS_SIGNUP_LANDING_NOTHANKS_VUI_DISPLAY_ALT)%</visiblephrase>
+                        <phrase>%EvResStr(IDS_SIGNUP_LANDING_NOTHANKS_VUI_PRON)%</phrase>
+                        <responsetype>Maintain</responsetype>
+                    </vui>
+                    <deepasset>
+                        <format>EpixScene</format>
+                        <path>EsLiveTile</path>
+                        <param>common://ico_64x_cancel.png</param>
+                    </deepasset>
+                    <onclick>
+                        <button>A</button>
+                        <action>EpixCmd</action>
+                        <cmd>EcNavBack</cmd>
+                    </onclick>
+                </slot>
+            </slotgroup>
+        </channeldef>
+    </channel>
+</manifest>

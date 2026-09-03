@@ -6,11 +6,11 @@ dist/
 .env.*
 .vercel
 
-# Microsoft-owned inputs and everything derived from them stay local.
-# Recreate with: npm run extract
+# Microsoft-owned inputs and the raw dumps stay local. The SERVED tree,
+# public/assets/, is committed since 2026-09-03 (Tag's call) so the site
+# builds from GitHub alone; see NOTICE. Recreate everything with: npm run extract
 vendor/
 extracted/
-public/assets/
 reference/
 *.xex
 *.xzp
@@ -19,6 +19,7 @@ reference/
 *.wav
 *.xus
 *.xtt
+!public/assets/**
 
 # Rendered screenshots of the dashboard (smoke output) stay local like the assets they draw.
 tests/smoke/out/
