@@ -1,5 +1,6 @@
 // Routes:
-//   /                       the Blades shell: dashmain plus every blade's
+//   /                       the launcher: pick Blades or NXE (app/launcher.ts)
+//   /?build=6770            the Blades shell: dashmain plus every blade's
 //                           panel scene, resting on the current blade
 //   /?scene=<pack>/<path>   one scene
 //   /?gallery               every scene in the manifest, as a contact sheet
@@ -48,6 +49,7 @@ import { BladeShell, OFFLINE, type ShellReport } from '@dash/blades/BladeShell';
 import { DEFAULT_TAB } from '@dash/blades/tabs';
 import { populateLists } from '@dash/blades/lists';
 import { DEFAULT_BOOT } from '@dash/blades/boot';
+import { launcher } from './launcher';
 import type { NavDirection } from '@dash/blades/focus';
 
 /** The hook the smoke suites drive; nothing in the runtime depends on it. */
@@ -168,6 +170,14 @@ if (import.meta.hot) {
 }
 
 async function main(): Promise<void> {
+  // A bare `/` is the launcher: pick Blades or NXE. Every dashboard route
+  // carries at least ?build= (or a scene/gallery switch), so nothing that the
+  // suites or the judges open goes through here.
+  if (!location.search) {
+    launcher(host, onDispose);
+    document.body.dataset['ready'] = 'true';
+    return;
+  }
   // ?blend=5:screen - sweep a candidate BlendMode mapping against the frames.
   for (const spec of params.getAll('blend')) {
     const [n, css] = spec.split(':');

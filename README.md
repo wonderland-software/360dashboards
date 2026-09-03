@@ -17,7 +17,8 @@ npm install
 npm run extract     # Blades 6770; needs the archive + a built xex1tool, see below
 npm run extract -- --build 9199   # NXE 9199 (same pipeline, its own registry and counts)
 npm run extract -- --build 17559  # Metro 17559 (XUR v8; no runtime yet)
-npm run dev         # http://localhost:5173
+npm run dev         # http://localhost:5173 is the launcher: pick Blades or NXE
+                    # /?build=6770 opens Blades directly, /?build=9199 opens NXE
 npm test            # parser + container unit tests (+ corpus tests for every extracted build)
 npm run smoke       # headless-Chrome suites against the dev server
 ```
