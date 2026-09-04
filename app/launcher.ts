@@ -35,7 +35,7 @@
 import {
   AssetIndex, Viewport, AudioBank, FRAMEBUFFER, FONT_FAMILY,
   createTelemetry, emptyReport, publish, startFpsMeter,
-  InputRouter, Button, setActiveBuild,
+  InputRouter, Button, setActiveBuild, attachTouch,
 } from '@runtime/index';
 import { BUILDS, type BuildId } from '@runtime/build';
 
@@ -271,7 +271,12 @@ export async function launcher(host: HTMLElement, onDispose: (fn: () => void) =>
 
   for (const [i, card] of cards.entries()) {
     card.el.addEventListener('click', () => { select(i); press(); });
-    card.el.addEventListener('pointerenter', () => select(i));
+    // A finger raises pointerenter as well, and on a touch screen "the pointer
+    // is over it" is not a move the user made: the tap handler below is what
+    // decides what a finger does.
+    card.el.addEventListener('pointerenter', (e) => {
+      if ((e as PointerEvent).pointerType !== 'touch') select(i);
+    });
   }
 
   const router = new InputRouter();
@@ -284,6 +289,32 @@ export async function launcher(host: HTMLElement, onDispose: (fn: () => void) =>
     },
   });
   router.attach();
+
+  // The same two cards, from a finger.
+  //
+  // A mouse click still selects AND starts, because a mouse is precise. A tap
+  // is not: the first tap on a card focuses it and only a second tap on the
+  // focused card starts it, so a mis-tap cannot launch a dashboard. The touch
+  // module swallows the click the browser synthesizes from a handled tap, so
+  // one finger never fires the click handler above as well.
+  const cardAt = (x: number, y: number): number => {
+    const hit = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('.launcher-card') ?? null;
+    return hit ? cards.findIndex((c) => c.el === hit) : -1;
+  };
+  const detachTouch = attachTouch(router, {
+    target: page,
+    tap: (x, y) => {
+      const i = cardAt(x, y);
+      if (i < 0) return false;
+      if (i !== index) { select(i); return 'focus'; }
+      press();
+      return 'press';
+    },
+    swipeX: { left: Button.Right, right: Button.Left },
+    swipeY: { up: Button.Down, down: Button.Up },
+    back: null,
+    log: t.touch,
+  });
 
   // Coming BACK to the launcher from a dashboard.
   //
@@ -369,6 +400,7 @@ export async function launcher(host: HTMLElement, onDispose: (fn: () => void) =>
 
   onDispose(() => {
     cancelAnimationFrame(raf);
+    detachTouch();
     router.detach();
     audio.close();
     viewport.dispose();

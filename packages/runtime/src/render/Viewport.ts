@@ -59,6 +59,12 @@ export class Viewport {
     this.stage.appendChild(this.canvas);
     this.host.appendChild(this.stage);
     addEventListener('resize', this.onResize);
+    // A mobile browser's toolbar retracting changes the VISUAL viewport without
+    // always changing the window: `resize` alone leaves the 16:9 stage fitted
+    // to a box that is no longer there. visualViewport reports both, and on a
+    // desktop it fires alongside `resize`, where a second layout() is a no-op.
+    visualViewport?.addEventListener('resize', this.onResize);
+    visualViewport?.addEventListener('scroll', this.onResize);
     Viewport.live.add(this);
     this.layout();
   }
@@ -67,6 +73,8 @@ export class Viewport {
   dispose(): void {
     if (!Viewport.live.delete(this)) return;
     removeEventListener('resize', this.onResize);
+    visualViewport?.removeEventListener('resize', this.onResize);
+    visualViewport?.removeEventListener('scroll', this.onResize);
     this.stage.remove();
   }
 

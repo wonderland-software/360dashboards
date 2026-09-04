@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- viewport-fit=cover hands the page the whole notched screen; the safe-area
+         insets in app/styles.css put the 16:9 stage back inside the safe box.
+         Zoom is left enabled: pinching is disabled where it would fight the
+         touch gestures (`touch-action: none` on the stage and the launcher),
+         not taken away from the whole page. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="icon" href="data:," />
     <title>360dashboards</title>
     <link rel="stylesheet" href="./app/styles.css" />

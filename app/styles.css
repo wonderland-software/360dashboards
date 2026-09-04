@@ -17,30 +17,56 @@
 
 html, body {
   margin: 0;
+  /* 100% of the initial containing block is the SMALL viewport on a mobile
+     browser, so a page sized that way leaves a strip of black under the
+     address bar when the toolbar retracts. 100dvh is the dynamic viewport:
+     it follows the toolbar. The 100% above it is the fallback for a browser
+     that has no dvh. */
   height: 100%;
+  height: 100dvh;
   background: #000;
   color: #ddd;
   font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
   overflow: hidden;
+  /* No rubber-banding: this is a fixed 16:9 frame, not a document. */
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 #app { position: absolute; inset: 0; }
 
 .xui-viewport {
   position: absolute;
-  inset: 0;
+  /* The safe area, not the window: on a notched phone in landscape the notch
+     and the home indicator eat into the display, and `viewport-fit=cover` in
+     index.html hands us the whole screen INCLUDING them. These four insets are
+     0 everywhere else, so a desktop window is unchanged. */
+  top: env(safe-area-inset-top, 0px);
+  right: env(safe-area-inset-right, 0px);
+  bottom: env(safe-area-inset-bottom, 0px);
+  left: env(safe-area-inset-left, 0px);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* The pad is the input. A finger drives it through
+     packages/runtime/src/input/Touch.ts, so the browser must not also pan,
+     pinch or double-tap-zoom the frame out from under it. */
+  touch-action: none;
 }
 
-.xui-stage { transform-origin: 50% 50%; }
+/* `flex: none` is load-bearing on a phone. The stage is a flex ITEM 1280 px
+   wide inside a centring flex row, so on any window NARROWER than the output
+   it was shrunk to the window's width and then scaled again by layout(), and
+   the sides of the console's picture were cut off (measured at 852x393: a
+   465 px stage where 699 was right). A desktop window is wider than 1280 and
+   never shrank, which is why it took a phone to find. */
+.xui-stage { transform-origin: 50% 50%; flex: none; }
 .xui-canvas { position: relative; transform-origin: 0 0; overflow: hidden; }
 
 /* ---------------------------------------------------------------- gallery */
 
-.gallery { position: absolute; inset: 0; overflow: auto; padding: 16px; }
+.gallery { position: absolute; inset: 0; overflow: auto; padding: 16px; touch-action: pan-y; }
 .gallery h1 { font-size: 14px; font-weight: 400; margin: 0 0 12px; color: #9ad; }
 .gallery-item { margin: 0 0 22px; }
 .gallery-label { display: flex; gap: 12px; align-items: baseline; margin-bottom: 4px; }
@@ -104,6 +130,7 @@ html, body {
   font-family: ConvectionUI, "Segoe UI", system-ui, sans-serif;
   user-select: none;
   cursor: default;
+  touch-action: none;
 }
 .launcher img { display: block; }
 
@@ -277,3 +304,112 @@ html, body {
 }
 .launcher[data-phase="going"] .launcher-card[data-focused="false"] { opacity: 0.2; }
 .launcher[data-phase="going"] .launcher-legend { opacity: 0.25; }
+
+/* ---------------------------------------------------------- the rotate ask */
+/* Shown only while a HANDHELD is held upright (app/orientation.ts decides, and
+   it never fires on a desktop window that merely happens to be tall). It is
+   the launcher's page, not a dashboard's: the same off-white ground, the same
+   ConvectionUI face and the same #8CC43B accent, so the two of ours look like
+   one project. Nothing here reaches inside .xui-canvas. */
+
+.rotate {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 24px)
+    calc(env(safe-area-inset-right, 0px) + 24px)
+    calc(env(safe-area-inset-bottom, 0px) + 24px)
+    calc(env(safe-area-inset-left, 0px) + 24px);
+  background: #f4f5f2;
+  color: #4a5044;
+  font-family: ConvectionUI, "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  touch-action: none;
+}
+
+.rotate-card {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+/* The one moving thing: a phone that turns, waits, and turns back. */
+.rotate-glyph {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rotate-phone {
+  width: 62px;
+  height: 108px;
+  border: 3px solid #6f9f2a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(140, 196, 59, 0.18), rgba(140, 196, 59, 0.04));
+  animation: rotate-turn 3.2s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+}
+@keyframes rotate-turn {
+  0%, 22% { transform: rotate(0deg); }
+  45%, 78% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rotate-phone { animation: none; transform: rotate(-90deg); }
+}
+
+.rotate-eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #5c8a17;
+}
+.rotate-head {
+  margin: 10px 0 0;
+  font-size: 30px;
+  line-height: 1.12;
+  font-weight: 400;
+  color: #1e2419;
+}
+.rotate-rule {
+  height: 1px;
+  margin: 20px auto;
+  max-width: 200px;
+  background: rgba(111, 159, 42, 0.55);
+}
+.rotate-body {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #6b7264;
+}
+
+.rotate-lock {
+  margin: 26px 0 0;
+  padding: 13px 26px;
+  font: inherit;
+  font-size: 17px;
+  color: #23291d;
+  background: linear-gradient(180deg, rgba(140, 196, 59, 0.16), rgba(140, 196, 59, 0.05) 56%, #ffffff);
+  border: 1px solid #6f9f2a;
+  border-radius: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.rotate-lock:active { background: rgba(140, 196, 59, 0.28); }
+.rotate-note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8b9284;
+}
+
+/* A short phone in landscape has no room for the glyph; the words carry it. */
+@media (max-height: 420px) {
+  .rotate-glyph { display: none; }
+}

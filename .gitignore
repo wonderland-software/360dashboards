@@ -23,3 +23,6 @@ reference/
 
 # Rendered screenshots of the dashboard (smoke output) stay local like the assets they draw.
 tests/smoke/out/
+
+# Agent working notes, never part of the build.
+scratchpad/

@@ -33,6 +33,10 @@ const SUITES = [
   // manifest entry, both builds offered, Right/Down+Enter to ?build=9199, the
   // focus and select cues, and the same layer budget as the dashboards.
   ['tests/smoke/smoke-launcher.mjs'],
+  // Phones and tablets: the fit at four real device sizes, the rotate-to-
+  // landscape ask, the touch gestures on all three routes, and the compositor
+  // budget at phone pixel ratios.
+  ['tests/smoke/smoke-mobile.mjs'],
   // The fill-transform gate: the only thing standing between the gradient
   // transform's order of operations and a silent regression.
   ['tests/smoke/sweep-gradient.mjs', 'wing'],

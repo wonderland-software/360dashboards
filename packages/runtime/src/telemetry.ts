@@ -65,6 +65,14 @@ export interface DashTelemetry extends SceneReport {
   cues: { cue: string; scope: string | null; tick: number; played: boolean }[];
   /** Buttons the router dispatched, newest last. */
   input: { button: string; repeat: boolean; layer: string | null }[];
+  /** Touch gestures read on a phone or tablet, newest last, with the pad
+   *  button each one sent (packages/runtime/src/input/Touch.ts). Empty on a
+   *  machine nobody touched. */
+  touch: { gesture: string; button: string | null }[];
+  /** The rotate-to-landscape overlay: whether it is up, and what decided it
+   *  (app/orientation.ts). `handheld` is false on a desktop window that merely
+   *  happens to be tall, which is why the overlay never covers one. */
+  orientation: { portrait: boolean; handheld: boolean; overlay: boolean; canLock: boolean };
   /** The Blades shell's state, on the default route only. */
   shell: unknown;
   /** The NXE shell's state, on ?build=9199 only. */
@@ -97,7 +105,8 @@ export function createTelemetry(build: string): DashTelemetry {
   const t: DashTelemetry = {
     ...emptyReport(), build, placeholders: [], gallery: [], fps: 0,
     timeline: { scopes: [], playing: 0, frozenAt: null, fps: 0 },
-    focusId: null, lastCue: null, cues: [], input: [], shell: null, nxe: null,
+    focusId: null, lastCue: null, cues: [], input: [], touch: [], shell: null, nxe: null,
+    orientation: { portrait: false, handheld: false, overlay: false, canLock: false },
     locale: 'en', localePatches: 0,
     hmr: { mounts: 0, viewports: 0, inputRouters: 0, audioContexts: 0, clocks: 0 },
   };

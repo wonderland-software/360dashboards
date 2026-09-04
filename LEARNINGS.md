@@ -1419,3 +1419,45 @@ the wrong half of the data.**
   0,−1 / −2,0 / −1,1). The MOUNT is at (0,0) 1120x770 on all forty; the scene
   inside it is where the file puts it. A gate written against the scene root
   would have failed on a correct render.
+
+## Phones and tablets (2026-09-03)
+
+Making the launcher and both dashboards work on a handheld found four things
+that only a small screen or a finger can find.
+
+- **A `flex` item does not keep its width.** `.xui-stage` is 1280 px wide
+  inside `.xui-viewport`, which is a centring flex row, so on any window
+  NARROWER than the output the stage was flex-SHRUNK to the window and then
+  scaled again by `Viewport.layout()`: at 852x393 it drew 465x393 where
+  699x393 was right, and the left and right of the console's picture were
+  simply cut off. `flex: none` is the fix. Every desktop window anyone had
+  opened was wider than 1280 and never shrank, which is why it took a phone to
+  find it; the gate is now the stage's own aspect (drawn box against
+  `stage.style.width/height`), not its position.
+- **`elementFromPoint` (singular) cannot hit-test scene data.** A XUI group's
+  box is its authored rectangle whether it paints anything there or not, so the
+  Blades metapane's `highlight1` lies transparently over the whole nav list and
+  swallows every hit: a tap plainly on `navNetwork` returned `metaPanelScene`.
+  `elementsFromPoint` (plural) returns the whole stack and the row is in it.
+  Filter that stack to XuiControls, or a tap on the background walks the focus
+  two dozen rows down a list.
+- **A two-finger tap is two starts, and each finger needs its own origin.**
+  Measuring the SECOND finger's release against the FIRST finger's start reads
+  40 px of travel and throws the gesture away as a drag. Chrome's touch
+  emulation also defaults `maxTouchPoints` to 1, so a second finger cannot even
+  be dispatched until a suite sends
+  `Emulation.setTouchEmulationEnabled {maxTouchPoints: 5}` - the gesture looks
+  broken when only the harness is.
+- **Never count out a fixed number of presses for a cursor.** Both shells
+  REFUSE input while a transition is running, so a tap that computed "five
+  Rights" from the current panel cursor landed one panel short. Re-read the
+  cursor after every press and stop when it did not move; that also stops the
+  walk at the end of a range.
+- **Tile memory is billed at the RASTER scale, not the device ratio.**
+  `smoke-boot`'s `area x 4 x dpr^2` is right on its 2000x1196 window because
+  the stage there is near 1:1. On a phone the console's 1280x720 output is
+  drawn through a 0.55 fit and Chrome rasters a layer at its screen scale, so
+  dpr alone bills the GPU for pixels it never allocates: NXE at 852x393@3x
+  reads 397 MB that way against 118 MB at the raster scale. `smoke-mobile`
+  prints both and holds the budget against the second. The layer COUNT is scale
+  free and is held against smoke-boot's 24 either way.

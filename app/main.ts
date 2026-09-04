@@ -47,6 +47,7 @@ import {
   createTelemetry, emptyReport, publish, startFpsMeter, mountInspector,
   NodeIndex, bindTimelines, TimelineEngine, xuiRegistry, refreshVisibility,
   InputRouter, Button, AudioBank, Strings, ListView,
+  attachTouch, tapFocus, xuiHitsAt, elementsAt, isA, type TapResult,
   DEFAULT_LOCALE, isNativeLocale,
   BLEND_OVERRIDES, GRADIENT_TRANSFORM, FONT_FAMILY, parseBuild, setActiveBuild, activeBuild,
   type RenderCtx, type SceneReport, type DashTelemetry,
@@ -57,6 +58,7 @@ import { DEFAULT_TAB } from '@dash/blades/tabs';
 import { populateLists } from '@dash/blades/lists';
 import { DEFAULT_BOOT } from '@dash/blades/boot';
 import { launcher } from './launcher';
+import { watchOrientation } from './orientation';
 import type { NavDirection } from '@dash/blades/focus';
 
 /** The hook the smoke suites drive; nothing in the runtime depends on it. */
@@ -186,6 +188,13 @@ if (import.meta.hot) {
 }
 
 async function main(): Promise<void> {
+  // The rotate-to-landscape ask, on EVERY route: the launcher, both dashboards,
+  // the single-scene view and the gallery. It builds nothing at all unless a
+  // HANDHELD is being held upright, so a desktop window of any shape never sees
+  // it (app/orientation.ts).
+  const rotate = watchOrientation(document.body);
+  onDispose(rotate.dispose);
+
   // A bare `/` is the launcher: pick Blades or NXE. Every dashboard route
   // carries at least ?build= (or a scene/gallery switch), so nothing that the
   // suites or the judges open goes through here.
@@ -193,6 +202,8 @@ async function main(): Promise<void> {
   // &boot=none to it; the dashboards' own routes never come through here.
   if (!location.search || params.has('launcher')) {
     await launcher(host, onDispose, params);
+    // The route built window.__dash; publish what the watch already decided.
+    rotate.refresh();
     document.body.dataset['ready'] = 'true';
     return;
   }
@@ -228,6 +239,7 @@ async function main(): Promise<void> {
   // scene report's, so a message pushed before it would vanish.
   if (error) telemetry.errors.push(error);
   syncHmr(telemetry);
+  rotate.refresh();
   document.body.dataset['ready'] = 'true';
 }
 
@@ -326,7 +338,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
   const audio = AudioBank.index(assets, params.has('mute'));
   if (!params.has('mute')) audio.unlockOnGesture();
   audio.attach(engine);
-  const input = installBladeInput(shell, t, audio);
+  const input = installBladeInput(shell, t, audio, viewportHost);
   onDispose(() => { input.detach(); audio.close(); viewport.dispose(); });
   installApi(engine, t, input, audio, []);
   window.__dashApi!.shell = {
@@ -368,7 +380,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
  * carries a PressKey for them and DashMainScene's key handler names only the
  * ones above.
  */
-function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
+function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank, touchHost: HTMLElement): InputRouter {
   const router = new InputRouter();
   router.push({
     id: 'blades',
@@ -388,7 +400,75 @@ function installBladeInput(shell: BladeShell, t: DashTelemetry, audio: AudioBank
     },
   });
   router.attach();
+  // The same buttons, from a finger. Swiping LEFT carries the page left, which
+  // is the NEXT blade, so it is RB; swiping UP carries the list up, which moves
+  // focus DOWN. Nothing new appears on screen and the shell is not told.
+  onDispose(attachTouch(router, {
+    target: touchHost,
+    tap: (x, y) => bladeTap(shell, router, x, y),
+    swipeX: { left: Button.RB, right: Button.LB },
+    swipeY: { up: Button.Down, down: Button.Up },
+    back: Button.B,
+    log: t.touch,
+  }));
   return router;
+}
+
+/**
+ * What one finger does on Blades.
+ *
+ * A tab that is not the current one is the blade switch, one shoulder press per
+ * blade: dashmain authors only adjacent ranges (tabs.ts, `switchRange`), so a
+ * jump is impossible on the console and impossible here.
+ *
+ * Anything else goes through `tapFocus`: the tap lands on the focused control
+ * and it is A, or it lands on another control and the pad's focus WALKS to it
+ * with real Up/Down presses - which is what makes each row's own Focus range
+ * and its btn_Focus cue play, exactly as a d-pad would.
+ */
+function bladeTap(shell: BladeShell, router: InputRouter, x: number, y: number): TapResult {
+  const hits = controlHits(x, y);
+  const r = shell.report();
+  const tab = tabUnder(x, y);
+  if (tab !== null && tab !== r.tab && !r.tabsLocked && r.stack.length <= 1) {
+    // Re-read the tab after every press instead of counting the steps out in
+    // advance: the shell REFUSES a switch mid-transition, the way the console
+    // does, and a fixed count would then land a blade short.
+    walk(() => shell.report().tab, tab, (d) => router.press(d > 0 ? Button.RB : Button.LB));
+    return 'focus';
+  }
+  if (!hits.length) return false;
+  return tapped(tapFocus({
+    x, y, ids: hits,
+    focusId: () => shell.report().focusId,
+    press: (b) => router.press(b),
+  }));
+}
+
+/** tapFocus's verdict, in the touch module's vocabulary. */
+function tapped(v: 'pressed' | 'moved' | null): TapResult {
+  return v === 'pressed' ? 'press' : v === 'moved' ? 'focus' : false;
+}
+
+/** The blade whose Tab<N> group the point is inside, or null. */
+function tabUnder(x: number, y: number): number | null {
+  for (const h of xuiHitsAt(x, y)) {
+    const m = /^Tab([1-6])$/.exec(h.id);
+    if (m) return Number(m[1]);
+  }
+  return null;
+}
+
+/**
+ * The CONTROL ids under a point, deepest first.
+ *
+ * A finger lands on a figure or a group as often as on a button, and a bare
+ * `data-xui-id` chain would let a tap on the background walk the focus 24 rows
+ * down a list. Only a XuiControl can take focus, so only a XuiControl counts as
+ * something tapped.
+ */
+function controlHits(x: number, y: number): string[] {
+  return xuiHitsAt(x, y).filter((h) => isA(h.className, 'XuiControl')).map((h) => h.id);
 }
 
 /**
@@ -460,7 +540,7 @@ async function single(assets: AssetIndex, skin: Skin, t: DashTelemetry, id: stri
   // lists were filled, so an empty lstSettings read as invisible. Retake it.
   refreshVisibility(viewport.canvas.firstElementChild as HTMLElement, report);
   publish(t, report);
-  const input = installInput(engine, lists, t, audio);
+  const input = installInput(engine, lists, t, audio, viewportHost);
   onDispose(() => { input.detach(); audio.close(); viewport.dispose(); });
   installApi(engine, t, input, audio, lists);
   runClock(engine, t);
@@ -585,7 +665,7 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
   // (NXE_GLUE_SPEC §2.3), the opposite of the Blades rule where every cue is a
   // XuiSoundXAudio.File keyframe. So the shell gets the bank, not the engine.
   shell.attach(audio);
-  const input = installNxeInput(shell, t, audio);
+  const input = installNxeInput(shell, t, audio, viewportHost);
   onDispose(() => { input.detach(); audio.close(); shell.dispose(); viewport.dispose(); });
   installApi(engine, t, input, audio, []);
   const api = window.__dashApi!;
@@ -615,7 +695,7 @@ async function nxe(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise<vo
  * axis and `MobyChannelInput*` for the vertical [SPEC §2.3]. A is the focused
  * slot's `<onclick>`, B pops the page stack.
  */
-function installNxeInput(shell: NxeShell, t: DashTelemetry, audio: AudioBank): InputRouter {
+function installNxeInput(shell: NxeShell, t: DashTelemetry, audio: AudioBank, touchHost: HTMLElement): InputRouter {
   const router = new InputRouter();
   router.push({
     id: 'nxe',
@@ -637,7 +717,77 @@ function installNxeInput(shell: NxeShell, t: DashTelemetry, audio: AudioBank): I
     },
   });
   router.attach();
+  // NXE's axes are the other way round to Blades: horizontal is the panel
+  // cursor, vertical the channel cursor. The finger rule is the same one -
+  // swipe the way you want the strip to travel.
+  onDispose(attachTouch(router, {
+    target: touchHost,
+    tap: (x, y) => nxeTap(shell, router, x, y),
+    swipeX: { left: Button.Right, right: Button.Left },
+    swipeY: { up: Button.Down, down: Button.Up },
+    back: Button.B,
+    log: t.touch,
+  }));
   return router;
+}
+
+/**
+ * What one finger does on NXE.
+ *
+ * On a hosted page it is the same focus walk as Blades, against the page's own
+ * rows. On the home strip there is no focus chain, there is a panel CURSOR, so
+ * a tap on the front panel is A and a tap on any other panel walks the cursor
+ * to it one Left/Right at a time - the strip's own velocity integrator does the
+ * moving, so the motion is the console's.
+ *
+ * The tap finds its slot without the shell being asked anything: every panel
+ * wrapper carries `data-nxe-screen`, the projected "x,y" the report prints for
+ * that slot, so the nearest projected panel to the wrapper under the finger IS
+ * the slot. Nearest rather than equal because the strip may have stepped a
+ * frame between the paint and the read.
+ */
+function nxeTap(shell: NxeShell, router: InputRouter, x: number, y: number): TapResult {
+  const r = shell.report();
+  if (r.legacy) {
+    const hits = controlHits(x, y);
+    if (!hits.length) return false;
+    return tapped(tapFocus({
+      x, y, ids: hits,
+      focusId: () => shell.report().legacy?.focusId ?? null,
+      press: (b) => router.press(b),
+    }));
+  }
+  const wrapper = elementsAt(x, y).find((e) => e.dataset?.['nxeScreen']);
+  const key = wrapper?.dataset['nxeScreen'];
+  if (!key) return false;
+  const [px, py] = key.split(',').map(Number);
+  if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) return false;
+  let slot = -1;
+  let best = Infinity;
+  r.panels.forEach((p, i) => {
+    const d = Math.hypot(p.screen.x - px, p.screen.y - py);
+    if (d < best) { best = d; slot = i; }
+  });
+  if (slot < 0) return false;
+  const front = Math.round(r.motion.panel.target);
+  if (slot === front) { router.press(Button.A); return 'press'; }
+  walk(() => Math.round(shell.report().motion.panel.target), slot, (d) => router.press(d > 0 ? Button.Right : Button.Left));
+  return 'focus';
+}
+
+/**
+ * Step an integer cursor to `to`, one press at a time, re-reading it after
+ * each. A press the shell refuses (a transition is running, or the cursor is
+ * at the end of its range) leaves the value where it was, and that is the
+ * signal to stop: a fixed step count would keep pressing into a wall.
+ */
+function walk(read: () => number, to: number, press: (dir: -1 | 1) => void, max = 16): void {
+  for (let i = 0; i < max; i++) {
+    const at = read();
+    if (at === to) return;
+    press(at < to ? 1 : -1);
+    if (read() === at) return;
+  }
 }
 
 function nxeStep(shell: NxeShell, t: DashTelemetry, audio: AudioBank, fn: () => boolean): boolean {
@@ -657,7 +807,7 @@ function syncNxe(t: DashTelemetry, shell: NxeShell, audio: AudioBank): void {
 /* ------------------------------------------------------------------- input */
 
 /** One layer per scene: the top of the stack owns every press. */
-function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetry, audio: AudioBank): InputRouter {
+function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetry, audio: AudioBank, touchHost: HTMLElement): InputRouter {
   const router = new InputRouter();
   router.push({
     id: 'scene',
@@ -684,6 +834,18 @@ function installInput(engine: TimelineEngine, lists: ListView[], t: DashTelemetr
     },
   });
   router.attach();
+  onDispose(attachTouch(router, {
+    target: touchHost,
+    tap: (x, y) => {
+      const hits = controlHits(x, y);
+      if (!hits.length) return false;
+      return tapped(tapFocus({ x, y, ids: hits, focusId: () => t.focusId, press: (b) => router.press(b) }));
+    },
+    swipeX: null,
+    swipeY: { up: Button.Down, down: Button.Up },
+    back: Button.B,
+    log: t.touch,
+  }));
   return router;
 }
 

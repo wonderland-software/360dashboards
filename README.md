@@ -121,6 +121,59 @@ reaches the front with its scene. NXE scenes are 1280x720 and land 1:1 on the
 output, so the Blades view transform does not apply to them - measured, see
 `packages/runtime/README.md`.
 
+## On a phone
+
+The whole thing works on a handheld, and it is the same page: no separate
+mobile build, no second layout, nothing on screen that the console did not
+draw. Three pieces make that true.
+
+**The fit.** `index.html` asks for `viewport-fit=cover` and `.xui-viewport`
+takes its four insets from `env(safe-area-inset-*)`, so on a notched phone in
+landscape the 16:9 output is letterboxed inside the SAFE box rather than under
+the notch. Heights are `100dvh` (the dynamic viewport, which follows a mobile
+browser's retracting toolbar) with `100%` as the fallback, the page cannot
+scroll or rubber-band (`overflow: hidden` plus `overscroll-behavior: none`),
+and the runtime `Viewport` relayouts on `visualViewport` as well as on
+`resize`. Measured: iPhone 15 Pro landscape 852x393@3x -> a 699x393 stage,
+iPhone SE 667x375@2x -> 667x375, iPad 1024x768@2x -> 1024x576, no scroll on
+any of them.
+
+**The rotate ask.** A handheld held UPRIGHT gets our own overlay asking for
+landscape (`app/orientation.ts`, styled in the `.rotate` block of
+`app/styles.css`, the launcher's visual language). It covers the launcher and
+both dashboards, it is built and destroyed rather than hidden, and it goes as
+soon as the device turns. Who sees it is decided by
+`matchMedia('(orientation: portrait)')` AND a handheld test - a coarse primary
+pointer and a longest edge of at most 1366 CSS px - so a desktop window that
+merely happens to be tall never sees it, and no user-agent string is read
+anywhere. Where `screen.orientation.lock` exists the overlay offers a button
+that tries it inside the tap's own gesture, in a try/catch, and nothing depends
+on it working.
+
+**Touch.** `packages/runtime/src/input/Touch.ts` turns gestures into the SAME
+`Button` values the pad sends and hands them to the same `InputRouter`, so the
+shells, the focus chains, the cues and every gate are untouched and no
+on-screen control is invented:
+
+| gesture | what the pad gets |
+| --- | --- |
+| tap a row or a blade tab | the focus walks to it with real Up/Down (or LB/RB) presses |
+| tap the focused row | A |
+| swipe left / right | Blades: RB / LB. NXE: the panel cursor |
+| swipe up / down | move focus one row (NXE: the channel cursor) |
+| two-finger tap, or a swipe in from the right edge | B |
+
+Two taps to commit is deliberate: a finger is 40 px wide and a mis-tap that
+fires A is a page you did not ask for. A handled tap swallows the click the
+browser would synthesize from it, so nothing double-fires. Every gesture is
+recorded in `window.__dash.touch` with the button it sent.
+
+`tests/smoke/smoke-mobile.mjs` is the gate: the three routes at those four
+device sizes, no scroll, the stage inside the visual viewport and still 16:9,
+the overlay present in portrait and absent in landscape and absent on a tall
+desktop window, the taps and swipes asserted through `window.__dash`, and the
+compositor budget at phone pixel ratios.
+
 ## Stack (verified 2026-09-02, don't re-litigate)
 
 - Vite 8 + TypeScript 5.6 strict, zero runtime dependencies.
@@ -247,7 +300,7 @@ npx vercel@latest deploy --prebuilt --prod
   read: `XUIDIFF_PASS`; the same with `extracted/9199/... --registry 9199`
   and `extracted/17559/... --registry 17559` (363 identical). Every
   normalisation the diff applies is documented in the tool.
-- `npm run smoke` runs ten headless suites serially, including
+- `npm run smoke` runs twelve headless suites serially, including
   `smoke-gallery` (both builds: 263 + 311 scenes, zero unknown classes) and
   `smoke-nxe`, which measures the composed NXE home page and a hosted legacy
   page against their reference stills with the same detector run over both,
@@ -261,6 +314,15 @@ npx vercel@latest deploy --prebuilt --prod
   `reference/frames/<capture>-30fps/` is absent), and mounts the app twice to
   prove the teardown leaves exactly one viewport, one input router, one clock
   and one audio bank.
+- `tests/smoke/smoke-mobile.mjs` is the handheld gate: the launcher and both
+  dashboards at iPhone 15 Pro (852x393@3x), iPhone SE (667x375@2x) and iPad
+  (1024x768@2x) landscape plus one portrait case, with touch emulation on. It
+  asserts no scroll in either axis, the stage inside the visual viewport and
+  still the output's own aspect, the rotate overlay present in portrait and
+  absent in landscape AND absent on a tall fine-pointer desktop window, a tap
+  that focuses and a second tap that presses on all three routes (through
+  `window.__dash`, never pixels), the swipe axes on both dashboards, B by two
+  fingers, and the compositor budget at phone pixel ratios.
 - `tests/smoke/smoke-nav.mjs` section 8 walks the settings pages: every
   Console Settings row's Current Setting against its own 6717 still, the
   option selects (arrival row, the write, the pop with its cue, the parent's
