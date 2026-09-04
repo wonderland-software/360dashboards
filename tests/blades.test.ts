@@ -777,3 +777,102 @@ test('the B carrier has FIVE names and two classes, and an unkeyed back button b
       { legend_b: 107, btnB: 54, navB: 8, legend_B: 4, backButton: 3 });
     assert.deepEqual(Object.fromEntries(classes), { XuiBackButton: 172, XuiButton: 4 });
   });
+
+/* ------------------------------------------------------------------ tokens */
+
+import { AUTHORING_TOKEN, AUTHORING_TOKEN_ALL, paintsAuthoringToken, TOKEN_SLOTS } from '@dash/blades/consoleSettings';
+
+/** Every authored Text in the 6770 corpus that carries a "<" at all. */
+async function tokenCorpus(): Promise<{ key: string; cls: string; text: string }[]> {
+  const { XuRegistry, parseXur } = await import('@xur/index');
+  const { readdirSync, statSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const reg = new XuRegistry(JSON.parse(readFileSync('packages/xur/extensions/6770/registry.json', 'utf8')) as never);
+  const files: string[] = [];
+  const walkDir = (d: string) => { for (const e of readdirSync(d)) { const p = join(d, e); if (statSync(p).isDirectory()) walkDir(p); else if (p.endsWith('.xur')) files.push(p); } };
+  walkDir(ASSETS);
+  files.sort();
+  const out: { key: string; cls: string; text: string }[] = [];
+  for (const f of files) {
+    const rel = f.slice(ASSETS.length + 1);
+    const walkObj = (o: XuObject): void => {
+      const t = propIn(o, 'Text');
+      if (typeof t === 'string' && t.includes('<')) out.push({ key: `${rel}#${idIn(o)}`, cls: o.className, text: t });
+      o.children.forEach(walkObj);
+    };
+    walkObj(parseXur(new Uint8Array(readFileSync(f)), reg).root);
+  }
+  return out;
+}
+
+test('the authoring-token rule is a SEARCH: it catches all 211 corpus tokens, not just the 192 whole ones [Judge E round 5]',
+  { skip: !assetsHere }, async () => {
+    const corpus = await tokenCorpus();
+    // Everything in the build that contains "<" at all IS a token. There is no
+    // HTML body and no prose with an angle bracket anywhere in 6770, so
+    // widening the rule cannot swallow a real caption.
+    assert.equal(corpus.length, 211, 'authored Texts containing "<"');
+    for (const c of corpus) {
+      assert.ok(paintsAuthoringToken(c.text), `${c.key} ${JSON.stringify(c.text)} is not matched by the rule`);
+    }
+
+    // The shape the rule REPLACED, kept here so the regression is named: it is
+    // anchored, and it misses exactly the 19 that carry a token inside other
+    // text. Two of the 19 are reachable offline and both painted [Judge E r5].
+    const ANCHORED = /^\s*<[^<>\r\n]{1,40}>\s*$/;
+    const whole = corpus.filter((c) => ANCHORED.test(c.text));
+    const partial = corpus.filter((c) => !ANCHORED.test(c.text));
+    assert.equal(whole.length, 192);
+    assert.equal(partial.length, 19);
+    assert.deepEqual(partial.map((c) => c.key).sort(), Object.keys(TOKEN_SLOTS).sort(),
+      'every partial-token control is named in TOKEN_SLOTS with the console rule that filled it');
+    for (const [k, why] of Object.entries(TOKEN_SLOTS)) assert.ok(why.length > 40, `${k} needs a reason`);
+
+    // The two the judge found on screen, by name and by text.
+    const byKey = new Map(corpus.map((c) => [c.key, c.text]));
+    assert.equal(byKey.get('memory/DeviceSelector.xur#labTotal'), '<#> of <Total #>');
+    assert.equal(byKey.get('arcade/2504_TitleOptionsScene.xur#lblRatingText'),
+      '<www.pegi.info: 3+ with mild>\r\n<Rating Information>\r\n<Rating Information>');
+    for (const k of ['memory/DeviceSelector.xur#labTotal', 'arcade/2504_TitleOptionsScene.xur#lblRatingText']) {
+      assert.ok(!ANCHORED.test(byKey.get(k)!), `${k} is exactly what the anchored rule missed`);
+      assert.ok(paintsAuthoringToken(byKey.get(k)!));
+      assert.ok(/0x[0-9a-f]{8}/.test(TOKEN_SLOTS[k]!), `${k} is disclosed with the code address that fills or hides it`);
+    }
+
+    // The all-form finds every token in a composed caption, which is what the
+    // walk and the smoke gates search a rendered page with.
+    assert.deepEqual('<#> of <Total #>'.match(AUTHORING_TOKEN_ALL), ['<#>', '<Total #>']);
+    assert.deepEqual('Uninstall <servicename>'.match(AUTHORING_TOKEN_ALL), ['<servicename>']);
+    // A value the build's own table spells with brackets is still a token by
+    // shape - the shell skips it because it WROTE it, not because of the regex.
+    assert.ok(AUTHORING_TOKEN.test('<None>'));
+    // and nothing without a bracket pair is one
+    assert.ok(!paintsAuthoringToken('No storage devices found.'));
+    assert.ok(!paintsAuthoringToken('2 of 12'));
+  });
+
+test('the five storage-device indicators on 2504 are alternatives at ONE point, and none of them is on offline [Judge E round 5]',
+  { skip: !assetsHere }, async () => {
+    const { CONTROLS_HIDDEN_OFFLINE } = await import('@dash/blades/codeLists');
+    const rule = CONTROLS_HIDDEN_OFFLINE['arcade/2504_TitleOptionsScene.xur'];
+    assert.ok(rule, '2504 has a hidden-controls rule');
+    assert.deepEqual([...rule.hide], ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU']);
+    assert.ok(/0x9221c5e8/.test(rule.why) && /0x9221c558/.test(rule.why), 'cited to the Show block and its guard');
+
+    const root = await scene('arcade/2504_TitleOptionsScene.xur');
+    const at = new Map<string, string>();
+    const walkObj = (o: XuObject): void => {
+      const p = propIn(o, 'Position') as { x: number; y: number } | undefined;
+      if (rule.hide.includes(idIn(o)) && p) at.set(idIn(o), `${p.x.toFixed(3)},${p.y.toFixed(3)}`);
+      o.children.forEach(walkObj);
+    };
+    walkObj(root);
+    assert.equal(at.size, 5, `the scene authors all five: ${[...at.keys()].join(' ')}`);
+    // Five glyphs on three points: they are alternatives, so the authoring
+    // stacks the pairs that never show together.
+    assert.equal(new Set(at.values()).size, 3, `design points: ${JSON.stringify([...at])}`);
+    assert.equal(at.get('MUA'), '940.679,95.802');
+    assert.equal(at.get('MUA'), at.get('MUB'), 'which is why MUA and MUB drew on top of each other');
+    assert.equal(at.get('HD'), at.get('BuiltInMU'), 'HD and BuiltInMU are the other stacked pair');
+    assert.equal(at.get('OD'), '950.679,99.802');
+  });

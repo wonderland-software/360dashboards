@@ -1293,7 +1293,8 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   branch, and the **three** fields the archive cannot supply are disclosed in
   `hardwareState` with their read addresses (they were disclosed nowhere).
   **The sweep the finding asked for, done independently:** every authored
-  `Text` of 40+ characters over all 263 scenes — 126 of them, 34 on the 50
+  `Text` of 40+ characters over all 263 scenes — 127 of them (corrected in
+  M3h: `arcade/250x_EZPassScene` carries TWO `lblInfo` labels), 34 on the 50
   reachable pages. `edInfo` is the only one whose prose belongs to another
   screen; no reachable page repeats another scene's prose; the single
   page-string that also appears in a `.xus`
@@ -1412,3 +1413,156 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   passes. Could not verify: which AV pack; the xui.h line citation (values
   confirmed from skin data); whether the console filled or hid labTotal and
   lblRatingText offline. Fixes pending with M3h.
+
+### Closed in M3h (2026-09-03), with a measurement per finding
+
+- **(1) HIGH, two reachable pages paint tokens the clear cannot see: CLOSED,
+  and the RULE is what changed, not the two labels.** The judge is right about
+  the cause and right that the detector had the same blind spot as the fix.
+
+  **What the console does with each of the two, traced to the instruction
+  (own disassembly of `extracted/6770/basefile.exe`, flat-mapped).**
+
+  `memory/DeviceSelector#labTotal` is **HIDDEN, and never comes back up.**
+  `DeviceSelectorScene`'s bind (**0x9225aec8**) fills a controls block:
+  `+8 list_devices` (through the list wrapper at 0x9213cf10), `+12 labDots`,
+  **`+16 labTotal`** (the `addi r5,r31,16` / `L"labTotal"` pair at 0x9225af34),
+  `+20 legend_a`, `+24 legend_b`, `+28 legend_y`, `+32 legend_x`,
+  `+36 txt_EmptyList`. The block's reset (**0x9225ace8**, called from the
+  scene's load at 0x9225b1d4) runs four `Show(x, FALSE)` in a row —
+  0x9225ad00 `labDots`, **0x9225ad08-0x9225ad10 `labTotal`**, 0x9225ad18
+  `txt_EmptyList`, 0x9225ad2c the list — then `Enable(legend_y, 0)` and
+  `Enable(legend_a, 0)`. The populate (**0x9225b1f0**) re-shows the list and
+  then takes one of two arms: `Show(txt_EmptyList, TRUE)` at
+  0x9225b2f8-0x9225b304 when the device count is 0, or fills the list and hides
+  it. **Neither arm touches +16.** A scan of every `lwz`/`stw` at offset 16
+  across 0x92258000-0x92266000 finds no read of the block's +16 anywhere in the
+  class outside that hide. The memory pack has exactly TWO "n of N" writers and
+  neither is this one: `Categories` (**0x9225fe78**, labTotal at this+20) and
+  `ItemsGrid`/`ItemsIcons` (**0x92263ea0**, this+24), and both do
+  `if (visibleWindow < itemCount) { Show(lab,1); swprintf(memory/Strings.xus[67]
+  = "%1!d! of %2!d!", index+1, total) (0x9273a38c); SetText (0x92158f40) }
+  else Show(lab,0)` — so even a page that HAS the writer hides the line when
+  nothing scrolls, which with no storage device attached is the same answer.
+
+  `arcade/2504_TitleOptionsScene#lblRatingText` is **written to the empty
+  string.** The bind at 0x9221d9e0-0x9221d9f0 puts it at `this+2292`
+  (`imgGameRating` at +2288). The rating routine (**0x9221cbe8**) reads
+  `this+2196`, the selected TITLE record: null and it returns 0x8000ffff having
+  painted nothing; with a rating (record+14 set, record+16 in {0x5000, >0xd0000})
+  it writes `SetText(lblRatingText, (wchar*)(record + 7718))` at
+  0x9221ccc4-0x9221ccf0; and on the no-rating arm **0x9221ccd0** it hides the
+  pane's own carrier (`this+2184` - a field the ctor zeroes at 0x9221c41c and
+  no name bind fills, so this survey does not name the control) and writes **`SetText(lblRatingText, L"")`** from
+  the empty wide literal at **0x92001cd4** (bytes `00 00`). There is no title
+  offline, so an empty caption is the console's own state either way.
+
+  **The rule.** `AUTHORING_PLACEHOLDER` is gone;
+  `dashboards/blades/consoleSettings.ts` now exports `AUTHORING_TOKEN`
+  (unanchored), `AUTHORING_TOKEN_ALL` and `paintsAuthoringToken(text)`, a
+  SEARCH. Justified over the corpus rather than by taste: a sweep of every
+  authored `Text` in all 263 scenes finds **211** that contain a `<` and all
+  211 are tokens — there is no HTML body and no prose with an angle bracket
+  anywhere in the build, so widening cannot swallow a real caption. The
+  console's writers never patch a token in place; each replaces the whole
+  caption (`SetText` 0x92158f40) or hides the control, which is why "carries a
+  token anywhere" is the right predicate and not just a wider net.
+
+  **All 19 handled, each with a reason.** `TOKEN_SLOTS` in the same file names
+  every one of the 19 partial-token controls with the console rule that filled
+  it, and the shell appends that reason to its `hardwareState` line, so a blank
+  caption says WHY it is blank. Two are reachable and carry the addresses
+  above; the seventeen behind unreachable pages carry their state class and
+  its source: the `labTotal`/`labelHighlightedOfTotal`/`labelSongCount` family
+  (memory/Strings.xus[67], pictures/Strings.xus[8] `"%u of %u"`),
+  `memory/OperationProgress#txt_MetaHead` (**0x9225c060** switches on the
+  operation code and writes memory/Strings.xus[70..74] at **0x9225c19c**, with
+  [86..90] into `txt_Header` at 0x9225c184), `music/*#labelCDName`
+  (music/Strings.xus[40] `"Rip CD: %s"`, off the disc), `iptv/uninstallIPTV`'s
+  pair (the provider name, absent behind the same 0x9226e7d8 predicate that
+  hides `navIPTVSettings`), `network/2036_PPoESettings#txt_CurrentSettings`
+  (stored PPPoE configuration) and the two `accountm` Live-ID panels.
+
+  **The gate, widened and re-run over every reachable page.** `smoke-nav.mjs`'s
+  §8 detector is now `String.match(/<[^<>\r\n]{1,40}>/g)` instead of
+  `/^<[^<>]{1,40}>$/`, and a new §11 pushes all **50** pages the drive reaches
+  and scans each one. **Measured: 50 pages swept, 0 painted tokens.** The gate
+  is proven, not asserted: with `AUTHORING_TOKEN` put back to the anchored
+  shape and the M3h hides reverted, the same suite prints exactly the round-5
+  findings and nothing else —
+  `[m3e] Storage Devices paints an authoring token: ["<#>","<Total #>"]`,
+  `[m3h] arcade/2504_TitleOptionsScene.xur paints an authoring token: ["Text:
+  <www.pegi.info: 3+ with mild> <Rating Information> <Rating Information>"]`,
+  `[m3h] memory/DeviceSelector.xur paints an authoring token: ["Text: <#>
+  <Total #>"]`, plus the two missing disclosures and the five indicators of
+  finding 3. `tests/blades.test.ts` gates the rule over the CORPUS, not a
+  synthetic string: all 211 matched, the anchored form misses exactly 19, and
+  those 19 are exactly `TOKEN_SLOTS`' keys (127/127 unit tests green).
+  PLACEHOLDERS' "Every angle-bracket token is CLEARED" now says what was wrong
+  and what the rule is; COVERAGE's Blades row is corrected the same way.
+
+- **(2) LOW, the 40-char sweep is 127: CORRECTED.** Re-counted over
+  `public/assets/6770/xuiz` — 263 files, **127** authored `Text` of 40+
+  characters, and `arcade/250x_EZPassScene` really does carry two controls
+  called `lblInfo` (with `arcade/2500_metaEZPass#lblText` the third hit in that
+  pack). Fixed in this file's round-4 block and in LEARNINGS, with the reason a
+  survey keyed by id loses one.
+
+- **(3) LOW, the stacked indicators and the stacked discs: ONE FIXED, ONE
+  DISCLOSED, both gated.**
+  `2504`'s five storage-device indicators are ALTERNATIVES, and offline the
+  console shows none. `Arcade::CTitleOptionsScene` binds `HD`/`MUA`/`MUB`/`OD`/
+  `BuiltInMU` at this+2300/+2304/+2308/+2312/+2316 (0x9221da20-0x9221da80) and
+  at **0x9221c558** clears five flags, reads `this+2196` (the title record),
+  **returns to the show block with every flag still 0 when it is null**, else
+  switches on `0x922297b0(title)` — 1 `HD`, 2 `BuiltInMU`, 4 `OD`, 0x10000002
+  `MUA`, 0x20000002 `MUB` — and then runs the five `Show(x, flag)` calls at
+  **0x9221c5e8-0x9221c620**. `CONTROLS_HIDDEN_OFFLINE` in `codeLists.ts` now
+  applies exactly that, every copy under the level, and discloses it in
+  `hardwareState`. **Measured** (`smoke-nav` §11d): the scene authors all five
+  and 0 of 5 are shown; before the fix the same probe read 5 of 5.
+  `2502`'s two `btnX` discs are the CONSOLE's doing and stay:
+  `Arcade::CTwistSelectorScene` binds the SCENE's own `btnX` at this+2224
+  (0x92223cb0) and shows it whenever the active tab's content is up
+  (0x922243a4-0x922243b4, `Show(btnX,0)` at 0x92224478 on the same flag that
+  hides Tab1 and raises `ctlWait`), while `Arcade::CTitleSelectorScene` owns
+  Tab1's own `btnX` at this+2212 (0x9221efe4) and only ever ENABLES and
+  captions it (0x9221e4e4 `Enable(btnX, hasTitle)`, 0x9221e520
+  `SetText(btnX, arcade strings 71/76)`) — it never hides it. Tab1 sits at
+  (142,196) and its `btnX` at local (4,442) = (146,638); the scene's own is
+  authored at (145.806,638). Disclosed in PLACEHOLDERS.
+  **The gate** (`smoke-nav` §11b): no two visible controls may paint at one
+  authored design box on any of the 50 reached pages, with a named allowlist of
+  what the console stacks. **Measured: 1 stacked pair over 50 pages, the
+  allowlisted one.** With the M3h hide reverted the same sweep reads
+  `arcade/2504_TitleOptionsScene.xur 940,96 59x32 XuiGroup#MUB | XuiGroup#MUA`
+  and `967,101 25x25 XuiGroup#B | XuiGroup#A`, so the gate sees the finding.
+  Keying on the CONTROL's authored box and not on its ink is load-bearing:
+  MUA's and MUB's glyphs land a pixel apart, and an ink-keyed gate walks past
+  them.
+
+- **(4) LOW, smoke-nxe cascades under contention: FIXED, without weakening an
+  assertion.** The signature is a shell frozen on one snapshot: in the judge's
+  log every step from `Left` onward reads `panel 0.051 channel 6 rigs 7`, and
+  the two integrator lines that name it (`the panel axis integrated 0.000
+  frames`) are the last two of 88. `smoke-nxe.mjs`'s walk now asks the engine's
+  own frame counter whether the page ran: `run()` compares
+  `motion.frames - t0` against the frames it stepped, and on a shortfall waits
+  up to two seconds (40 x 50 ms) for the clock to come back, topping the step
+  up and carrying on if it does. A second detector covers the other shape of
+  the same fault — three consecutive 20-frame-or-longer steps that leave the
+  snapshot byte-identical, which never happens on a live shell. When the clock
+  really is dead the suite reports it ONCE ("the browser did not schedule
+  frames for the NXE page - ..."), raises `quiet` for the rest of §3 and prints
+  how many dependent checks it suppressed. `quiet` is null on every healthy
+  run, so no assertion is weakened and none of §3's dashboard assertions were
+  touched.
+  **Measured both ways.** Healthy: `smoke-nxe` SMOKE_PASS, unchanged. Stalled:
+  a copy of the suite with `api.stepFrames` made a no-op after 45 calls - a
+  browser that stops scheduling the page, in one line - prints
+  `nxe §3: the clock stalled: 50 dependent checks were suppressed behind the one
+  failure above` and exactly ONE failure: `the browser did not schedule frames
+  for the NXE page - Left: the engine advanced 15 of the 30 frames it was
+  stepped. Nothing below this line was measured; run the suite alone or on the
+  board (two headless Chromes on one machine starve each other).` One sentence
+  where round 5 got eighty-eight.

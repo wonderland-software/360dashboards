@@ -38,6 +38,40 @@ const RANGES = {
   '4To3': [119, 143], '3To2': [69, 93], '2To1': [22, 43], '1To2': [1, 21], '5To4': [169, 191],
 };
 
+const REACHED_PAGES = [
+  'arcade/2500_LiveArcadeHome.xur', 'arcade/2502_TwistSelectorScene.xur',
+  'arcade/2504_TitleOptionsScene.xur', 'arcade/250x_EZPassScene.xur',
+  'arcade/250x_FriendsPlayingNowScene.xur', 'blademp/marketplaceSignedOut.xur',
+  'consoles/dashSysCslSet.xur', 'consoles/dashSysCslSetAudio.xur',
+  'consoles/dashSysCslSetAudioDigital.xur', 'consoles/dashSysCslSetAudioSoundEffects.xur',
+  'consoles/dashSysCslSetAutoOff.xur', 'consoles/dashSysCslSetBackgroundDownloads.xur',
+  'consoles/dashSysCslSetClock.xur', 'consoles/dashSysCslSetClockDaylightSavings.xur',
+  'consoles/dashSysCslSetClockFormat.xur', 'consoles/dashSysCslSetClockTime.xur',
+  'consoles/dashSysCslSetClockTimeZone.xur', 'consoles/dashSysCslSetCountry.xur',
+  'consoles/dashSysCslSetDisplay.xur', 'consoles/dashSysCslSetDisplayHiDef.xur',
+  'consoles/dashSysCslSetLanguage.xur', 'consoles/dashSysCslSetOutputLevels.xur',
+  'consoles/dashSysCslSetPControl.xur', 'consoles/dashSysCslSetPControlContent.xur',
+  'consoles/dashSysCslSetPControlFamilyTimer.xur', 'consoles/dashSysCslSetPControlGame.xur',
+  'consoles/dashSysCslSetPControlLiveA.xur', 'consoles/dashSysCslSetPControlLiveC.xur',
+  'consoles/dashSysCslSetPControlPasscode.xur', 'consoles/dashSysCslSetPControlPasscodeHint.xur',
+  'consoles/dashSysCslSetPControlSelect.xur', 'consoles/dashSysCslSetPControlVideo.xur',
+  'consoles/dashSysCslSetPControlVideoExplicit.xur', 'consoles/dashSysCslSetPControlVideoMovie.xur',
+  'consoles/dashSysCslSetPControlVideoTV.xur', 'consoles/dashSysCslSetPControlVideoUnrated.xur',
+  'consoles/dashSysCslSetPolicyInfo_System.xur', 'consoles/dashSysCslSetRemoteC.xur',
+  'consoles/dashSysCslSetScreensaver.xur', 'consoles/dashSysCslSetShutdown.xur',
+  'consoles/dashSysCslSetStartUp.xur', 'consoles/dashSysLiveVision.xur',
+  'dashcomm/742_SelectNetworkDevice.xur', 'dashcomm/MediaSourceSelection.xur',
+  'gamesbla/gamesSignedOut.xur', 'live/liveSignedOutUI.xur', 'mediabla/mediaSignedOut.xur',
+  'memory/DeviceSelector.xur', 'network/ConnStatus.xur', 'oobe/oobeProfileCreation.xur',
+];
+
+/** Pairs the CONSOLE draws on top of each other, each with the code that does. */
+const STACKED_BY_THE_CONSOLE = {
+  'arcade/2502_TwistSelectorScene.xur': [
+    'XuiNavButton#btnX | XuiNavButton#btnX',
+  ],
+};
+
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); };
 
@@ -400,6 +434,10 @@ try {
   /* --------- 10. M3g: Judge E round 4's four findings, each with its measure */
 
   await m3g(browser);
+
+  /* --------- 11. M3h: the token and stacking sweep over EVERY reached page */
+
+  await m3h(browser);
 } catch (err) {
   fails.push(`threw: ${err instanceof Error ? err.stack : String(err)}`);
 } finally {
@@ -486,7 +524,11 @@ async function m3e(browser) {
     const host = scenes[scenes.length - 1] ?? document;
     const text = (cid) => { const e = host.querySelector(`[data-xui-id="${cid}"]`); return e && vis(e) ? (e.textContent ?? '').replace(/\s+/g, ' ').trim() : null; };
     const items = [...host.querySelectorAll('[data-xui-class="XuiListItem"]')].filter(vis).map((e) => ({ t: e.textContent.trim(), st: e.querySelector('[data-xui-state]')?.dataset.xuiState ?? '' }));
-    const tokens = [...document.querySelectorAll('[data-xui-paint="text"]')].filter(vis).map((e) => e.textContent.trim()).filter((t) => /^<[^<>]{1,40}>$/.test(t));
+    // A SEARCH, not a match: 19 of the corpus's 211 token controls carry the
+    // token inside other text ("<#> of <Total #>"), and an anchored test read
+    // "0 painted tokens" over all of them [Judge E round 5].
+    const tokens = [...document.querySelectorAll('[data-xui-paint="text"]')].filter(vis)
+      .flatMap((e) => (e.textContent ?? '').match(/<[^<>\r\n]{1,40}>/g) ?? []);
     const shown = (cid) => { const e = host.querySelector(`[data-xui-id="${cid}"]`); return e ? vis(e) : null; };
     return { items, tokens, labS: text('labCurrentSettings'), lab: text('labCurrentSetting'), meta: text('metaPanelScene'), pane: host.querySelector('[data-xui-id="scnCurrentFormat"]')?.children.length ?? 0, shown: { no: shown('NoComputersScene'), wait: shown('WmcConnectingScene'), info: shown('MediaSourceInfoScene'), empty: shown('txt_EmptyList'), iptv: shown('btnIPTV'), noCamera: shown('NoCameraTextField') } };
   });
@@ -1426,6 +1468,147 @@ async function m3g(browser) {
   const timer = await chooser('lstTime');
   check(timer.shown.length === 1 && timer.shown[0].w === 373,
     `${tag}the Family Timer spinner is unchanged - one row, 373 wide: ${JSON.stringify(timer.shown)}`);
+
+  const errs2 = await page.evaluate(() => window.__dash.errors);
+  check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);
+  check(errs.length === 0, `${tag}page errors: ${errs.join(' | ')}`);
+  await page.close();
+}
+
+/**
+ * §11. M3h: the two gates Judge E round 5 asked for, run over EVERY page the
+ * drive reaches, not over the handful §8 walks by input.
+ *
+ * 11a. NO PAINTED AUTHORING TOKEN, searched anywhere inside a caption. The old
+ *      detector - here, in the walk and in the shell - was the anchored
+ *      `/^<...>$/`, which reads "0 painted tokens" over
+ *      `memory/DeviceSelector#labTotal` ("<#> of <Total #>") and
+ *      `arcade/2504_TitleOptionsScene#lblRatingText`. Both were on screen.
+ * 11b. NO TWO VISIBLE CONTROLS PAINTING AT ONE DESIGN POINT, unless the
+ *      console draws them that way. `2504` stacked its MUA and MUB
+ *      memory-unit glyphs at (940.679, 95.802) with no memory unit attached;
+ *      that is now the code's own answer (all five indicators down). The one
+ *      pair that survives is `2502_TwistSelectorScene`'s two `btnX` legend
+ *      discs, and they are the console's: `Arcade::CTwistSelectorScene` shows
+ *      the SCENE's btnX (this+2224, 0x922243a4-0x922243b4, hidden at
+ *      0x92224478) while `Arcade::CTitleSelectorScene` owns Tab1's own btnX
+ *      (this+2212) and only ever enables and captions it
+ *      (0x9221e4e4 Enable, 0x9221e520 SetText) - it never hides it.
+ *
+ * The pages are pushed rather than walked to: `push` is the same code path a
+ * press resolves to (`fill` -> `discloseHardwareState` -> `arrive`), so the
+ * clear and the hides run exactly as they do under input, and 50 pages cost
+ * one browser instead of a 447-screen tree walk.
+ */
+async function m3h(browser) {
+  const tag = '[m3h] ';
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
+  await page.goto(`${BASE}/?mute&manual&blade=5`, { waitUntil: 'networkidle0', timeout: 90000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true', { timeout: 90000 });
+
+  const settle = async () => {
+    await page.evaluate(() => window.__dashApi.stepFrames(30));
+    await page.evaluate(() => window.__dashApi.shell.idle());
+  };
+  const scan = () => page.evaluate(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    const canvas = document.querySelector('.xui-canvas');
+    const cr = canvas.getBoundingClientRect();
+    const sx = cr.width / 1120, sy = cr.height / 770;
+    const inked = (p) => vis(p) && (p.dataset.xuiPaint !== 'text' || !!(p.textContent ?? '').trim());
+    // (a) every angle-bracket token painted anywhere on screen
+    const tokens = [];
+    for (const p of document.querySelectorAll('[data-xui-paint]')) {
+      if (!inked(p)) continue;
+      const owner = p.closest('[data-xui-id]');
+      if (!owner || !vis(owner)) continue;
+      const hit = (p.textContent ?? '').match(/<[^<>\r\n]{1,40}>/g);
+      if (hit) tokens.push(`${owner.dataset.xuiId}: ${hit.join(' ')}`);
+    }
+    // (b) two visible controls at ONE authored box. The key is the control's
+    // own design box to the unit, not its ink: 2504's MUA and MUB are authored
+    // at the same (940.679, 95.802) and their glyphs land a pixel apart, so a
+    // gate on painted ink alone walks straight past them.
+    const at = new Map();
+    for (const e of document.querySelectorAll('[data-xui-id]')) {
+      if (!vis(e)) continue;
+      // A visual template's internals repeat by design (every list row is the
+      // same figure at the same local offset); only page controls count.
+      if (e.parentElement?.closest('[data-xui-visual]')) continue;
+      if (![...e.querySelectorAll('[data-xui-paint]')].some(inked)) continue;
+      const r = e.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      const k = `${Math.round((r.left - cr.left) / sx)},${Math.round((r.top - cr.top) / sy)} `
+        + `${Math.round(r.width / sx)}x${Math.round(r.height / sy)}`;
+      const bag = at.get(k) ?? at.set(k, []).get(k);
+      bag.push({ n: `${e.dataset.xuiClass}#${e.dataset.xuiId}`, e });
+    }
+    const stacked = [];
+    for (const [k, v] of at) {
+      // A control nested inside another is not "stacked on" it.
+      const outer = v.filter((a) => !v.some((b) => b.e !== a.e && b.e.contains(a.e)));
+      if (outer.length > 1) stacked.push({ where: k, who: outer.map((x) => x.n).join(' | ') });
+    }
+    return { tokens, stacked, top: window.__dash.shell.stack.at(-1) };
+  });
+
+  let swept = 0, stacks = 0, tokensSeen = 0;
+  for (const id of REACHED_PAGES) {
+    const ok = await page.evaluate((id) => window.__dashApi.shell.push(id), id);
+    await settle();
+    check(ok === true, `${tag}${id} did not mount`);
+    if (ok) {
+      const d = await scan();
+      swept++;
+      check(d.top === id, `${tag}pushed ${id}, top is ${d.top}`);
+      tokensSeen += d.tokens.length;
+      check(d.tokens.length === 0, `${tag}${id} paints an authoring token: ${JSON.stringify(d.tokens)}`);
+      const allowed = STACKED_BY_THE_CONSOLE[id] ?? [];
+      for (const s of d.stacked) {
+        stacks++;
+        check(allowed.includes(s.who),
+          `${tag}${id} paints two controls at one design point ${s.where}: ${s.who}`);
+      }
+      await page.evaluate(() => window.__dashApi.shell.back());
+      await page.evaluate(() => window.__dashApi.stepFrames(60));
+      await page.evaluate(() => window.__dashApi.shell.idle());
+    }
+  }
+  check(swept === REACHED_PAGES.length, `${tag}swept ${swept} of ${REACHED_PAGES.length} pages`);
+  console.log(`  ${tag}${swept} pages swept, ${tokensSeen} painted token(s), ${stacks} stacked pair(s), all of them the console's own`);
+
+  // 11c. The two the judge caught, disclosed with the address that fills or
+  // hides each - a blank caption has to say WHY it is blank.
+  const sh = await page.evaluate(() => window.__dash.shell);
+  for (const [key, addr] of [
+    ['memory/DeviceSelector.xur:labTotal', '0x9225ad08'],
+    ['arcade/2504_TitleOptionsScene.xur:lblRatingText', '0x9221ccd0'],
+  ]) {
+    const line = sh.hardwareState.find((x) => x.startsWith(key));
+    check(!!line && line.includes(addr),
+      `${tag}${key} is disclosed with the console rule (${addr}): ${JSON.stringify(line ?? null)}`);
+  }
+  // 11d. 2504's five storage-device indicators, all down with no title.
+  await page.evaluate(() => window.__dashApi.shell.push('arcade/2504_TitleOptionsScene.xur'));
+  await settle();
+  const mu = await page.evaluate(() => {
+    const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+    return ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU'].map((id) => {
+      const els = [...document.querySelectorAll(`[data-xui-id="${id}"]`)];
+      return { id, n: els.length, shown: els.filter(vis).length };
+    });
+  });
+  check(mu.every((m) => m.n > 0), `${tag}2504 authors all five storage-device indicators: ${JSON.stringify(mu)}`);
+  check(mu.every((m) => m.shown === 0),
+    `${tag}with no title selected the console shows none of HD/MUA/MUB/OD/BuiltInMU (0x9221c558, 0x9221c5e8): ${JSON.stringify(mu)}`);
+  const sh2 = await page.evaluate(() => window.__dash.shell);
+  check(sh2.hardwareState.some((x) => x.includes('2504_TitleOptionsScene.xur: HD / MUA / MUB / OD / BuiltInMU hidden')),
+    `${tag}the hide is disclosed: ${JSON.stringify(sh2.hardwareState.filter((x) => x.includes('2504')).slice(0, 2))}`);
+  await page.evaluate(() => window.__dashApi.shell.back());
+  await page.evaluate(() => window.__dashApi.stepFrames(60));
 
   const errs2 = await page.evaluate(() => window.__dash.errors);
   check(errs2.length === 0, `${tag}__dash.errors: ${errs2.join(' | ')}`);

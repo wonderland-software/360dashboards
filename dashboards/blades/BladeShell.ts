@@ -26,13 +26,13 @@ import { IPTV_ROW, CODE_PRESS_PATHS, resolvePress } from './nav';
 import { panelEntries, entryForFocus, metaRange, metaPressRange, type PanelEntry } from './panels';
 import { FocusModel, type NavDirection } from './focus';
 import { populateLists } from './lists';
-import { AUTHORING_PLACEHOLDER, CONSOLE_SETTINGS_CURRENT, CONSOLE_SETTINGS_SCENE, CURRENT_SETTING_ASSOC } from './consoleSettings';
+import { paintsAuthoringToken, TOKEN_SLOTS, CONSOLE_SETTINGS_CURRENT, CONSOLE_SETTINGS_SCENE, CURRENT_SETTING_ASSOC } from './consoleSettings';
 import {
   OPTION_PAGES, PARENT_LABELS, RATING_PAGES, INITIAL_SETUP_DIALOG, SETTINGS_STRINGS_PACK, SETTINGS_STRINGS_TABLE,
   consoleSettingsCurrent, displayCurrentSetting, ratingTableFor, referenceState, unknownSettings,
   type ConsoleState, type Dialog, type Label, type OptionPage,
 } from './settingsModel';
-import { LISTS_DISABLED_OFFLINE } from './codeLists';
+import { LISTS_DISABLED_OFFLINE, CONTROLS_HIDDEN_OFFLINE } from './codeLists';
 import { REFERENCE_AV_PACK } from './displaySettings';
 import { playTransition, transitionId, transitionKey, type TransitionProp, type RunningTransition } from './transitions';
 import { BOOT_RANGES, DEFAULT_BOOT } from './boot';
@@ -364,10 +364,10 @@ export class BladeShell {
 
   /**
    * Clear the authoring tool's angle-bracket captions - "<setting>",
-   * "<servicename>", "<free space>". See AUTHORING_PLACEHOLDER: each is a slot
-   * the console filled from device or Live state before the control was shown,
-   * so the token itself was never on screen. Cleared, counted in
-   * `hardwareState`, and never replaced with a guess.
+   * "<servicename>", "<free space>", "<#> of <Total #>". See AUTHORING_TOKEN:
+   * each is a slot the console filled from device or Live state before the
+   * control was shown, so the token itself was never on screen. Cleared,
+   * counted in `hardwareState`, and never replaced with a guess.
    */
   private discloseHardwareState(level: Level): void {
     this.clearTokens(level.id, level.node);
@@ -380,6 +380,11 @@ export class BladeShell {
    * showed, whatever scene it sat in. A node the shell has already filled
    * from the string table is left alone - the build's own "<None>" (string
    * 427) is a value, not a token.
+   *
+   * The match is a SEARCH, not an anchor: 19 of the corpus's 211 token
+   * controls carry the token inside other text, and the console's writers
+   * replace the whole caption either way (SetText 0x92158f40, or a Show(0) -
+   * see PLACEHOLDERS for the two reachable cases and their addresses).
    */
   private clearTokens(sceneId: string, root: NodeRecord): void {
     const walk = (n: NodeRecord) => {
@@ -387,9 +392,11 @@ export class BladeShell {
         const authored = propString(n.obj, 'Text');
         const live = n.overrides.get('Text');
         const text = typeof live === 'string' ? live : authored;
-        if (text && AUTHORING_PLACEHOLDER.test(text)) {
+        if (text && paintsAuthoringToken(text)) {
           setOwnerText(n, '');
-          const entry = `${sceneId}:${idOf(n.obj) || n.obj.className} ${text.trim()}`;
+          const id = idOf(n.obj) || n.obj.className;
+          const why = TOKEN_SLOTS[`${sceneId}#${id}`];
+          const entry = `${sceneId}:${id} ${text.replace(/\s+/g, ' ').trim()}${why ? ` - ${why}` : ''}`;
           if (!this.hardwareState.includes(entry)) this.hardwareState.push(entry);
         }
       }
@@ -1367,6 +1374,20 @@ export class BladeShell {
     if (off) {
       for (const id of off.hide) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); } }
       for (const id of off.show) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', true); updateNode(n, ['Show']); } }
+    }
+    // Controls the console's own init hides on this hardware. Every COPY under
+    // the level, not the first: the same lesson MediaSourceSelection's "Please
+    // wait" pair taught [Judge E round 3, finding 5].
+    const down = CONTROLS_HIDDEN_OFFLINE[level.id];
+    if (down) {
+      let hid = 0;
+      for (const id of down.hide) {
+        for (const n of findAllById(level.node, id)) { n.overrides.set('Show', false); updateNode(n, ['Show']); hid++; }
+      }
+      if (hid) {
+        const gap = `${level.id}: ${down.hide.join(' / ')} hidden - ${down.why}`;
+        if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
+      }
     }
   }
 

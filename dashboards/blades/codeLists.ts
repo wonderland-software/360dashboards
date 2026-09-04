@@ -205,6 +205,41 @@ export const LISTS_DISABLED_OFFLINE: Readonly<Record<string, { lists: readonly s
 };
 
 /**
+ * Controls whose SHOW state is code, not authoring - the scene draws them all
+ * and the console's own init picks. Nothing is filled here and nothing is
+ * invented: the flag is read from the same console state the rest of the shell
+ * already has, and the reason is recorded in `__dash.shell.hardwareState`.
+ *
+ * `arcade/2504_TitleOptionsScene`'s five storage-device indicators are the
+ * whole table so far. The scene authors HD, MUA, MUB, OD and BuiltInMU at ONE
+ * design point (940.679, 95.802) - they are alternatives, not a row - and
+ * `Arcade::CTitleOptionsScene` shows exactly one of them or none:
+ *
+ *   0x9221c558  hd = mua = mub = od = builtin = 0
+ *               r3 = this->2196            ; the selected TITLE record
+ *               if (r3 == 0) goto show     ; nothing selected: all five stay 0
+ *               switch (0x922297b0(title)) ; the content's device
+ *                 1 -> hd   2 -> builtin   4 -> od
+ *                 0x10000002 -> mua        0x20000002 -> mub
+ *   0x9221c5e8  Show(HD, hd) Show(MUA, mua) Show(MUB, mub)
+ *               Show(OD, od) Show(BuiltInMU, builtin)
+ *
+ * The five handles are bound at 0x9221da20-0x9221da80 into this+2300, +2304,
+ * +2308, +2312 and +2316. There is no title offline, so all five are down;
+ * before M3h the page drew the MUA and MUB glyphs stacked on each other
+ * [Judge E round 5].
+ */
+export const CONTROLS_HIDDEN_OFFLINE: Readonly<Record<string, { hide: readonly string[]; why: string }>> = {
+  'arcade/2504_TitleOptionsScene.xur': {
+    hide: ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU'],
+    why: 'no title is selected (there is no content offline), so the five storage-device '
+      + 'indicators the scene stacks at (940.679, 95.802) are all down: 0x9221c558 leaves '
+      + 'every flag 0 when this+2196 is null and 0x9221c5e8-0x9221c620 shows each of '
+      + 'HD / MUA / MUB / OD / BuiltInMU with its own flag',
+  },
+};
+
+/**
  * Code-driven lists we do NOT fill, and why. Reported by the shell so a page
  * that comes up empty says so instead of looking finished.
  */

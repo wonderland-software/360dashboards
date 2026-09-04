@@ -328,7 +328,12 @@ npx vercel@latest deploy --prebuilt --prod
   option selects (arrival row, the write, the pop with its cue, the parent's
   line), the disabled Display row and its `btn_InactiveSelect`, the clock
   spinners, the rating lists, X/Y, and a painted-token gate on every page it
-  reaches. Section 9 re-walks Judge E round 3's findings: a pushed page's
+  reaches. Section 11 sweeps ALL 50 pages the drive reaches and gates two
+  things on each: no painted authoring token, searched anywhere inside a
+  caption (the old detector was anchored to a caption that is nothing but one
+  token, and 19 of the corpus's 211 token controls carry theirs among other
+  words - two of them on reachable pages), and no two visible controls
+  painting at one authored design box unless the console draws them that way. Section 9 re-walks Judge E round 3's findings: a pushed page's
   header measured in DESIGN pixels on three blades, the page underneath
   measured painted after every pop (against the blank state the suite produces
   on purpose, and against the console's own pop in [FRAME 8498
@@ -375,7 +380,9 @@ and one slot working. After M4e (`dashboards/nxe/pageFocus.ts`, `strip.ts`,
   the case address. `&page=<root scene>` hosts a root directly.
 - X and Y go to the page's control bound by `PressKey` 0x5802 / 0x5803
   (Storage Devices' "Device Options"); every `<...>` authoring token is
-  cleared on every page; a whitespace or `Show=false` legend caption draws
+  cleared on every page - a token ANYWHERE inside a caption, not only a
+  caption that is nothing but one ("<#> of <Total #>", "Uninstall
+  <servicename>"), with the console rule that filled each recorded beside it; a whitespace or `Show=false` legend caption draws
   no entry.
 - The legend leaves on A at `From` frame 95, not on the press: the
   `SceneTransitions/TransitionSubElements` variable holds a zero across the

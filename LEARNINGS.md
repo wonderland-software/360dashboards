@@ -1388,9 +1388,12 @@ the wrong half of the data.**
   through 447 screens undetected. **The gate that catches this class is a
   registry of "authored text the code replaces", checked against the scene file
   by a unit test so a typo cannot pass it, and swept over every reachable page.**
-  A sweep of every authored `Text` of 40+ characters over all 263 scenes (126;
+  A sweep of every authored `Text` of 40+ characters over all 263 scenes (**127**;
   34 on the 50 reachable pages) found exactly one such control, which is why the
-  registry can be a list and not a heuristic.
+  registry can be a list and not a heuristic. The count was first written as 126
+  and is 127: `arcade/250x_EZPassScene` carries TWO controls called `lblInfo`,
+  and a survey that keys by id instead of by control loses one of them
+  [Judge E round 5, low finding 1].
 - **The branch a code path takes is part of the reading.** The finding said the
   page formats `dashCSettingsStrings[546]`. It formats one of TWO, and the test
   at 0x921c86f4 is the IPTV-provider predicate — the same `0x9226e7d8()` that
@@ -1461,3 +1464,55 @@ that only a small screen or a finger can find.
   reads 397 MB that way against 118 MB at the raster scale. `smoke-mobile`
   prints both and holds the budget against the second. The layer COUNT is scale
   free and is held against smoke-boot's 24 either way.
+
+## Blades M3h: an anchored rule is a blind spot in the gate as well as the fix (2026-09-03)
+
+- **When the fix and the detector share a rule, the gate proves nothing.** The
+  authoring-token clear tested `/^\s*<[^<>\r\n]{1,40}>\s*$/` - a caption that is
+  NOTHING BUT one token. The walk's token detector and the smoke gate carried
+  the same anchor, so a page painting `<#> of <Total #>` read as a clean page
+  and round 4 could truthfully report "0 painted tokens on 447 screens" while
+  two reachable pages had one on screen. The corpus decides the shape, not the
+  common case: **211** controls in 6770 carry a token and **192** are wholly one,
+  so nineteen slipped through a rule fitted to the 192. **Write the rule from a
+  sweep of the whole corpus, and write the gate from the rule's OPPOSITE -
+  search where the fix matches.**
+- **Widening a text rule is safe only when you have swept for what it would
+  swallow.** Every one of the 211 authored `Text`s in the build that contains a
+  `<` IS a token: no HTML body, no prose with an angle bracket, in any of 263
+  scenes. That sweep is what makes "contains a token anywhere" defensible; the
+  same widening on a corpus with one `<font>` in it would eat a sentence.
+- **The console replaced captions, it never patched them.** Every writer traced
+  for the nineteen either `SetText`s the WHOLE control (0x92158f40) or hides it.
+  That is why the predicate is "carries a token anywhere", not "is a token": the
+  authored text around the token was never on screen either.
+- **"The code never writes it" is a finding you can prove by ABSENCE, and the
+  proof is a scan, not a read.** `memory/DeviceSelector` binds `labTotal` into
+  its controls block at +0x10 and hides it at init (0x9225ad08). To claim it
+  never comes back up, scan every `lwz`/`stw` at that offset across the pack's
+  whole address range - one instruction, one grep - instead of reading the class
+  hoping to have seen every path. The absence is the answer.
+- **A member offset identifies a class better than a name.** Two "n of N"
+  writers in the memory pack look identical in source; they differ only in
+  `this+20` vs `this+24`. Matching the offset back to the bind function
+  (`addi r5, r31, N` beside the `L"id"` literal) is what says WHICH scene each
+  belongs to - and that neither of them is the scene the finding was about.
+- **A stacking gate must key on the CONTROL's authored box, not on its ink.**
+  `2504`'s MUA and MUB indicators are authored at the same design point and
+  their glyphs land a pixel apart, so a gate keyed on painted ink walks past
+  them. Keyed on the control's own box, the same sweep over 50 pages finds them
+  and finds one other pair, which is the console's own.
+- **A stalled headless page fails ninety times and says one thing.** Two
+  headless Chromes on one machine starve each other, and a page that stops being
+  scheduled freezes the shell on one snapshot; every assertion after that point
+  compares against the same frozen numbers. Ask the ENGINE whether it ran -
+  `frames` before and after the frames you stepped - wait for the clock to come
+  back before believing it did not, and when it really is dead report it ONCE
+  and suppress the dependent checks with a count. The suppression must be scoped
+  to the section and off by default, or it is a way to hide real failures.
+- **Do not edit a source file while a suite is running against your own vite.**
+  The dev route's teardown does `delete window.__dashApi` (app/main.ts), and an
+  HMR update fires it: a save landed mid-run and `smoke-nxe`'s completeness
+  walker threw `Cannot read properties of undefined (reading 'nxe')` from an
+  `evaluate` that had nothing to do with the edit. It looks exactly like a
+  regression in the section it lands in. Finish the run, then edit.

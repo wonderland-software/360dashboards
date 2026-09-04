@@ -42,7 +42,7 @@ are what they printed.
 | pages reached whose rows do what the console does on A (push a page, or nothing by design) | 14 |
 | pages reached where A on the focused row does NOTHING and should do something offline | **31** (21 option pages, 4 blade rows, 6 code-path rows, see B) |
 | pages reached with an empty list the console fills (undecoded or unwired) | 8 (HiDef, ClockTime x5 spinners, FamilyTimer, PControlGame/Movie/TV ratings, DeviceSelector, ConnStatus) |
-| pages reached that paint an authoring token | 2 (`<text>` on `arcade/2500_LiveArcadeHome`; `<device type>`, `<device connection string>`, `<device name>`, `<help text>` on `dashcomm/742_SelectNetworkDevice`) |
+| pages reached that paint an authoring token | 2 at the time of this audit (`<text>` on `arcade/2500_LiveArcadeHome`; `<device type>`, `<device connection string>`, `<device name>`, `<help text>` on `dashcomm/742_SelectNetworkDevice`), then 2 MORE that no detector could see (see the M3h note under D). **0 as of M3h**, measured over all 50 reached pages by `smoke-nav` §11 |
 | pad buttons routed / doing anything | 11 / 7 (X, Y, Start, Back do nothing; LT/RT/sticks unused by the console too) |
 | blade switches: ranges + cues correct | 8 / 8 |
 | list ends: clamped and silent (no authored `Wrap`) | 47 / 47 walked; `dashSysLiveVision` wraps because its list authors `Wrap` |
@@ -159,7 +159,7 @@ archive does not have.
 | row | verdict | why |
 |---|---|---|
 | "Second-level option lists: four of eleven still empty" | **inflated twice** | (1) The parental rating list CAN be filled: all 29 tables (184 rows) are decoded in `pcontrolSettings.ts`, and the locale that picks one is the same "United Kingdom" the file already accepts as a hardware-state row for the Locale line. (2) The clock spinners' RANGES are `sprintf` of decoded constants; only the parked value is device state. (3) "eleven" undercounts: the offline tree has 11 more code-driven lists with no table at all (`DeviceSelector#list_devices`, `MediaSourceSelection#listMediaSources`, `PControlVideoTV/Movie#lstRating`, `905#List`, three `music/*`, three `arcade/*`), and `ConnStatus` is not disclosed. |
-| "The Current Setting values ... the tokens are CLEARED, never painted" (Blades) | **false on 2 reached pages** | `<device type>`, `<device connection string>`, `<device name>`, `<help text>` are painted on Computers and `<text>` on the Arcade home: the clear runs before the metapane sub-scene and banner load. |
+| "The Current Setting values ... the tokens are CLEARED, never painted" (Blades) | **was false on 2 reached pages, then on 2 more; CLOSED in M3h** | `<device type>`, `<device connection string>`, `<device name>`, `<help text>` were painted on Computers and `<text>` on the Arcade home, because the clear ran before the metapane sub-scene and banner loaded (fixed in M3g). Judge E round 5 then found the deeper half of the same claim: the clear's regex was ANCHORED, so it only ever matched a Text that was NOTHING BUT one token. The corpus has 211 token controls, 192 whole and **19 carrying a token inside other text**, and all 19 were invisible to the fix AND to the detector that measured it - which is why round 4 could read "0 painted tokens on 447 screens" while `memory/DeviceSelector#labTotal` painted "<#> of <Total #>" and `arcade/2504_TitleOptionsScene#lblRatingText` painted three rating tokens. The rule is a SEARCH as of M3h, all 19 are named with the console rule that filled each (`TOKEN_SLOTS`), and the gate is a global search run over all 50 reached pages. See PLACEHOLDERS and JUDGE "Closed in M3h". |
 | same row, "NXE 9199 ... the one token the shell reaches there, `navIPTVSettings`'s `<servicename>`" | **false** | `<setting>` is painted on 7 of the 8 Console Settings sub-pages the shell reaches by A. Judge G R5 counted one page and was told the gate covers two scenes; it is seven. |
 | "Which `.xur` an `EcNavTo*` command opens ... Every other command is REFUSED ... no slot points anywhere plausible" | **inflated** | `EcNavToWhatsNew`, `EcNavToXboxBasics` and `EcNavToLiveUpsell` have destinations of exactly the standing `EcNavToSettings` was accepted on: the binary registers `CWhatsNewRootScene`, `CXboxBasicsRootScene` and `CUpsellRootScene` against `firstrun/WhatsNewRootScene.xur`, `firstrun/XboxBasicsRootScene.xur`, `homepage/LiveUpsellRootScene.xur` (NXE_GLUE_SPEC §3), and each root's panels are its pack siblings. The row should say "not built", not "not evidenced". |
 | "The Rome CHANNEL ... the offline archive declares none" | **wrong** | The three Rome roots above ARE offline Rome channels (9, 8 and 5 panels), plus `arcade/ArcadeFilterScene` behind Games Library, which the Yrt capture shows as "Collections 2 of 2" [f0396] and the smoke suite already measures as a single panel. The counter has something to count. |
@@ -197,3 +197,25 @@ not in this archive" (it is, and the Display row pushes it).
   measured; the 8498 capture's selection behaviour (B1's pop rule); whether
   the NXE previous-row highlight really stays lit (N10); LB/RB on NXE (the
   console's behaviour is not in the specs); anything signed in.
+
+---
+
+## F. Corrections since this audit
+
+- **2026-09-03 (M3h, Judge E round 5).** The Blades authoring-token row above
+  counted what a detector could see, and the detector had the same blind spot
+  as the code: an ANCHORED regex that matches only a Text which is nothing but
+  one token. Over the 263 scenes, 211 controls carry a token and **19 of them
+  carry it inside other text**; two are reachable offline and both were on
+  screen. The rule, the walk's detector and the smoke gate are all a global
+  search now, and `smoke-nav` §11 sweeps every one of the **50** reached pages:
+  **0 painted tokens**. It also gates that no two visible controls paint at one
+  authored design box - which caught `arcade/2504_TitleOptionsScene` drawing
+  its MUA and MUB memory-unit glyphs on top of each other with no memory unit
+  attached (all five indicators are the console's own `Show(x, flag)` block at
+  0x9221c5e8 and are down with no title).
+- **2026-09-03.** The 40-character authored-`Text` sweep quoted in JUDGE and
+  LEARNINGS is **127**, not 126: `arcade/250x_EZPassScene` carries two controls
+  called `lblInfo`, and a survey keyed by id loses one of them. The conclusion
+  it supported - that `edInfo` is the only control whose prose belongs to
+  another screen - is unchanged.

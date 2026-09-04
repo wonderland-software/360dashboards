@@ -74,6 +74,9 @@ interface DashApi {
     closeLevel(): boolean;
     /** A on the focused control: resolve its PressPath and push the scene. */
     press(): Promise<boolean>;
+    /** Mount a page directly, the way a press resolves one. The gates use it to
+     *  sweep every reachable page without walking the whole tree to each. */
+    push(sceneId: string): Promise<boolean>;
     /** B: pop the top scene. */
     back(): boolean;
     move(dir: NavDirection): string | null;
@@ -349,6 +352,7 @@ async function blades(assets: AssetIndex, skin: Skin, t: DashTelemetry): Promise
     openLevel: () => { const ok = shell.openLevel(); syncShell(t, shell, audio); return ok; },
     closeLevel: () => { const ok = shell.closeLevel(); syncShell(t, shell, audio); return ok; },
     press: async () => { const ok = await shell.press(); await shell.idle(); syncShell(t, shell, audio); return ok; },
+    push: async (sceneId) => { const level = await shell.push(sceneId); await shell.idle(); syncShell(t, shell, audio); return level !== null; },
     back: () => { const ok = shell.back(); syncShell(t, shell, audio); return ok; },
     move: (dir) => { const id = shell.moveFocus(dir); syncShell(t, shell, audio); void shell.idle().then(() => syncShell(t, shell, audio)); return id; },
     pressKey: async (key) => { const ok = await shell.pressKey(key); await shell.idle(); syncShell(t, shell, audio); return ok; },
