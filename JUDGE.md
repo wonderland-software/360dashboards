@@ -1566,3 +1566,30 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   stepped. Nothing below this line was measured; run the suite alone or on the
   board (two headless Chromes on one machine starve each other).` One sentence
   where round 5 got eighty-eight.
+- **2026-09-03, Judge E round 6 @ 8425bb0: PASS** (four LOW residuals). The
+  judge swept the corpus itself: 211 authored Texts contain "<", all 211
+  carry a well-formed token, 0 HTML tags, 0 bare angle brackets after
+  stripping, so widening the clear to a search cannot swallow a caption; the
+  anchored rule matched 192 and missed exactly the 19 `TOKEN_SLOTS` names.
+  Both binary claims verified from its own disassembly (labTotal at +0x10,
+  the block reset's Show(_, 0) at 0x9225ad08-0x9225ad10 called from the load
+  at 0x9225b1d4, the populate's empty arm never touching it; both "n of N"
+  writers hiding the label unless the list scrolls, string 67 =
+  "%1!d! of %2!d!"; 2504's no-rating arm hiding this+2184 and writing the
+  empty literal at 0x92001cd4). 447 screens, 0 painted tokens. **It
+  reproduced the falsification itself** in an isolated `git archive` copy:
+  re-anchored and with the hides emptied, smoke-nav exits 1 with 10 FAILs,
+  every one a round-5 finding and nothing spurious. The five indicators, the
+  two console-stacked discs, the smoke-nxe stall report and the 127 count all
+  check out, and the mobile work moved nothing it had measured. Residuals,
+  all LOW: (1) PLACEHOLDERS' token row still opens "the 168 controls" against
+  the 192/211 the same paragraph states, and no variant lands on 168
+  (XuiLabel-only is 166); (2) the shell CLEARS labTotal where the console
+  HIDES it - same pixels, but CONTROLS_HIDDEN_OFFLINE exists and would make
+  the DOM say what the binary says; (3) 2504's rating-pane frame
+  (grfxBackground, 144,428 405x165) is still drawn because the control the
+  no-rating arm hides at this+2184 has no name bind; (4) prose precision:
+  record+16 is {0x5000, 0xd0000}, and the reset's tail touches legend_b,
+  legend_y AND legend_a. Could not verify: that nothing else in the class
+  reads +0x10 (scanned an address window, not a symbol boundary); which AV
+  pack; the xui.h line citation.
