@@ -380,8 +380,14 @@ async function open(browser, url, device, touch = true) {
   });
   const pageErrors = [];
   page.on('pageerror', (e) => pageErrors.push(e.message));
-  await page.goto(BASE + url, { waitUntil: 'networkidle0', timeout: 60000 });
-  await page.waitForFunction(() => document.body.dataset.ready === 'true' || !!document.querySelector('.banner'), { timeout: 60000 });
+  // `domcontentloaded`, not `networkidle0`: the page's OWN ready flag on the
+  // next line is the real gate, and it is set after the manifest, the scenes,
+  // the skin and the font have loaded. Waiting for the network to fall quiet
+  // as well is redundant, and it is the first thing to time out when the
+  // machine is busy - this suite opens nine pages, and a loaded laptop took
+  // all nine past 60 s while every one of them was in fact ready (2026-09-04).
+  await page.goto(BASE + url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForFunction(() => document.body.dataset.ready === 'true' || !!document.querySelector('.banner'), { timeout: 120000 });
   const client = await page.target().createCDPSession();
   if (touch) await client.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   const settle = (ms = 350) => page.evaluate((n) => new Promise((r) => setTimeout(r, n)), ms);

@@ -1533,12 +1533,26 @@ Recorded per scene in `window.__dash`, never faked:
   BeginAddress entries land on a prologue under the flat mapping
   `raw = VA - 0x92000000`, against 82 under the header mapping). Addresses in
   `dashboards/blades/*.ts` are flat-mapped.
-- **Hardware state is disclosed, not guessed.** 168 controls across the corpus
-  ship a `Text` that is nothing but an angle-bracket token — `<setting>`,
-  `<servicename>`, `<free space>`, `<MAC Addr>`. The console filled each from
+- **Hardware state is disclosed, not guessed.** **192** controls across the
+  corpus ship a `Text` that is nothing but an angle-bracket token — `<setting>`,
+  `<servicename>`, `<free space>`, `<MAC Addr>` — and **19 more** carry one
+  among other words or a second token, **211** in all. The count is one row per
+  CONTROL OBJECT in the 263 `.xur` scenes of `public/assets/6770/xuiz`, walking
+  every scene's whole tree: 192 objects on 185 distinct `scene#id` keys (seven
+  ids are authored twice inside their own scene, such as
+  `2504_TitleOptionsScene#labDescription` in two panes) carrying 77 distinct
+  token strings. "168" stood here until M3i and no counting rule reproduces it
+  (the nearest neighbours are 166 `XuiLabel`-only and 172 for a whitespace-
+  intolerant anchor); it was never measured, and `tests/blades.test.ts` now
+  gates 192 / 19 / 211 over the corpus. The console filled each slot from
   device or Live state before the control was shown, so the token was never on
   screen; the shell clears them and lists each one in
-  `__dash.shell.hardwareState`. The one place a value is supplied is the
+  `__dash.shell.hardwareState` — except the ones the console HIDES rather than
+  writes over (`memory/DeviceSelector#labTotal`,
+  `consoles/dashSysCslSetStartUp#btnIPTV`), which are taken down by
+  `CONTROLS_HIDDEN_OFFLINE` with their authored caption left intact, because a
+  `Show(x, FALSE)` is not a `SetText` [Judge E round 6]. The one place a value
+  is supplied is the
   Console Settings metapane's "Current Setting" block
   (`Pane_txtCurrentSetting`, `DataAssociation` 4, a 383×173 presenter at y=33 in
   `metaScene_1line` — which is what the three-to-six leading CRLFs in every

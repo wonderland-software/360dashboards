@@ -1431,8 +1431,11 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   `+36 txt_EmptyList`. The block's reset (**0x9225ace8**, called from the
   scene's load at 0x9225b1d4) runs four `Show(x, FALSE)` in a row —
   0x9225ad00 `labDots`, **0x9225ad08-0x9225ad10 `labTotal`**, 0x9225ad18
-  `txt_EmptyList`, 0x9225ad2c the list — then `Enable(legend_y, 0)` and
-  `Enable(legend_a, 0)`. The populate (**0x9225b1f0**) re-shows the list and
+  `txt_EmptyList`, 0x9225ad2c the list — then a tail that touches ALL THREE of
+  the legend carriers the block binds, not two [corrected in M3i, Judge E round
+  6 residual 4]: `0x92151bc0(legend_b = +0x18, 0xff)` at 0x9225ad38,
+  `Enable(legend_y = +0x1c, 0)` at 0x9225ad44 and `Enable(legend_a = +0x14, 0)`
+  at 0x9225ad50. The populate (**0x9225b1f0**) re-shows the list and
   then takes one of two arms: `Show(txt_EmptyList, TRUE)` at
   0x9225b2f8-0x9225b304 when the device count is 0, or fills the list and hides
   it. **Neither arm touches +16.** A scan of every `lwz`/`stw` at offset 16
@@ -1449,11 +1452,16 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
   string.** The bind at 0x9221d9e0-0x9221d9f0 puts it at `this+2292`
   (`imgGameRating` at +2288). The rating routine (**0x9221cbe8**) reads
   `this+2196`, the selected TITLE record: null and it returns 0x8000ffff having
-  painted nothing; with a rating (record+14 set, record+16 in {0x5000, >0xd0000})
+  painted nothing; with a rating (record+14 set, record+16 in {0x5000, 0xd0000} — an equality
+  against each, `cmplwi r11,0x5000` at 0x9221cc24 then `lis r10,0xd` /
+  `cmplw` / `bne` at 0x9221cc2c-0x9221cc34, not a `>` [corrected in M3i, Judge
+  E round 6 residual 4])
   it writes `SetText(lblRatingText, (wchar*)(record + 7718))` at
   0x9221ccc4-0x9221ccf0; and on the no-rating arm **0x9221ccd0** it hides the
-  pane's own carrier (`this+2184` - a field the ctor zeroes at 0x9221c41c and
-  no name bind fills, so this survey does not name the control) and writes **`SetText(lblRatingText, L"")`** from
+  pane's own frame (`this+2184` — **`grfxBackground`**, named in M3i from the
+  bind this survey missed: the GetControl pair at 0x9221ca3c-0x9221ca4c, which
+  calls 0x9214dc88 directly instead of the 0x922233c0 helper the rest of the
+  class's binds go through) and writes **`SetText(lblRatingText, L"")`** from
   the empty wide literal at **0x92001cd4** (bytes `00 00`). There is no title
   offline, so an empty caption is the console's own state either way.
 

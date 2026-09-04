@@ -228,15 +228,82 @@ export const LISTS_DISABLED_OFFLINE: Readonly<Record<string, { lists: readonly s
  * +2308, +2312 and +2316. There is no title offline, so all five are down;
  * before M3h the page drew the MUA and MUB glyphs stacked on each other
  * [Judge E round 5].
+ *
+ * HIDING IS NOT BLANKING. A control the console takes down with Show(x, FALSE)
+ * belongs here, NOT in the token clear: the console never overwrote its
+ * caption, so the DOM has to end display:none with the authored text intact,
+ * and the disclosure has to name the Show, not a SetText that never ran. The
+ * two that moved here in M3i are `memory/DeviceSelector#labTotal` (the reset
+ * hides it) and `arcade/2504_TitleOptionsScene#grfxBackground` (the rating
+ * routine's no-rating arm hides it in the same three instructions that blank
+ * `lblRatingText`, which stays a clear because the console writes L"")
+ * [Judge E round 6, residuals 2 and 3].
  */
-export const CONTROLS_HIDDEN_OFFLINE: Readonly<Record<string, { hide: readonly string[]; why: string }>> = {
-  'arcade/2504_TitleOptionsScene.xur': {
-    hide: ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU'],
-    why: 'no title is selected (there is no content offline), so the five storage-device '
-      + 'indicators the scene stacks at (940.679, 95.802) are all down: 0x9221c558 leaves '
-      + 'every flag 0 when this+2196 is null and 0x9221c5e8-0x9221c620 shows each of '
-      + 'HD / MUA / MUB / OD / BuiltInMU with its own flag',
-  },
+export type HiddenControl = string;
+
+export interface HiddenControlsRule {
+  /** Control ids the console's init takes down on this hardware. */
+  readonly hide: readonly HiddenControl[];
+  /**
+   * How the id is resolved, matching the console's own lookup.
+   *
+   * Default (omitted): EVERY copy of that id under the level. A scene can
+   * author the same id twice and a hide has to reach both - MediaSourceSelection
+   * authors two `labelPleaseWaitText` [Judge E round 3, finding 5].
+   *
+   * `'sceneChildren'`: only the DIRECT children of the page's scene, which is
+   * all the console's own bind can see. `XuiElementGetChildById` (0x9214dc88 ->
+   * 0x921575d0) walks ONE level - the child list at host+24, following +32 -
+   * and returns the first name match, so a same-named control deeper in the
+   * tree is a different control the code never had a handle to. 2504 authors
+   * TWO `grfxBackground`: the rating pane's frame on `Scene_Main` (the one
+   * bound at 0x9221ca3c-0x9221ca4c) and another inside `scnTitle`.
+   */
+  readonly scope?: 'sceneChildren';
+  readonly why: string;
+}
+
+export const CONTROLS_HIDDEN_OFFLINE: Readonly<Record<string, readonly HiddenControlsRule[]>> = {
+  'arcade/2504_TitleOptionsScene.xur': [
+    {
+      hide: ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU'],
+      why: 'no title is selected (there is no content offline), so the five storage-device '
+        + 'indicators the scene stacks at (940.679, 95.802) are all down: 0x9221c558 leaves '
+        + 'every flag 0 when this+2196 is null and 0x9221c5e8-0x9221c620 shows each of '
+        + 'HD / MUA / MUB / OD / BuiltInMU with its own flag',
+    },
+    {
+      hide: ['grfxBackground'], scope: 'sceneChildren',
+      why: 'the rating pane\'s frame, and it is the control the rating routine hides when '
+        + 'the title carries no rating. The bind is the GetControl pair at '
+        + '0x9221ca3c-0x9221ca4c - addi r5,r31,2184 / L"grfxBackground" / bl 0x9214dc88 on '
+        + 'the page\'s own scene (this+4) - which is why a survey of the +0x8f0-style binds '
+        + 'through the 0x922233c0 helper does not see it, and why the ctor\'s zero at '
+        + '0x9221c41c looked unfilled [Judge E round 6, residual 3]. The no-rating arm '
+        + '0x9221ccd0-0x9221ccf0 runs Show(this+2184, FALSE) and SetText(lblRatingText, '
+        + 'L"") from 0x92001cd4 in the same three instructions, so the shell that honours '
+        + 'the blank honours the hide with it: the frame is a 405x165 rounded box at '
+        + '(144, 428) around a pane with nothing in it. The second grfxBackground the scene '
+        + 'authors is inside scnTitle and is a different control (scope sceneChildren)',
+    },
+  ],
+  'memory/DeviceSelector.xur': [
+    {
+      hide: ['labTotal', 'labDots'],
+      why: 'the list\'s "n of N" line and its enumerating dots, both taken down by the '
+        + 'controls block\'s reset (0x9225ace8, called from the scene load at 0x9225b1d4): '
+        + 'Show(labDots = this+12, 0) at 0x9225ad00, Show(labTotal = this+16, 0) at '
+        + '0x9225ad08-0x9225ad10, Show(txt_EmptyList = this+36, 0) at 0x9225ad18 and '
+        + 'Show(list, 0) at 0x9225ad2c, then 0x92151bc0(legend_b = this+24, 0xff) and '
+        + 'Enable(legend_y = this+28, 0) / Enable(legend_a = this+20, 0). The populate '
+        + '(0x9225b1f0) re-shows the list and takes one of two arms - Show(txt_EmptyList, '
+        + 'TRUE) at 0x9225b2f8-0x9225b304 with no device, or fills the list and hides it - '
+        + 'and NEITHER arm touches +16, while +12 is hidden again at 0x9225b214 and only '
+        + 'comes back up in the enumerating state (0x9225b38c). labTotal is HIDDEN, not '
+        + 'blanked: its authored "<#> of <Total #>" stays in the DOM behind display:none '
+        + '[Judge E round 6, residual 2]',
+    },
+  ],
 };
 
 /**

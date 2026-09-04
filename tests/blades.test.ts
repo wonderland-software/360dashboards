@@ -854,8 +854,10 @@ test('the authoring-token rule is a SEARCH: it catches all 211 corpus tokens, no
 test('the five storage-device indicators on 2504 are alternatives at ONE point, and none of them is on offline [Judge E round 5]',
   { skip: !assetsHere }, async () => {
     const { CONTROLS_HIDDEN_OFFLINE } = await import('@dash/blades/codeLists');
-    const rule = CONTROLS_HIDDEN_OFFLINE['arcade/2504_TitleOptionsScene.xur'];
-    assert.ok(rule, '2504 has a hidden-controls rule');
+    const rules = CONTROLS_HIDDEN_OFFLINE['arcade/2504_TitleOptionsScene.xur'];
+    assert.ok(rules, '2504 has hidden-controls rules');
+    const rule = rules.find((r) => r.hide.includes('HD'))!;
+    assert.ok(rule, 'the storage-device indicators are one of them');
     assert.deepEqual([...rule.hide], ['HD', 'MUA', 'MUB', 'OD', 'BuiltInMU']);
     assert.ok(/0x9221c5e8/.test(rule.why) && /0x9221c558/.test(rule.why), 'cited to the Show block and its guard');
 
@@ -875,4 +877,57 @@ test('the five storage-device indicators on 2504 are alternatives at ONE point, 
     assert.equal(at.get('MUA'), at.get('MUB'), 'which is why MUA and MUB drew on top of each other');
     assert.equal(at.get('HD'), at.get('BuiltInMU'), 'HD and BuiltInMU are the other stacked pair');
     assert.equal(at.get('OD'), '950.679,99.802');
+  });
+
+test('2504\'s rating-pane frame is grfxBackground, and only the copy the console can bind is hidden [Judge E round 6, residual 3]',
+  { skip: !assetsHere }, async () => {
+    const { CONTROLS_HIDDEN_OFFLINE } = await import('@dash/blades/codeLists');
+    const rule = CONTROLS_HIDDEN_OFFLINE['arcade/2504_TitleOptionsScene.xur']!.find((r) => r.hide.includes('grfxBackground'))!;
+    assert.ok(rule, 'the frame the no-rating arm hides has a rule');
+    // Named from the binary: the bind is a bare GetControl on this+4, not the
+    // 0x922233c0 helper the rest of the class's binds go through.
+    assert.ok(/0x9221ca3c/.test(rule.why) && /0x9221ccd0/.test(rule.why),
+      'cited to the bind and to the arm that hides it');
+    assert.equal(rule.scope, 'sceneChildren', 'the console\'s lookup walks ONE level');
+
+    // The scene authors TWO controls called grfxBackground and they are
+    // different controls: the rating pane's frame is the scene's own child.
+    const root = await scene('arcade/2504_TitleOptionsScene.xur');
+    // The canvas holds one scene; the console's lookup starts at the scene.
+    const sceneRoot = root.children.find((c) => c.className === 'XuiScene')!;
+    const box = (o: XuObject) => {
+      const p = propIn(o, 'Position') as { x: number; y: number } | undefined;
+      return `${Math.round(p?.x ?? 0)},${Math.round(p?.y ?? 0)} ${propIn(o, 'Width')}x${propIn(o, 'Height')}`;
+    };
+    const all: XuObject[] = [];
+    const walkObj = (o: XuObject): void => { if (idIn(o) === 'grfxBackground') all.push(o); o.children.forEach(walkObj); };
+    walkObj(sceneRoot);
+    assert.equal(all.length, 2, `two grfxBackground: ${JSON.stringify(all.map(box))}`);
+    const direct = sceneRoot.children.filter((c) => idIn(c) === 'grfxBackground');
+    assert.equal(direct.length, 1, 'exactly one of them is a direct child of the scene');
+    assert.equal(box(direct[0]!), '144,428 405x165', 'and it is the rating pane\'s frame');
+    assert.equal(all.filter((o) => o !== direct[0]).length, 1, 'the other sits inside scnTitle and stays as authored');
+  });
+
+test('DeviceSelector\'s labTotal is HIDDEN, not blanked: the disclosure names the Show [Judge E round 6, residual 2]',
+  { skip: !assetsHere }, async () => {
+    const { CONTROLS_HIDDEN_OFFLINE } = await import('@dash/blades/codeLists');
+    const { TOKEN_SLOTS } = await import('@dash/blades/consoleSettings');
+    const rule = CONTROLS_HIDDEN_OFFLINE['memory/DeviceSelector.xur']![0]!;
+    assert.deepEqual([...rule.hide], ['labTotal', 'labDots'], 'both controls the block reset takes down');
+    assert.ok(/0x9225ace8/.test(rule.why) && /0x9225ad08/.test(rule.why) && /0x9225ad00/.test(rule.why),
+      `cited to the reset and to each Show: ${rule.why}`);
+    assert.ok(/0x9225b2f8/.test(rule.why), 'and to the empty arm that re-shows txt_EmptyList alone');
+    // The slot stays in TOKEN_SLOTS (it IS one of the corpus's 19) but the row
+    // has to say the shell hides it, not that the shell clears it.
+    const why = TOKEN_SLOTS['memory/DeviceSelector.xur#labTotal']!;
+    assert.ok(/HIDES it/.test(why) && /CONTROLS_HIDDEN_OFFLINE/.test(why), `the row names the mechanism: ${why}`);
+    // The scene really does author the token on it, and the empty-list caption
+    // it sits under is a real string, not a token.
+    const root = await scene('memory/DeviceSelector.xur');
+    const byId = new Map<string, XuObject>();
+    const walkObj = (o: XuObject): void => { byId.set(idIn(o), o); o.children.forEach(walkObj); };
+    walkObj(root);
+    assert.equal(propIn(byId.get('labTotal')!, 'Text'), '<#> of <Total #>');
+    assert.equal(propIn(byId.get('txt_EmptyList')!, 'Text'), 'No storage devices found.');
   });

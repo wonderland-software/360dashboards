@@ -225,6 +225,10 @@ export class BladeShell {
   /** Nodes whose text the shell wrote from the build's own strings, so the
    *  authoring-token clear never takes "<None>" (string 427) for a token. */
   private readonly filledByShell = new WeakSet<NodeRecord>();
+  /** Nodes the console's own init takes down with Show(x, FALSE), so the token
+   *  clear leaves their authored caption alone: the console hid them, it never
+   *  wrote over them [Judge E round 6, residual 2]. */
+  private readonly hiddenByCode = new WeakSet<NodeRecord>();
   /** Loads in flight, so a test can wait for the metapane's sub-scene instead
    *  of sleeping. */
   private readonly pending = new Set<Promise<unknown>>();
@@ -385,9 +389,18 @@ export class BladeShell {
    * controls carry the token inside other text, and the console's writers
    * replace the whole caption either way (SetText 0x92158f40, or a Show(0) -
    * see PLACEHOLDERS for the two reachable cases and their addresses).
+   *
+   * A CONTROL THE CONSOLE HIDES IS NOT A CONTROL IT BLANKS. Both end in the
+   * same pixels - nothing - but they are different instructions and the DOM
+   * has to say which one ran, so a control the hide pass has already taken
+   * down (and its subtree, which the console's SetText never reached either)
+   * keeps its authored caption behind `display:none` and is disclosed by the
+   * hide, with the Show's address [Judge E round 6, residual 2]. That is why
+   * `hideWhatTheConsoleHides` runs BEFORE this clear.
    */
   private clearTokens(sceneId: string, root: NodeRecord): void {
     const walk = (n: NodeRecord) => {
+      if (this.hiddenByCode.has(n)) return;
       if (!this.filledByShell.has(n)) {
         const authored = propString(n.obj, 'Text');
         const live = n.overrides.get('Text');
@@ -1230,6 +1243,10 @@ export class BladeShell {
     level.disabledLists = filled.disabledLists;
     level.option = OPTION_PAGES[loaded.id];
     await this.fill(node);
+    // Hides FIRST, then the clear: a control the console takes down keeps its
+    // authored caption, and only a control the console writes over is blanked
+    // [Judge E round 6, residual 2].
+    this.hideWhatTheConsoleHides(level);
     this.discloseHardwareState(level);
     this.arrive(level);
 
@@ -1341,14 +1358,9 @@ export class BladeShell {
       const note = `${level.id}: lstAMPM hidden in 24-hour mode (0x921cc8b4-0x921cc8bc)`;
       if (!this.codeFilled.includes(note)) this.codeFilled.push(note);
     }
-    // dashStartUp's init hides btnIPTV without an IPTV provider (0x92282360(btnIPTV, 0)
-    // at 0x921c9308) and the chain around it has to be repaired the way the
-    // System blade's is.
-    if (level.id === 'consoles/dashSysCslSetStartUp.xur' && !this.state.iptv) {
-      const n = findById(level.node, 'btnIPTV');
-      if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); }
-      findById(level.node, 'btnMediaCenter')?.overrides.set('NavDown', '');
-    }
+    // btnIPTV's hide moved to hideWhatTheConsoleHides: it has to run before
+    // the token clear, or the shell blanks "<servicename>" on a button the
+    // console only ever hid [Judge E round 6, residual 2].
     // System Info: the page's XuiEdit is authored with the FACTORY RESET
     // screen's prose and dashSystemReset's init overwrites it - see
     // systemInfo.ts for the branch, the four fields and the addresses. The
@@ -1375,17 +1387,52 @@ export class BladeShell {
       for (const id of off.hide) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', false); updateNode(n, ['Show']); } }
       for (const id of off.show) { const n = findById(level.node, id); if (n) { n.overrides.set('Show', true); updateNode(n, ['Show']); } }
     }
-    // Controls the console's own init hides on this hardware. Every COPY under
-    // the level, not the first: the same lesson MediaSourceSelection's "Please
-    // wait" pair taught [Judge E round 3, finding 5].
-    const down = CONTROLS_HIDDEN_OFFLINE[level.id];
-    if (down) {
-      let hid = 0;
-      for (const id of down.hide) {
-        for (const n of findAllById(level.node, id)) { n.overrides.set('Show', false); updateNode(n, ['Show']); hid++; }
+  }
+
+  /**
+   * The controls the console's own init takes DOWN on this hardware, run
+   * before the token clear so a hidden control is never blanked as well: the
+   * console hid it, so its authored caption is still in the control and the
+   * disclosure names the `Show`, not a `SetText` that never ran [Judge E round
+   * 6, residual 2]. Every hidden node goes into `hiddenByCode`, which is what
+   * `clearTokens` skips.
+   */
+  private hideWhatTheConsoleHides(level: Level): void {
+    const down = (id: string, note?: (n: NodeRecord) => void) => {
+      const n = findById(level.node, id);
+      if (!n) return false;
+      n.overrides.set('Show', false); updateNode(n, ['Show']); this.hiddenByCode.add(n);
+      note?.(n);
+      return true;
+    };
+    // dashStartUp's init hides btnIPTV without an IPTV provider (0x92282360(btnIPTV, 0)
+    // at 0x921c9308) and the chain around it has to be repaired the way the
+    // System blade's is. The button's authored caption is "<servicename>" - a
+    // token - and it used to be CLEARED here as well as hidden, which said
+    // SetText where the code says Show [Judge E round 6, residual 2].
+    if (level.id === 'consoles/dashSysCslSetStartUp.xur' && !this.state.iptv) {
+      if (down('btnIPTV')) {
+        const gap = `${level.id}: btnIPTV hidden - no IPTV provider (the 0x9226e7d8 predicate, the same one that hides navIPTVSettings on the System blade); dashStartUp's init runs Show(btnIPTV, 0) at 0x921c9308, so its authored "<servicename>" caption was never on screen and was never overwritten either`;
+        if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
       }
-      if (hid) {
-        const gap = `${level.id}: ${down.hide.join(' / ')} hidden - ${down.why}`;
+      findById(level.node, 'btnMediaCenter')?.overrides.set('NavDown', '');
+    }
+    // The table. A bare id hides EVERY copy under the level, not the first -
+    // the lesson MediaSourceSelection's "Please wait" pair taught [Judge E
+    // round 3, finding 5]; a rule with `scope: 'sceneChildren'` hides only the
+    // direct children of the page's scene, which is all the console's own
+    // one-level name lookup (0x9214dc88 -> 0x921575d0) can reach.
+    for (const rule of CONTROLS_HIDDEN_OFFLINE[level.id] ?? []) {
+      const hid: string[] = [];
+      for (const id of rule.hide) {
+        const nodes = rule.scope === 'sceneChildren'
+          ? level.node.children.filter((c) => idOf(c.obj) === id)
+          : findAllById(level.node, id);
+        for (const n of nodes) { n.overrides.set('Show', false); updateNode(n, ['Show']); this.hiddenByCode.add(n); }
+        if (nodes.length) hid.push(id);
+      }
+      if (hid.length) {
+        const gap = `${level.id}: ${hid.join(' / ')} hidden - ${rule.why}`;
         if (!this.hardwareState.includes(gap)) this.hardwareState.push(gap);
       }
     }

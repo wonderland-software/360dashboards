@@ -155,7 +155,10 @@ export function paintsAuthoringToken(text: string): boolean {
  */
 export const TOKEN_SLOTS: Readonly<Record<string, string>> = {
   'memory/DeviceSelector.xur#labTotal':
-    'the list\'s "n of N" line. The console HIDES it: DeviceSelectorScene binds '
+    'the list\'s "n of N" line, and the shell HIDES it rather than blanking it - the row '
+    + 'is in CONTROLS_HIDDEN_OFFLINE (codeLists.ts), not in this clear, so the DOM ends '
+    + 'display:none with the authored "<#> of <Total #>" still in the control [Judge E '
+    + 'round 6, residual 2]. The console HIDES it: DeviceSelectorScene binds '
     + 'labTotal into the controls block at +0x10 (0x9225af38) and the block reset '
     + '0x9225ace8 - which the scene load calls at 0x9225b1d4 - runs Show(labTotal, 0) '
     + 'at 0x9225ad08-0x9225ad10, next to Show(labDots, 0) and Show(txt_EmptyList, 0). '
@@ -171,11 +174,14 @@ export const TOKEN_SLOTS: Readonly<Record<string, string>> = {
     + 'record: the rating routine 0x9221cbe8 reads this+2196 (the record), returns '
     + '0x8000ffff and paints nothing when it is null, writes SetText(lblRatingText, '
     + '(wchar*)(record + 7718)) at 0x9221ccc4-0x9221ccf0 when the record carries a '
-    + 'rating, and on the no-rating arm 0x9221ccd0 hides the pane\'s own carrier '
-    + '(this+2184, a field the ctor zeroes at 0x9221c41c and no name bind fills, so '
-    + 'this survey does not name the control) '
-    + 'and writes SetText(lblRatingText, L"") from the empty literal at 0x92001cd4. '
-    + 'There is no title offline, so the empty caption is the console\'s own state.',
+    + 'rating, and on the no-rating arm 0x9221ccd0 hides the pane\'s own frame - '
+    + 'this+2184 is grfxBackground, bound by the GetControl pair at 0x9221ca3c-0x9221ca4c '
+    + '(addi r5,r31,2184 / L"grfxBackground" / bl 0x9214dc88 on this+4), which a survey of '
+    + 'the binds that go through the 0x922233c0 helper cannot see [Judge E round 6, '
+    + 'residual 3] - and writes SetText(lblRatingText, L"") from the empty literal at '
+    + '0x92001cd4. There is no title offline, so the empty caption is the console\'s own '
+    + 'state; the frame is HIDDEN with it (CONTROLS_HIDDEN_OFFLINE), because the hide and '
+    + 'the blank are the same three instructions.',
   'memory/Categories.xur#labTotal': 'the same "n of N" line, filled by 0x9225fe78 from memory/Strings.xus[67] and hidden when the list does not scroll; the items are device state.',
   'memory/HDDVDContents.xur#labTotal': 'the same "n of N" line over the HD DVD player\'s contents: device state.',
   'memory/ItemsGrid.xur#labTotal': 'the same "n of N" line, filled by 0x92263ea0 from memory/Strings.xus[67]; the items are device state.',

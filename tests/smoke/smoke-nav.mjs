@@ -1495,9 +1495,17 @@ async function m3g(browser) {
  *      (this+2212) and only ever enables and captions it
  *      (0x9221e4e4 Enable, 0x9221e520 SetText) - it never hides it.
  *
+ * 11c. HIDDEN WHERE THE CONSOLE HIDES, PAINTED-AND-EMPTY WHERE IT BLANKS
+ *      [Judge E round 6, residual 2]. Same pixels, different instruction, and
+ *      the DOM has to say which one ran: `memory/DeviceSelector#labTotal` and
+ *      `2504`'s `grfxBackground` are `Show(x, FALSE)` in the code, so they end
+ *      display:none with their authored text still in them, while
+ *      `lblRatingText` is a `SetText(L"")` and ends visible and empty.
+ *
  * The pages are pushed rather than walked to: `push` is the same code path a
- * press resolves to (`fill` -> `discloseHardwareState` -> `arrive`), so the
- * clear and the hides run exactly as they do under input, and 50 pages cost
+ * press resolves to (`fill` -> `hideWhatTheConsoleHides` ->
+ * `discloseHardwareState` -> `arrive`), so the clear and the hides run exactly
+ * as they do under input, and 50 pages cost
  * one browser instead of a 447-screen tree walk.
  */
 async function m3h(browser) {
@@ -1581,16 +1589,59 @@ async function m3h(browser) {
   console.log(`  ${tag}${swept} pages swept, ${tokensSeen} painted token(s), ${stacks} stacked pair(s), all of them the console's own`);
 
   // 11c. The two the judge caught, disclosed with the address that fills or
-  // hides each - a blank caption has to say WHY it is blank.
+  // hides each - a blank caption has to say WHY it is blank - and the DOM
+  // saying WHICH instruction ran [Judge E round 6, residual 2].
   const sh = await page.evaluate(() => window.__dash.shell);
   for (const [key, addr] of [
-    ['memory/DeviceSelector.xur:labTotal', '0x9225ad08'],
+    // The HIDES read "<scene>: <ids> hidden - ...", the BLANK reads "<scene>:<id> <text>".
+    ['memory/DeviceSelector.xur: labTotal / labDots hidden', '0x9225ad08'],
     ['arcade/2504_TitleOptionsScene.xur:lblRatingText', '0x9221ccd0'],
+    ['arcade/2504_TitleOptionsScene.xur: grfxBackground hidden', '0x9221ca3c'],
+    ['consoles/dashSysCslSetStartUp.xur: btnIPTV hidden', '0x921c9308'],
   ]) {
     const line = sh.hardwareState.find((x) => x.startsWith(key));
     check(!!line && line.includes(addr),
       `${tag}${key} is disclosed with the console rule (${addr}): ${JSON.stringify(line ?? null)}`);
   }
+  // and none of the four hidden ones is disclosed as a CLEAR as well: a hide
+  // and a blank are different instructions and only one of them ran.
+  for (const key of ['memory/DeviceSelector.xur:labTotal', 'consoles/dashSysCslSetStartUp.xur:btnIPTV']) {
+    check(!sh.hardwareState.some((x) => x.startsWith(`${key} `)),
+      `${tag}${key} is not ALSO reported as a cleared token: ${JSON.stringify(sh.hardwareState.filter((x) => x.startsWith(key)))}`);
+  }
+  // The measurement itself, on the pages that own the three controls.
+  const probe = async (id, sel) => {
+    await page.evaluate((s) => window.__dashApi.shell.push(s), id);
+    await settle();
+    const got = await page.evaluate((s) => {
+      const vis = (el) => { try { return el.checkVisibility({ opacityProperty: true, visibilityProperty: true }); } catch { return true; } };
+      const scenes = [...document.querySelectorAll(`[data-xui-scene="${s.scene}"]`)];
+      const host = scenes[scenes.length - 1] ?? document;
+      // A hidden control has NO client rect (display:none), so its identity is
+      // read off the design box the renderer wrote into the style.
+      return [...host.querySelectorAll(`[data-xui-id="${s.id}"]`)].map((e) => ({
+        shown: vis(e), text: (e.textContent ?? '').replace(/\s+/g, ' ').trim(),
+        box: `${parseFloat(e.style.left)},${parseFloat(e.style.top)} ${parseFloat(e.style.width)}x${parseFloat(e.style.height)}`,
+        parent: e.parentElement?.closest('[data-xui-id]')?.dataset.xuiId ?? '(scene)',
+      }));
+    }, sel);
+    await page.evaluate(() => window.__dashApi.shell.back());
+    await page.evaluate(() => window.__dashApi.stepFrames(60));
+    await page.evaluate(() => window.__dashApi.shell.idle());
+    return got;
+  };
+  const total = await probe('memory/DeviceSelector.xur', { scene: 'memory/DeviceSelector.xur', id: 'labTotal' });
+  check(total.length === 1 && total[0].shown === false && total[0].text === '<#> of <Total #>' && total[0].box === '155,573 420x40',
+    `${tag}labTotal is HIDDEN with its authored caption intact, not blanked in place at (155, 573) 420x40 (0x9225ad08): ${JSON.stringify(total)}`);
+  const rating = await probe('arcade/2504_TitleOptionsScene.xur', { scene: 'arcade/2504_TitleOptionsScene.xur', id: 'lblRatingText' });
+  check(rating.length === 1 && rating[0].shown === true && rating[0].text === '',
+    `${tag}lblRatingText is PAINTED AND EMPTY, which is what SetText(L"") at 0x92001cd4 leaves: ${JSON.stringify(rating)}`);
+  const frame = await probe('arcade/2504_TitleOptionsScene.xur', { scene: 'arcade/2504_TitleOptionsScene.xur', id: 'grfxBackground' });
+  check(frame.length === 2 && frame.filter((f) => f.shown).length === 1,
+    `${tag}2504 authors two grfxBackground and exactly one is down - the rating pane's frame the no-rating arm hides at 0x9221ccd0, not scnTitle's: ${JSON.stringify(frame)}`);
+  const down = frame.find((f) => !f.shown);
+  check(down?.box === '144,428 405x165' && down?.parent === 'Scene_Main',
+    `${tag}and the hidden one is the scene's own 405x165 frame at (144, 428), not scnTitle's: ${JSON.stringify(frame)}`);
   // 11d. 2504's five storage-device indicators, all down with no title.
   await page.evaluate(() => window.__dashApi.shell.push('arcade/2504_TitleOptionsScene.xur'));
   await settle();
