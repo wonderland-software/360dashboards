@@ -1372,3 +1372,43 @@ gated; `smoke-blades`, `smoke-timeline`, `smoke-boot`, `smoke-input`,
 
 - **Still open / not settled:** which AV pack the reference console runs (4, 6
   or 8) — no frame separates them, unchanged from M3f.
+- **2026-09-03, Judge E round 5 @ 0dc2e62: FAIL** (one HIGH, three LOW), with
+  **all four round-4 findings verified closed** by the judge's own
+  measurement: it re-disassembled 0x921534e8 (a real function, next prologue
+  0x921536d8) and its tail's branch on arg 2, found NavigateToScenePath
+  reading bit 0 of the pressed control's +8 while the other forward path
+  hard-codes 0, parsed the corpus for **zero** StayVisible occurrences in 263
+  scenes, and confirmed exactly six scene nodes author Trans* in dashmain;
+  with its own unscoped detector over all 447 screens there is at most one
+  header, at most four glyphs and one "Select" everywhere, and
+  oobeProfileCreation shows its own four legends alone. System Info: the
+  fall-through is li r4,0x221 = **545** with four args and the taken arm 546
+  with five, and the strings have exactly four and five %-slots, so the arity
+  settles the mapping independently of the predicate. LiveVision: from the
+  skin data, XuiListChooser_No_Kill authors ScrollLeft/ScrollRight and only
+  four lists in 6770 name a horizontal template; one row each, 419x33 at
+  (539,412)/(539,465)/(539,518), lstTime unchanged at 373. The carrier survey
+  reproduces exactly (176/87, 187 full-canvas, 16 without, five ids, two
+  classes; XuiElements.xml:69 confirms PressKey DefaultVal 22592). Both
+  round-4 unverifiables are verified (39 pushed System pages all at (0,0)
+  1120x770, the same ten authoring their own Position).
+  NEW findings: (1) HIGH two reachable pages paint tokens the clear cannot
+  see - `memory/DeviceSelector#labTotal` paints "<#> of <Total #>" and
+  `arcade/2504_TitleOptionsScene#lblRatingText` paints
+  "<www.pegi.info: 3+ with mild>" and two "<Rating Information>" - because
+  AUTHORING_PLACEHOLDER (consoleSettings.ts:113) is ANCHORED, so it clears
+  only a Text that is nothing but one token: the corpus has 192 whole-token
+  controls (cleared) and 19 carrying a token inside other text (not), two of
+  them reachable. The walk's detectors and the smoke gate use the same
+  anchored shape, which is why round 4 read "0 painted tokens on 447 screens"
+  and why PLACEHOLDERS' "every angle-bracket token is CLEARED" is wrong in
+  the same way. (2) LOW the 40-char sweep count is 127, not 126
+  (250x_EZPassScene carries two lblInfo). (3) LOW 2504_TitleOptionsScene
+  paints both MUA and MUB memory-unit indicators at the identical authored
+  position with no memory unit attached, and 2502_TwistSelectorScene stacks
+  two of its three btnX discs; device state, undisclosed. (4) LOW smoke-nxe
+  fails loudly (40+ FAILs, "the panel axis integrated 0.000 frames") when run
+  beside another headless Chrome tearing down; alone and on the board it
+  passes. Could not verify: which AV pack; the xui.h line citation (values
+  confirmed from skin data); whether the console filled or hid labTotal and
+  lblRatingText offline. Fixes pending with M3h.
